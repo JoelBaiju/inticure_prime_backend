@@ -1,124 +1,82 @@
+from pyexpat import model
 from django.db import models
-# from analysis.models import *
-# from doctor.models import DoctorDoctorProfiles
-# # Create your models here.
 
-# class AdministratorCouponRedeemLog(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-#     coupon = models.ForeignKey('AdministratorDiscountCoupons', on_delete=models.SET_NULL, null=True)
 
-#     class Meta:
-#         db_table = 'administrator_couponredeemlog'
+# Create your models here.
+class InticureEarnings(models.Model):
+    net_profit=models.BigIntegerField(null=True)
+    net_expense=models.BigIntegerField(null=True)
+    net_income=models.BigIntegerField(null=True)
+    net_amount=models.BigIntegerField(null=True)
+    net_profit_usd=models.BigIntegerField(default=0)
+    net_expense_usd=models.BigIntegerField(default=0)
+    net_income_usd=models.BigIntegerField(default=0)
+    net_amount_usd=models.BigIntegerField(default=0)
+    currency=models.CharField(null=True,max_length=10)
+    
+class Plans(models.Model):
+    price=models.IntegerField(null=True)
+    specialization=models.CharField(null=True,max_length=50)
+    location_id=models.IntegerField(default=0)
 
-# class AdministratorDiscountCoupons(models.Model):
-#     coupon_code = models.CharField(max_length=60, null=True)
-#     discount_percentage = models.IntegerField(null=True)
-#     expiry_date = models.DateField(null=True)
+class Locations(models.Model):
+    location_id=models.BigAutoField(primary_key=True)
+    location=models.CharField(max_length=20)
+    currency=models.CharField(max_length=10)
+    country_code=models.CharField(max_length=10,null=True)
+class LanguagesKnown(models.Model):
+    language_id=models.BigAutoField(primary_key=True)
+    language=models.TextField(null=True)
+    
+class Payouts(models.Model):
+    payout_id=models.BigAutoField(primary_key=True)
+    appointment_id=models.IntegerField(null=True)
+    payout_date=models.DateField(auto_now=True)
+    payout_time=models.TimeField(auto_now=True)
+    accepted_date=models.DateField(null=True)
+    accepted_time=models.TimeField(null=True)
+    doctor_id=models.IntegerField(null=True)
+    base_amount=models.IntegerField(null=True)
+    inticure_fee=models.IntegerField(null=True)
+    payout_status=models.IntegerField(default=0)
+    payout_amount=models.IntegerField(null=True)
+   
+class TotalPayouts(models.Model):
+    payout_date=models.DateField(auto_now=True)
+    payout_time=models.TimeField(auto_now=True)
+    doctor_id=models.IntegerField(null=True)
+    total_payouts=models.IntegerField(null=True)
 
-#     class Meta:
-#         db_table = 'administrator_discountcoupons'
+class TotalEarnings(models.Model): 
+    doctor_id=models.BigIntegerField()
+    accepted_date=models.DateField(null=True)
+    accepted_time=models.TimeField(null=True)
+    total_earnings=models.IntegerField(null=True)
 
-# class AdministratorDuration(models.Model):
-#     doctor = models.ForeignKey('DoctorDoctorProfiles', on_delete=models.SET_NULL, null=True)
-#     duration = models.IntegerField(null=True)
+class Transactions(models.Model):
+    transaction_id=models.BigAutoField(primary_key=True)
+    invoice_id=models.IntegerField(null=True)
+    transaction_amount=models.IntegerField(null=True)
+    transaction_date=models.DateField(auto_now=True)
+    transaction_time=models.TimeField(auto_now=True)
+    payment_status=models.IntegerField(default=0)
 
-#     class Meta:
-#         db_table = 'administrator_duration'
 
-# class AdministratorInticureEarnings(models.Model):
-#     net_profit = models.BigIntegerField(null=True)
-#     net_expense = models.BigIntegerField(null=True)
-#     net_income = models.BigIntegerField(null=True)
-#     net_amount = models.BigIntegerField(null=True)
-#     net_amount_usd = models.BigIntegerField()
-#     net_expense_usd = models.BigIntegerField()
-#     net_income_usd = models.BigIntegerField()
-#     net_profit_usd = models.BigIntegerField()
-#     currency = models.CharField(max_length=10, null=True)
-
-#     class Meta:
-#         db_table = 'administrator_inticureearnings'
-
-# class AdministratorLanguagesKnown(models.Model):
-#     language = models.TextField(null=True)
-
-#     class Meta:
-#         db_table = 'administrator_languagesknown'
-
-class AdministratorLocations(models.Model):
-    location = models.CharField(max_length=20)
-    currency = models.CharField(max_length=10)
-    country_code = models.CharField(max_length=10, null=True)
-
-    class Meta:
-        db_table = 'administrator_locations'
-
-# class AdministratorPayouts(models.Model):
-#     payout_date = models.DateField()
-#     payout_time = models.TimeField()
-#     accepted_date = models.DateField(null=True)
-#     accepted_time = models.TimeField(null=True)
-#     doctor = models.ForeignKey('DoctorDoctorProfiles', on_delete=models.SET_NULL, null=True)
-#     payout_status = models.IntegerField()
-#     payout_amount = models.IntegerField(null=True)
-#     appointment = models.ForeignKey('AnalysisAppointmentHeader', on_delete=models.SET_NULL, null=True)
-#     doctor_name = models.CharField(max_length=30, null=True)
-#     base_amount = models.IntegerField(null=True)
-#     inticure_fee = models.IntegerField(null=True)
-
-#     class Meta:
-#         db_table = 'administrator_payouts'
-
-# class AdministratorPlans(models.Model):
-#     price = models.IntegerField(null=True)
-#     specialization = models.CharField(max_length=50, null=True)
-#     location = models.ForeignKey(AdministratorLocations, on_delete=models.CASCADE)
-
-#     class Meta:
-#         db_table = 'administrator_plans'
-
-# class AdministratorReportCustomer(models.Model):
-#     appointment = models.ForeignKey('AnalysisAppointmentHeader', on_delete=models.SET_NULL, null=True)
-#     customer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='reported_customers')
-#     doctor = models.ForeignKey('DoctorDoctorProfiles', on_delete=models.SET_NULL, null=True)
-#     report_remarks = models.TextField(null=True)
-#     report_count = models.IntegerField(null=True)
-
-#     class Meta:
-#         db_table = 'administrator_reportcustomer'
-
-# class AdministratorSpecializationTimeDuration(models.Model):
-#     specialization = models.CharField(max_length=50, null=True)
-#     time_duration = models.IntegerField(null=True)
-
-#     class Meta:
-#         db_table = 'administrator_specializationtimeduration'
-
-# class AdministratorTotalEarnings(models.Model):
-#     doctor = models.ForeignKey('DoctorDoctorProfiles', on_delete=models.CASCADE)
-#     accepted_date = models.DateField(null=True)
-#     accepted_time = models.TimeField(null=True)
-#     total_earnings = models.IntegerField(null=True)
-
-#     class Meta:
-#         db_table = 'administrator_totalearnings'
-
-# class AdministratorTotalPayouts(models.Model):
-#     payout_date = models.DateField()
-#     payout_time = models.TimeField()
-#     doctor = models.ForeignKey('DoctorDoctorProfiles', on_delete=models.SET_NULL, null=True)
-#     total_payouts = models.IntegerField(null=True)
-
-#     class Meta:
-#         db_table = 'administrator_totalpayouts'
-
-# class AdministratorTransactions(models.Model):
-#     invoice = models.ForeignKey('AnalysisInvoices', on_delete=models.SET_NULL, null=True)
-#     transaction_amount = models.IntegerField(null=True)
-#     transaction_date = models.DateField()
-#     transaction_time = models.TimeField()
-#     payment_status = models.IntegerField()
-
-#     class Meta:
-#         db_table = 'administrator_transactions'
-
+class ReportCustomer(models.Model):
+    appointment_id=models.IntegerField(null=True)
+    customer_id=models.IntegerField(null=True)
+    doctor_id=models.IntegerField(null=True)
+    report_remarks=models.TextField(null=True)
+    report_count=models.IntegerField(null=True)
+class SpecializationTimeDuration(models.Model):
+    specialization_id=models.BigAutoField(primary_key=True)
+    specialization=models.CharField(null=True,max_length=50)
+    time_duration=models.IntegerField(null=True)
+class DiscountCoupons(models.Model):
+    coupon_code=models.CharField(null=True,max_length=60)
+    discount_percentage=models.IntegerField(null=True)
+    expiry_date=models.DateField(null=True)
+class CouponRedeemLog(models.Model):
+    user_id=models.IntegerField(null=True)
+    coupon_id=models.IntegerField(null=True)
+    
