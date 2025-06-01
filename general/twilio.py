@@ -65,12 +65,14 @@ class MessageClient:
         logger.debug('Twilio client initialized')
 
     def send_message(self, body, to):
-        self.twilio_client.messages.create(
+        response=self.twilio_client.messages.create(
             body=body,
             to=to,
             from_=self.twilio_number,
             # media_url=['https://demo.twilio.com/owl.png']
         )
+
+        return response
     def send_messaging_service(self, body, to):
         self.twilio_client.messages.create(
             body=body,
@@ -135,7 +137,10 @@ def send_otp_sms(otp, to_number):
     client = MessageClient()
     body = f"Your Inticure verification code is: {otp}"
     try:
-        client.send_message(body, to_number)
+        response = client.send_message(body, to_number)
+
+        print(response.status)
+        
         print(f"OTP sent successfully to {to_number}")
     except Exception as e:
         print(f"Failed to send OTP: {e}")
