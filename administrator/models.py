@@ -18,6 +18,7 @@ class Plans(models.Model):
     price=models.IntegerField(null=True)
     specialization=models.CharField(null=True,max_length=50)
     location_id=models.IntegerField(default=0)
+    number_of_sessions=models.IntegerField(null=True)
 
 class Locations(models.Model):
     location_id=models.BigAutoField(primary_key=True)
