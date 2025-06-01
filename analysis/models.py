@@ -3,7 +3,7 @@ from enum import auto
 from statistics import mode
 from django.db import models
 from django.contrib.auth.models import User
-
+from doctor.models import DoctorAvailableSlots
 # Create your models here.
 """Holds the catergory of medical issues"""
 
@@ -56,7 +56,7 @@ class AppointmentHeader(models.Model):
     appointment_status = models.IntegerField(default=0)
     appointment_date=models.DateField()
     appointment_time=models.TimeField(null=True)
-    appointment_slot=models.CharField(null=True,max_length=40)
+    appointment_slot=models.ForeignKey(DoctorAvailableSlots,null=True,on_delete=models.CASCADE, related_name='appointment_slot')
     escalated_date=models.DateField(null=True)
     escalated_time_slot=models.CharField(null=True,max_length=20)
     junior_doctor=models.IntegerField(null=True)

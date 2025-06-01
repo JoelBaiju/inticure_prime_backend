@@ -1,0 +1,1 @@
+def first_consultation_cost_calculator()
