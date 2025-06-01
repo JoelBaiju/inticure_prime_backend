@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from customer.models import *
 from doctor.models import *
+from inticure_prime_backend.settings import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_NUMBER
 
 # ======================FIRST ANALYSIS INTERROGATION ========================//
 
@@ -28,6 +29,7 @@ class PhoneNumberOrEmailSubmissionView(APIView):
         phone_number = request.data.get('phone_number')
         email = request.data.get('email')
         country_code = request.data.get('country_code', '+91')  
+        print(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_NUMBER)
 
         if phone_number:
             otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = generate_random_otp())

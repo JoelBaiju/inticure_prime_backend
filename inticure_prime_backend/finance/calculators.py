@@ -1,1 +1,1 @@
-def first_consultation_cost_calculator()
+def first_consultation_cost_calculator(appointment)
