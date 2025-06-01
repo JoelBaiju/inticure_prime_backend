@@ -50,6 +50,7 @@ class Options(models.Model):
 
 
 class AppointmentHeader(models.Model):
+    appointment_id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='appointment_header',null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='appointment_header',null=True, blank=True)
     appointment_status = models.IntegerField(default=0)
