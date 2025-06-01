@@ -30,8 +30,9 @@ class PhoneNumberOrEmailSubmissionView(APIView):
         email = request.data.get('email')
         country_code = request.data.get('country_code', '+91')  
         print(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_NUMBER)
-
+        print("Phone number:", phone_number)
         if phone_number:
+            print("Phone number received and got in:", phone_number)
             otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = generate_random_otp())
             send_otp_sms(otp = otp_instance.otp , to_number=country_code+phone_number)
             # send_otp_sms(otp = generate_random_otp() , to_number="+917034761676")
