@@ -24,10 +24,13 @@ class Locations(models.Model):
     location=models.CharField(max_length=20)
     currency=models.CharField(max_length=10)
     country_code=models.CharField(max_length=10,null=True)
+
 class LanguagesKnown(models.Model):
-    language_id=models.BigAutoField(primary_key=True)
     language=models.TextField(null=True)
     
+    def __str__(self):  
+        return self.language
+
 class Payouts(models.Model):
     payout_id=models.BigAutoField(primary_key=True)
     appointment_id=models.IntegerField(null=True)

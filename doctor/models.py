@@ -1,39 +1,58 @@
 from django.db import models
-
+from django.contrib.auth.models import User
+from administrator.models import *
 # Create your models here.
 
+class DoctorPaymentRates(models.Model):
+    country_code            = models.CharField(max_length=10, null=True)
+    country_name            = models.CharField(max_length=50, null=True)
+    currency                = models.CharField(max_length=10, null=True)
+    specialization          = models.CharField(max_length=50, null=True)
+    location                = models.CharField(max_length=50, null=True)
+    rate_per_session        = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    doctor_flag             = models.CharField(max_length=10, null=True)
+
+
 class DoctorProfiles(models.Model):
-    doctor_profile_id = models.BigAutoField(primary_key=True)
-    user_id = models.BigIntegerField()
-    location=models.CharField(max_length=30)
-    department=models.CharField(max_length=20)
-    specialization=models.CharField(max_length=20)
-    doctor_flag=models.CharField(max_length=10)
-    mobile_number=models.CharField(max_length=12)
-    gender=models.CharField(max_length=10,null=True)
-    working_date_frm=models.DateField(null=True)
-    working_date_to=models.DateField(null=True)
-    time_slot_from=models.IntegerField(null=True)
-    time_slot_to=models.IntegerField(null=True)
-    qualification=models.TextField(null=True)
-    address=models.TextField(null=True)
-    is_accepted=models.IntegerField(null=True)
-    registration_certificate=models.TextField(null=True)
-    address_proof=models.TextField(null=True)
-    sign_file_name=models.TextField(null=True)
-    sign_file_size=models.CharField(null=True,max_length=20)
-    reg_file_name=models.TextField(null=True)
-    reg_file_size=models.CharField(null=True,max_length=20)
-    addr_file_name=models.TextField(null=True)
-    addr_file_size=models.CharField(null=True,max_length=20)
-    signature=models.TextField(null=True)
-    certificate_no=models.TextField(null=True)
-    profile_pic=models.TextField(null=True)
-    profile_file_name=models.TextField(null=True)
-    profile_file_size=models.TextField(null=True)
-    doctor_bio=models.CharField(null=True,max_length=10000)
-    registration_year=models.TextField(null=True)
+    doctor_profile_id       = models.BigAutoField(primary_key=True)
+    user                    = models.ForeignKey(User, on_delete=models.CASCADE, related_name='doctor_profile',null=True)
+    location                = models.CharField(max_length=30)
+    department              = models.CharField(max_length=20)
+    specialization          = models.CharField(max_length=20)
+    doctor_flag             = models.CharField(max_length=10)
+    doctor_payment_rate     = models.ForeignKey(DoctorPaymentRates, on_delete=models.CASCADE, null=True, blank=True)
+    mobile_number           = models.CharField(max_length=12)
+    gender                  = models.CharField(max_length=10,null=True)
+    qualification           = models.TextField(null=True)
+    address                 = models.TextField(null=True)
+    is_accepted             = models.IntegerField(null=True)
+    registration_certificate= models.TextField(null=True)
+    address_proof           = models.TextField(null=True)
+    sign_file_name          = models.TextField(null=True)
+    sign_file_size          = models.CharField(null=True,max_length=20)
+    reg_file_name           = models.TextField(null=True)
+    reg_file_size           = models.CharField(null=True,max_length=20)
+    addr_file_name          = models.TextField(null=True)
+    addr_file_size          = models.CharField(null=True,max_length=20)
+    signature               = models.TextField(null=True)
+    certificate_no          = models.TextField(null=True)
+    profile_pic             = models.TextField(null=True)
+    profile_file_name       = models.TextField(null=True)
+    profile_file_size       = models.TextField(null=True)
+    doctor_bio              = models.CharField(null=True,max_length=10000)
+    registration_year       = models.TextField(null=True)
+
+    def __str__(self):
+        return f"{self.user.first_name}  {self.user.last_name} - {self.department} - {self.doctor_flag}"
     
+
+class DoctorLanguages(models.Model):
+    doctor      = models.ForeignKey(DoctorProfiles,on_delete= models.CASCADE ,null=True)
+    language    = models.ForeignKey(LanguagesKnown , on_delete=models.CASCADE, max_length=100,null=True)
+
+
+
+
 class Obeservations(models.Model):
     appointment_id=models.BigIntegerField()
     user_id=models.BigIntegerField(null=True, default=None)
@@ -143,10 +162,6 @@ class DoctorMapping(models.Model):
     doctor_flag=models.CharField(max_length=10,null=True)
     added_doctor=models.IntegerField(default=0)
 
-class DoctorLanguages(models.Model):
-    doctor_id=models.BigIntegerField(null=True)
-    languages=models.CharField(max_length=100,null=True)
-
 class FollowUpReminder(models.Model):
     appointment_id=models.BigIntegerField(null=True)
     follow_up_for=models.CharField(max_length=100,null=True)
@@ -188,7 +203,7 @@ class AppointmentCancellationLog(models.Model):
     cancelled_time=models.TimeField(auto_now=True)
     cancelled_by=models.CharField(max_length=20)
 
-
+ 
 class PatientMedicalHistory(models.Model):
     patient_medical_history_id=models.BigAutoField(primary_key=True)
     doctor_id=models.IntegerField()
@@ -226,4 +241,68 @@ class JuniorDoctorSlots(models.Model):
     date=models.DateField()
     time_slot=models.CharField(max_length=200)
     is_active=models.IntegerField(default=0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Calendar(models.Model):   # This model is used to store the calendar dates and days
+    date = models.DateField()
+    day = models.CharField(max_length=30)
+
+    def __str__(self):
+        return f"{self.date} - {self.day} "
+
+    class Meta:
+        verbose_name_plural = "Calendar"
+        ordering = ['date']
+
+
+class GeneralTimeSlots(models.Model):   # This model is used to store the general time slots for each day in the calendar
+    from_time   = models.TimeField()
+    to_time     = models.TimeField()
+    date        = models.ForeignKey(Calendar, on_delete=models.CASCADE, related_name='time_slots')
+
+
+    def __str__(self):
+        return self.from_time.strftime('%H:%M') + ' to ' + self.to_time.strftime('%H:%M')
+
+
+
+
+
+class DoctorAvailableSlots(models.Model):  # This model is used to store the availability of doctors for each day in each time slot
+    doctor          = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE, related_name='doctor_availability')
+    date            = models.ForeignKey(Calendar, on_delete=models.CASCADE, related_name='doctor_availability')
+    time_slot       = models.ForeignKey(GeneralTimeSlots, on_delete=models.CASCADE, related_name='doctor_availability')
+    is_available    = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.doctor.user_id} - {self.date.date} - {self.time_slot.from_time} to {self.time_slot.to_time}"
+
+    class Meta:
+        verbose_name_plural = "Doctor Availability"
+        ordering = ['doctor', 'date', 'time_slot']
+
+
 

@@ -1,11 +1,11 @@
 from django.db import models
+from django.contrib.auth.models import User
+
 
 # Create your models here.
 class CustomerProfile(models.Model):
-    customer_profile_id = models.BigAutoField(primary_key=True)
-    user_id = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='customer_profile')
     age=models.IntegerField(blank=True, null=True)
-    # address=models.TextField(null=True)
     gender=models.CharField(max_length=20,blank=True, null=True)
     other_gender=models.CharField(max_length=20,blank=True, null=True)
     address=models.CharField(max_length=50,blank=True, null=True)

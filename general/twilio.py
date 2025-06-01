@@ -133,7 +133,7 @@ class TwilioNotificationsMiddleware:
 def send_otp_sms(otp, to_number):
 
     client = MessageClient()
-    body = f"Your OTP for verification is: {otp}"
+    body = f"Your Inticure verification code is: {otp}"
     try:
         client.send_message(body, to_number)
         print(f"OTP sent successfully to {to_number}")

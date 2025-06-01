@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework',
     'analysis',
     'customer',
@@ -53,7 +55,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+
 ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'inticure_prime_backend.urls'
 
@@ -75,13 +80,50 @@ TEMPLATES = [
 WSGI_APPLICATION = 'inticure_prime_backend.wsgi.application'
 
 
+
+
+
+
+
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+
+    ),
+   
+
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=30), 
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'BLACKLIST_AFTER_ROTATION': True,
+}
+
+
+
+
+
+
+
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'inticure',   
+        'USER': 'root',       
+        'PASSWORD': 'root@123',  
+        'HOST': 'localhost',    
+        'PORT': '3306',         
     }
 }
 
@@ -144,6 +186,11 @@ DEFAULT_FROM_EMAIL = 'brandsinfoguide@gmail.com'  # Default from email (can be y
 
 
 
+# TWILIO_ACCOUNT_SID = "AC148221a87fe05c4f45b76f8e4e8e39c7"
+# TWILIO_AUTH_TOKEN = "84425555ec44e0227bd21b60bc119902"
+# TWILIO_NUMBER = "+1205890-2416"
+
+
 TWILIO_ACCOUNT_SID = "AC148221a87fe05c4f45b76f8e4e8e39c7"
-TWILIO_AUTH_TOKEN = "84425555ec44e0227bd21b60bc119902"
+TWILIO_AUTH_TOKEN = "d551d0eb5c815209d240a02b1bd4e389"
 TWILIO_NUMBER = "+1205890-2416"

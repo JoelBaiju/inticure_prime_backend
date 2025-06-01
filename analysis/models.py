@@ -2,6 +2,7 @@ from contextlib import nullcontext
 from enum import auto
 from statistics import mode
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
 """Holds the catergory of medical issues"""
@@ -12,6 +13,12 @@ class Category(models.Model):
     description = models.CharField(max_length=250, null=True)
     image = models.ImageField(upload_to="", null=True)
 
+    
+    def __str__(self):
+        return self.title
+    
+    
+
 
 """Holds the details  of analysis questions  that user submit before taking an appointment"""
 
@@ -19,28 +26,36 @@ class Category(models.Model):
 class Questionnaire(models.Model):
     question = models.CharField(max_length=300)
     answer_type = models.CharField(max_length=50)
-    category_id = models.IntegerField()
+    category = models.ForeignKey(Category , on_delete=models.CASCADE, related_name='questionnaire',null=True, blank=True)
     customer_gender=models.CharField(max_length=30,null=True)
 
+    def __str__(self):
+        return self.question
+    
+    
 """Holds the details  of options of  questions  that user submit before taking an appointment"""
 
 
 class Options(models.Model):
-    question_id = models.IntegerField()
+    question = models.ForeignKey(Questionnaire, on_delete=models.CASCADE, related_name='options',null=True , blank=True)
     option = models.CharField(max_length=100)
 
+    
+    def __str__(self):
+        return self.option
+    
+    
 
 """Holds the details  of an appointment.here appointment_status 1= , 2= , 3= cancel, 4 = ,5 = , 6= completed, 7 =reschedule ,8= ,9= order marked no show"""
 
 
 class AppointmentHeader(models.Model):
-    appointment_id = models.BigAutoField(primary_key=True)
-    user_id = models.IntegerField()
-    category_id = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='appointment_header',null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='appointment_header',null=True, blank=True)
     appointment_status = models.IntegerField(default=0)
     appointment_date=models.DateField()
     appointment_time=models.TimeField(null=True)
-    appointment_time_slot_id=models.CharField(null=True,max_length=40)
+    appointment_slot=models.CharField(null=True,max_length=40)
     escalated_date=models.DateField(null=True)
     escalated_time_slot=models.CharField(null=True,max_length=20)
     junior_doctor=models.IntegerField(null=True)
@@ -64,19 +79,13 @@ class AppointmentHeader(models.Model):
 """Holds the details  of analysis questions user submitted before taking appointment"""
 
 
-class AppointmentQuestions(models.Model):
-    appointment_questions_id = models.BigAutoField(primary_key=True)
-    appointment_id = models.IntegerField()
-    question_id = models.IntegerField()
-    question = models.TextField()
+class AppointmentQuestionsAndAnswers(models.Model):
+    appointment_id = models.ForeignKey(AppointmentHeader, on_delete=models.CASCADE, related_name='appointment_questions_and_answers',null=True, blank=True)
+    user     = models.ForeignKey(User, on_delete=models.CASCADE, related_name='appointment_questions_and_answers',null=True, blank=True)
+    question = models.ForeignKey(Questionnaire, on_delete=models.CASCADE, related_name='appointment_questions',null=True, blank=True)
+    answer = models.ForeignKey(Options, on_delete=models.CASCADE, related_name='appointment_answers',null=True, blank=True)
 
 
-"""Holds the details  of analysis answers user submitted before taking appointment"""
-class AppointmentAnswers(models.Model):
-    appointment_answer_id = models.BigAutoField(primary_key=True)
-    appointment_questions_id = models.IntegerField()
-    option_id = models.IntegerField(null=True)
-    answer = models.TextField(null=True)
 """Order Invoice Details"""
 class Invoices(models.Model):
     invoice_id=models.BigAutoField(primary_key=True)

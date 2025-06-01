@@ -20,11 +20,11 @@ from django.urls import include
 # from administrator import urls as administrator_urls
 from customer import urls as customer_urls
 # from doctor import urls as doctor_urls
-# from analysis import urls as analysis_urls
+from analysis import urls as analysis_urls
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('customer/', include(customer_urls)),
     # path('doctor/', include(doctor_urls)),
-    # path('analysis/', include(analysis_urls)),
+    path('analysis/', include(analysis_urls)),
     # path('administrator/', include(administrator_urls)),
 ]
