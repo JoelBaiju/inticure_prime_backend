@@ -194,7 +194,8 @@ class SubmitGenderCategoryView(APIView):
 
             appointment=AppointmentHeader.objects.create(
                 user=user,
-                category=category_instance)
+                category=category_instance
+                )
                 
 
 
