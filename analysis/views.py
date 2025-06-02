@@ -168,6 +168,7 @@ class SubmitGenderCategoryView(APIView):
         })
 
     def post(self, request):
+        user = request.user
         if user.is_anonymous:
             return Response({'error': 'User is not authenticated'}, status=HTTP_401_UNAUTHORIZED)
         user = request.user
