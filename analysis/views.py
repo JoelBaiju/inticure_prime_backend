@@ -245,18 +245,20 @@ class SubmitQuestionnaireView(APIView):
 
         for answer in answers:
             question = answer.get('question')
-            answer = answer.get('option')
+            options = answer.get('option')
 
-            if not question or not answer:
+            if not question or not options:
                 return Response({'error': 'Question ID and selected option are required'}, status=HTTP_400_BAD_REQUEST)
 
             # Save the answer (you may need to create a model for this)
-            AppointmentQuestions.objects.create(
-                appointment_id=AppointmentHeader.objects.get(user=user),
-                question=Questionnaire.objects.get(id=question),
-                answer=Options.objects.get(id=answer),
-                user=user
-            )
+            for option in options:
+
+                AppointmentQuestions.objects.create(
+                    appointment_id=AppointmentHeader.objects.get(user=user),
+                    question=Questionnaire.objects.get(id=question),
+                    answer=Options.objects.get(id=option),
+                    user=user
+                )
 
         return Response({'message': 'Answers submitted successfully'}, status=HTTP_200_OK)
 
