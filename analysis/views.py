@@ -270,7 +270,32 @@ class SubmitQuestionnaireView(APIView):
 
 
 
-# ========API : 5=========GET: submitting preferences and getting the available slots   ========================//
+# ========API : 5=========GET: for getting available languages  ========================//
+# ========URL : ==========/analysis/get_available_languages/ ========================//
+
+from doctor.serializers import DoctorLanguagesSerializer
+
+class GetAvailableLanguages(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Pull only the unique language names from related model
+        unique_languages = (
+            DoctorLanguages.objects
+            .values('language__language')  # or .values('language__name') depending on your field
+            .distinct()
+        )
+
+        # Restructure result to a clean format
+        languages_list = [{'language': item['language__language']} for item in unique_languages]
+
+        return Response({
+            'response_code': 200,
+            'status': 'Ok',
+            'languages': languages_list
+        })
+
+# ========API : 6=========GET: submitting preferences and getting the available slots   ========================//
 # ========URL : ==========/analysis/get_available_slots/ ========================//
 
 from datetime import datetime, timedelta
@@ -362,7 +387,7 @@ class SlotsBooking(APIView):
 
 
 
-# ========API : 6========= submitting personal data along with the selected slot language selected  ========================//
+# ========API : 7========= submitting personal data along with the selected slot language selected  ========================//
 # ========URL : ==========/analysis/submit_personal_data/ ========================//
 
 
