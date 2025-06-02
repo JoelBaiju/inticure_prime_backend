@@ -11,7 +11,6 @@ from doctor.models import DoctorAvailableSlots
 class Category(models.Model):
     title = models.CharField(max_length=100)
     description = models.CharField(max_length=250, null=True)
-    image = models.ImageField(upload_to="", null=True)
 
     
     def __str__(self):

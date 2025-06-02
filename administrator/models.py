@@ -15,6 +15,8 @@ class InticureEarnings(models.Model):
     currency=models.CharField(null=True,max_length=10)
     
 class Plans(models.Model):
+    name=models.CharField(max_length=50)
+    description=models.TextField(null=True)
     price=models.IntegerField(null=True)
     specialization=models.CharField(null=True,max_length=50)
     location_id=models.IntegerField(default=0)

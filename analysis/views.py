@@ -142,7 +142,6 @@ class PhoneNumberOrEmailVerificationView(APIView):
 
 
 
-
 # ========API : 3=========Adding the gender and category of the user for new users and send the questionnaire data based on the gender and cat ========================//
 # ========URL : ==========/analysis/submit_gender_category/ ========================//
 
@@ -217,7 +216,7 @@ class SubmitGenderCategoryView(APIView):
         return Response({
             'response_code': 200,
             'status': 'Ok',
-            'data': questionnaire_serialized
+            'questionnaire': questionnaire_serialized
         })
        
         return Response({'message': 'Profile created successfully'}, status=HTTP_200_OK)
@@ -299,7 +298,9 @@ class SlotsBooking(APIView):
             # Filter doctors by gender and language
             preferred_doctors = DoctorProfiles.objects.filter(
                 gender=preffered_gender,
-                doctorlanguages__language__language__iexact=preffered_language
+                doctorlanguages__language__language__iexact=preffered_language,
+                doctor_flag="junior"
+                ,
             ).distinct()
 
             # Filter available slots for preferred doctors tomorrow
