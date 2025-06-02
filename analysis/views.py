@@ -211,9 +211,10 @@ class SubmitGenderCategoryView(APIView):
 
         for question in questionnaire_serialized:
             try:
-                question['options'] = OptionsSerializer(Options.objects.filter(question=question),
+                question['options'] = OptionsSerializer(Options.objects.filter(question=question['id']),  
                                                         many=True).data
-            except:
+            except Exception as e:
+                print("Error fetching options for question:", question['id'], e)
                 question['options'] = ""
         return Response({
             'response_code': 200,
