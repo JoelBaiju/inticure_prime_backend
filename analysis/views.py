@@ -232,6 +232,7 @@ class SubmitGenderCategoryView(APIView):
 # ========API : 4========= Saving the selected answers from question ========================//
 # ========URL : ==========/analysis/submit_questionnaire/ ========================//
 
+from 
 
 class SubmitQuestionnaireView(APIView):
     permission_classes = [IsAuthenticated]
@@ -253,7 +254,7 @@ class SubmitQuestionnaireView(APIView):
             # Save the answer (you may need to create a model for this)
             for option in options:
 
-                AppointmentQuestions.objects.create(
+                AppointmentQuestionsAndAnswers.objects.create(
                     appointment_id=AppointmentHeader.objects.get(user=user),
                     question=Questionnaire.objects.get(id=question),
                     answer=Options.objects.get(id=option),
