@@ -155,7 +155,7 @@ from .models import Category, Questionnaire, Options
 from .serializers import *
 
 class SubmitGenderCategoryView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         # This method can be used to retrieve categories if needed
@@ -192,10 +192,10 @@ class SubmitGenderCategoryView(APIView):
                 gender=gender,
             )
 
-            appointment=AppointmentHeader.objects.create(
-                user=user,
-                category=category_instance
-                )
+        appointment=AppointmentHeader.objects.create(
+            user=user,
+            category=category_instance
+            )
                 
 
 
