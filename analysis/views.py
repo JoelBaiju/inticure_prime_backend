@@ -232,7 +232,6 @@ class SubmitGenderCategoryView(APIView):
 # ========API : 4========= Saving the selected answers from question ========================//
 # ========URL : ==========/analysis/submit_questionnaire/ ========================//
 
-from 
 
 class SubmitQuestionnaireView(APIView):
     permission_classes = [IsAuthenticated]
