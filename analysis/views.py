@@ -436,7 +436,7 @@ class FinalSubmit(CreateAPIView):
             customerProfile = CustomerProfile.objects.get(user=user)
         except CustomerProfile.DoesNotExist:
             customerProfile = None
-
+        try :
         if customerProfile:
             customerProfile.date_of_birth = dob
             customerProfile.preferred_name = preferred_name
@@ -463,10 +463,10 @@ class FinalSubmit(CreateAPIView):
 
 def AllotDoctor(customer,slot_id):
     try:
-        appointment = ApointmentHeader.objects.filter(customer=customer).first()
+        appointment = AppointmentHeader.objects.filter(customer=customer).first()
         slot = GeneralTimeSlots.objects.filter(id=slot_id).first()
 
-    except ApointmentHeader.DoesNotExist:
+    except AppointmentHeader.DoesNotExist:
         return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
     except GeneralTimeSlots.DoesNotExist:
         return Response({"error": "Slot not found."}, status=status.HTTP_404_NOT_FOUND)
