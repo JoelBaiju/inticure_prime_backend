@@ -428,6 +428,10 @@ class FinalSubmit(CreateAPIView):
             message = request.data.get('message')
             preferred_name = request.data.get('preferred_name')
             slot_id = request.data.get('slot_id')
+
+            confirmation_method = request.get('confirmation_method')
+            if confirmation_method not in ['email', 'phone']:
+
         except :
             return Response('Please provide valid data', status=status.HTTP_400_BAD_REQUEST)
         
@@ -460,7 +464,7 @@ class FinalSubmit(CreateAPIView):
 
             return AllotDoctor(customerProfile,slot_id)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response( status=status.HTTP_400_BAD_REQUEST)
 
 
 def AllotDoctor(customer,slot_id):
