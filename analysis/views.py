@@ -430,9 +430,19 @@ class FinalSubmit(CreateAPIView):
             slot_id = request.data.get('slot_id')
 
             confirmation_method = request.get('confirmation_method')
-            if confirmation_method not in ['email', 'phone']:
-
-        except :
+            if confirmation_method not in ["SMS", "Email", "WhatsApp"]:
+                return Response({'error': 'Invalid confirmation method'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                if confirmation_method == "SMS" or confirmation_method == "WhatsApp":
+                    phone_number = request.data.get('phone_number')
+                    if not phone_number:
+                        return Response({'error': 'Phone number is required for SMS confirmation'}, status=status.HTTP_400_BAD_REQUEST)
+                if confirmation_method == "Email":
+                    email = request.data.get('email')
+                    if not email:
+                        return Response({'error': 'Email is required for Email confirmation'}, status=status.HTTP_400_BAD_REQUEST)
+              
+        except:
             return Response('Please provide valid data', status=status.HTTP_400_BAD_REQUEST)
         
 
