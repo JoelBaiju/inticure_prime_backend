@@ -340,7 +340,7 @@ class SlotsBooking(APIView):
                 doctor_flag="junior"
                 ,
             ).distinct()
-            preferred_doctor_ids = list(preferred_doctors.values_list('id', flat=True))
+            preferred_doctor_ids = list(preferred_doctors.values_list('doctor_profile_id', flat=True))
             cache.set(f"preferred_doctors_{user.id}", preferred_doctor_ids, timeout=1000) 
 
             # Filter available slots for preferred doctors tomorrow
