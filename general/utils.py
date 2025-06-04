@@ -35,3 +35,9 @@ def send_otp_email(firstname,otp,toemail):
     email.send()
     
     
+
+
+
+
+
+def highPriotity()

@@ -55,18 +55,6 @@ class PhoneNumberOrEmailSubmissionView(APIView):
     
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
@@ -320,85 +308,223 @@ from django.db.models import Q
 from django.core.cache import cache
 
 
+data = {} 
 
-data = {
-    
-}
+
+# class SlotsBooking(APIView):
+#     permission_classes = [IsAuthenticated]
+ 
+#     def get(self, request):
+#         user = request.user
+
+#         preffered_gender = request.query_params.get('preferred_gender')
+#         preffered_language = request.query_params.get('preferred_language')
+#         preffered_date = request.query_params.get('preferred_date')
+#         print(preffered_gender, preffered_language , preffered_date)
+
+
+#         high_priority = pref
+        
+#         # Get tomorrow's date
+#         tomorrow = datetime.now() + timedelta(days=1)
+#         if preffered_date:
+#             try:
+#                 tomorrow = datetime.strptime(preffered_date, '%Y-%m-%d')
+#             except ValueError:
+#                 return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
+#         tomorrow_date = tomorrow.date()
+
+#         # Base query for available slots tomorrow
+#         base_query = Q(is_available=True) & Q(date__date=tomorrow_date)
+
+#         # Case 1: Both preferences provided
+#         if preffered_gender and preffered_language:
+#             appointment = AppointmentHeader.objects.filter(customer = CustomerProfile.objects.get(user=user)).first()
+#             appointment.language_pref = preffered_language
+#             appointment.gender_pref = preffered_gender
+#             appointment.save()
+#             # Filter doctors by gender and language
+#             preferred_doctors = DoctorProfiles.objects.filter(
+#                 gender=preffered_gender,
+#                 doctorlanguages__language__language__iexact=preffered_language,
+#                 doctor_flag="junior"
+#                 ,
+#             ).distinct()
+#             preferred_doctor_ids = list(preferred_doctors.values_list('doctor_profile_id', flat=True))
+#             cache.set(f"preferred_doctors_{user.id}", preferred_doctor_ids, timeout=1000) 
+
+#             # Filter available slots for preferred doctors tomorrow
+#             preferred_slots = GeneralTimeSlots.objects.filter(
+#                 doctor_availability__doctor__in=preferred_doctors,
+#                 doctor_availability__is_available=True,
+#                 doctor_availability__date__date=tomorrow_date
+#             ).select_related('date').distinct()
+
+#             if preferred_slots.exists():
+#                 data = self._serialize_slots(preferred_slots)
+#                 return Response({
+#                     "message": "Slots matching your preferences",
+#                     "available_slots": data,
+#                     "matched_preferences": True
+#                 }, status=200)
+
+      
+#         all_slots_tomorrow = GeneralTimeSlots.objects.filter(
+#             doctor_availability__is_available=True,
+#             doctor_availability__date__date=tomorrow_date
+#         ).select_related('date').distinct()
+
+#         data = self._serialize_slots(all_slots_tomorrow)
+        
+#         response_data = {
+#             "available_slots": data,
+#             "matched_preferences": False if (preffered_gender and preffered_language) else None
+#         }
+        
+#         if preffered_gender and preffered_language:
+#             response_data["message"] = "No slots matching preferences, showing all available slots"
+
+#         return Response(response_data, status=200)
+
+#     def _serialize_slots(self, slots):  
+#         """Helper method to serialize slot data"""
+#         return [
+#             {
+#                 "date": slot.date.date,
+#                 "day": slot.date.day,
+#                 "time": f"{slot.from_time.strftime('%H:%M')} - {slot.to_time.strftime('%H:%M')}",
+#                 "slot_id": slot.id
+#             }
+#             for slot in slots
+#         ]
+
+
+
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.utils.timezone import datetime, timedelta
+from django.db.models import Q
+from django.core.cache import cache
 
 class SlotsBooking(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def post(self, request):
         user = request.user
-        
-        preffered_gender = request.query_params.get('preferred_gender')
-        preffered_language = request.query_params.get('preferred_language')
-        preffered_date = request.query_params.get('preferred_date')
-        print(preffered_gender, preffered_language , preffered_date)
-        
-        # Get tomorrow's date
-        tomorrow = datetime.now() + timedelta(days=1)
-        if preffered_date:
+
+        # Extract preference data from request body
+        gender_info = request.data.get('preferred_gender', {})
+        language_info = request.data.get('preferred_language', {})
+        preferred_date = request.data.get('preferred_date')
+
+        gender = gender_info.get('value')
+        gender_priority = int(gender_info.get('priority', 0)) if gender_info else 0
+
+        language = language_info.get('value')
+        language_priority = int(language_info.get('priority', 0)) if language_info else 0
+
+        # Start date from preferred or tomorrow
+        base_date = datetime.now().date() + timedelta(days=1)
+        if preferred_date:
             try:
-                tomorrow = datetime.strptime(preffered_date, '%Y-%m-%d')
+                base_date = datetime.strptime(preferred_date, '%Y-%m-%d').date()
             except ValueError:
                 return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
-        tomorrow_date = tomorrow.date()
 
-        # Base query for available slots tomorrow
-        base_query = Q(is_available=True) & Q(date__date=tomorrow_date)
-
-        # Case 1: Both preferences provided
-        if preffered_gender and preffered_language:
-            appointment = AppointmentHeader.objects.filter(customer = CustomerProfile.objects.get(user=user)).first()
-            appointment.language_pref = preffered_language
-            appointment.gender_pref = preffered_gender
+        # Save preferences to AppointmentHeader
+        appointment = AppointmentHeader.objects.filter(customer=CustomerProfile.objects.get(user=user)).first()
+        if appointment:
+            if gender: appointment.gender_pref = gender
+            if language: appointment.language_pref = language
             appointment.save()
-            # Filter doctors by gender and language
-            preferred_doctors = DoctorProfiles.objects.filter(
-                gender=preffered_gender,
-                doctorlanguages__language__language__iexact=preffered_language,
-                doctor_flag="junior"
-                ,
-            ).distinct()
-            preferred_doctor_ids = list(preferred_doctors.values_list('doctor_profile_id', flat=True))
-            cache.set(f"preferred_doctors_{user.id}", preferred_doctor_ids, timeout=1000) 
 
-            # Filter available slots for preferred doctors tomorrow
-            preferred_slots = GeneralTimeSlots.objects.filter(
+        doctors = DoctorProfiles.objects.filter(doctor_flag="junior")
+        q_gender = Q(gender=gender) if gender else Q()
+        q_language = Q(doctorlanguages__language__language__iexact=language) if language else Q()
+
+        preferred_doctors = DoctorProfiles.objects.none()
+
+        # Priority logic
+        if gender and language:
+            if gender_priority > language_priority:
+                preferred_doctors = doctors.filter(q_gender).distinct()
+            elif language_priority > gender_priority:
+                preferred_doctors = doctors.filter(q_language).distinct()
+            else:
+                preferred_doctors = doctors.filter(q_gender & q_language).distinct()
+                if not preferred_doctors.exists():
+                    preferred_doctors = doctors.filter(q_gender).distinct()
+        elif gender:
+            preferred_doctors = doctors.filter(q_gender).distinct()
+        elif language:
+            preferred_doctors = doctors.filter(q_language).distinct()
+
+        preferred_doctor_ids = list(preferred_doctors.values_list('doctor_profile_id', flat=True))
+        cache.set(f"preferred_doctors_{user.id}", preferred_doctor_ids, timeout=1000)
+
+        # Find available slots for the next 14 days (safe cap)
+        max_days = 14
+        current_date = base_date
+        matched_slots = None
+        matched_date = None
+        all_available_dates = []
+
+        for i in range(max_days):
+            # All doctors available on this date
+            slots_today = GeneralTimeSlots.objects.filter(
                 doctor_availability__doctor__in=preferred_doctors,
                 doctor_availability__is_available=True,
-                doctor_availability__date__date=tomorrow_date
+                doctor_availability__date__date=current_date
             ).select_related('date').distinct()
 
-            if preferred_slots.exists():
-                data = self._serialize_slots(preferred_slots)
-                return Response({
-                    "message": "Slots matching your preferences",
-                    "available_slots": data,
-                    "matched_preferences": True
-                }, status=200)
+            if slots_today.exists() and matched_slots is None:
+                matched_slots = slots_today
+                matched_date = current_date
 
-      
-        all_slots_tomorrow = GeneralTimeSlots.objects.filter(
-            doctor_availability__is_available=True,
-            doctor_availability__date__date=tomorrow_date
-        ).select_related('date').distinct()
+            if slots_today.exists():
+                all_available_dates.append(str(current_date))
 
-        data = self._serialize_slots(all_slots_tomorrow)
-        
-        response_data = {
-            "available_slots": data,
-            "matched_preferences": False if (preffered_gender and preffered_language) else None
-        }
-        
-        if preffered_gender and preffered_language:
-            response_data["message"] = "No slots matching preferences, showing all available slots"
+            current_date += timedelta(days=1)
 
-        return Response(response_data, status=200)
+        # If matched slots found
+        if matched_slots:
+            return Response({
+                "message": f"Slots matching preferences found on {matched_date}",
+                "available_slots": self._serialize_slots(matched_slots),
+                "matched_preferences": True,
+                "available_dates": all_available_dates
+            }, status=200)
 
-    def _serialize_slots(self, slots):  
-        """Helper method to serialize slot data"""
+        # No match with preferences; fallback to all doctors (any slot)
+        fallback_current_date = base_date
+        fallback_slots = None
+        fallback_dates = []
+
+        for i in range(max_days):
+            all_slots = GeneralTimeSlots.objects.filter(
+                doctor_availability__is_available=True,
+                doctor_availability__date__date=fallback_current_date
+            ).select_related('date').distinct()
+
+            if all_slots.exists() and fallback_slots is None:
+                fallback_slots = all_slots
+
+            if all_slots.exists():
+                fallback_dates.append(str(fallback_current_date))
+
+            fallback_current_date += timedelta(days=1)
+
+        return Response({
+            "message": "No slots matching preferences, showing all available slots",
+            "available_slots": self._serialize_slots(fallback_slots) if fallback_slots else [],
+            "matched_preferences": False,
+            "available_dates": fallback_dates
+        }, status=200)
+
+    def _serialize_slots(self, slots):
         return [
             {
                 "date": slot.date.date,
@@ -408,7 +534,6 @@ class SlotsBooking(APIView):
             }
             for slot in slots
         ]
-
 
 
 
