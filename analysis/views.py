@@ -267,7 +267,7 @@ class SubmitQuestionnaireView(APIView):
             for option in options:
 
                 AppointmentQuestionsAndAnswers.objects.create(
-                    appointment_id=AppointmentHeader.objects.get(user=user),
+                    appointment = AppointmentHeader.objects.get(customer=customer),
                     question=Questionnaire.objects.get(id=question),
                     answer=Options.objects.get(id=option),
                     customer= customer

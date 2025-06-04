@@ -81,7 +81,7 @@ class AppointmentHeader(models.Model):
 
 
 class AppointmentQuestionsAndAnswers(models.Model):
-    appointment_id  = models.ForeignKey(AppointmentHeader, on_delete=models.CASCADE, related_name='appointment_questions_and_answers',null=True, blank=True)
+    appointment     = models.ForeignKey(AppointmentHeader, on_delete=models.CASCADE, related_name='appointment_questions_and_answers',null=True, blank=True)
     customer        = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='appointment_questions_and_answers',null=True, blank=True)
     question        = models.ForeignKey(Questionnaire, on_delete=models.CASCADE, related_name='appointment_questions',null=True, blank=True)
     answer          = models.ForeignKey(Options, on_delete=models.CASCADE, related_name='appointment_answers',null=True, blank=True)
