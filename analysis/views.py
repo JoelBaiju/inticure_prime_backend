@@ -420,13 +420,16 @@ class FinalSubmit(CreateAPIView):
     serializer_class = CustomerProfileSerializer
 
     def post(self, request):
-        user = request.user
-        dob  = request.data.get('dob')
-        first_name = request.data.get('first_name')
-        last_name = request.data.get('last_name')
-        message = request.data.get('message')
-        preferred_name = request.data.get('preferred_name')
-        slot_id = request.data.get('slot_id')
+        try:
+            user = request.user
+            dob  = request.data.get('dob')
+            first_name = request.data.get('first_name')
+            last_name = request.data.get('last_name')
+            message = request.data.get('message')
+            preferred_name = request.data.get('preferred_name')
+            slot_id = request.data.get('slot_id')
+        except :
+            return Response('Please provide valid data', status=status.HTTP_400_BAD_REQUEST)
         
 
         try:
