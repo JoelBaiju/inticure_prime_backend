@@ -111,6 +111,8 @@ class PhoneNumberOrEmailVerificationView(APIView):
                 customer_profile = CustomerProfile.objects.get(user=user)
                 if customer_profile.completed_first_analysis:
                     exists = True
+                else:
+                    exists = False
 
             except CustomerProfile.DoesNotExist:
                 exists = False
@@ -318,12 +320,18 @@ from django.db.models import Q
 from django.core.cache import cache
 
 
+
+data = {
+    
+}
+
 class SlotsBooking(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
-        preffered_gender = request.query_params.get('preferred_gender')
+        3
+         = request.query_params.get('preferred_gender')
         preffered_language = request.query_params.get('preferred_language')
         preffered_date = request.query_params.get('preferred_date')
         print(preffered_gender, preffered_language , preffered_date)
@@ -512,10 +520,7 @@ def AllotDoctor(customer,slot_id):
         preffered_language = appointment.language_pref
 
 
-
-def calculateTotalFee(doctor):
-    doctor_fee = doctor.doctor_payment_rate.rate_per_session
-
+from general.calculators import first_consultation_cost_calculator
 
 
     
