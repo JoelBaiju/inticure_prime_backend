@@ -302,6 +302,8 @@ from datetime import datetime, timedelta
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db.models import Q
+from django.core.cache import cache
+
 
 class SlotsBooking(APIView):
     permission_classes = [IsAuthenticated]
@@ -315,6 +317,11 @@ class SlotsBooking(APIView):
         
         # Get tomorrow's date
         tomorrow = datetime.now() + timedelta(days=1)
+        if preffered_date:
+            try:
+                tomorrow = datetime.strptime(preffered_date, '%Y-%m-%d')
+            except ValueError:
+                return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
         tomorrow_date = tomorrow.date()
 
         # Base query for available slots tomorrow
@@ -333,6 +340,8 @@ class SlotsBooking(APIView):
                 doctor_flag="junior"
                 ,
             ).distinct()
+            preferred_doctor_ids = list(preferred_doctors.values_list('id', flat=True))
+            cache.set(f"preferred_doctors_{user.id}", preferred_doctor_ids, timeout=1000) 
 
             # Filter available slots for preferred doctors tomorrow
             preferred_slots = GeneralTimeSlots.objects.filter(
