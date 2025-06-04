@@ -520,7 +520,6 @@ def AllotDoctor(customer,slot_id):
         preffered_language = appointment.language_pref
 
 
-from general.calculators import first_consultation_cost_calculator
 
 
     
