@@ -310,7 +310,8 @@ class SlotsBooking(APIView):
         user = request.user
         preffered_gender = request.query_params.get('preferred_gender')
         preffered_language = request.query_params.get('preferred_language')
-        print(preffered_gender, preffered_language)
+        preffered_date = request.query_params.get('preferred_date')
+        print(preffered_gender, preffered_language , preffered_date)
         
         # Get tomorrow's date
         tomorrow = datetime.now() + timedelta(days=1)
@@ -376,8 +377,7 @@ class SlotsBooking(APIView):
             {
                 "date": slot.date.date,
                 "day": slot.date.day,
-                "from_time": slot.from_time,
-                "to_time": slot.to_time,
+                "time": f"{slot.from_time.strftime('%H:%M')} - {slot.to_time.strftime('%H:%M')}",
                 "slot_id": slot.id
             }
             for slot in slots
@@ -414,25 +414,28 @@ class FinalSubmit(CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             # return Response({"message": "Profile submitted successfully.", "data": serializer.data}, status=status.HTTP_201_CREATED)
-            return allotDoctor(user,slot_id)
+            return AllotDoctor(user,slot_id)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def allotDoctor(user,slot_id):
+def AllotDoctor(user,slot_id):
     try:
         appointment = ApointmentHeader.objects.filter(user=user).first()
-        slot = DoctorAvailableSlots.objects.filter(id=slot_id).first()
+        slot = GeneralTimeSlots.objects.filter(id=slot_id).first()
+
     except ApointmentHeader.DoesNotExist:
         return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
-    except DoctorAvailableSlots.DoesNotExist:
+    except GeneralTimeSlots.DoesNotExist:
         return Response({"error": "Slot not found."}, status=status.HTTP_404_NOT_FOUND)
    
 
 
-    if slot.is_available == False:
-        return Response({"error": "Slot is not available."}, status=status.HTTP_400_BAD_REQUEST)
-        
+    if slot:
+        DocotrAvailableSlots.objects.filter(
+            time_slot=slot,
+            is_available=True,
+        )
     slot.is_available = False
     slot.save()
 
