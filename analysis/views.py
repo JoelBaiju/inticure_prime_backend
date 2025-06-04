@@ -334,10 +334,11 @@ class SlotsBooking(APIView):
             ).distinct()
 
             # Filter available slots for preferred doctors tomorrow
-            preferred_slots = DoctorAvailableSlots.objects.filter(
-                base_query,
-                doctor__in=preferred_doctors
-            ).select_related('doctor', 'date', 'time_slot')
+            preferred_slots = GeneralTimeSlots.objects.filter(
+                doctor_availability__doctor__in=preferred_doctors,
+                doctor_availability__is_available=True,
+                doctor_availability__date=tomorrow_date
+            ).select_related('date').distinct()
 
             if preferred_slots.exists():
                 data = self._serialize_slots(preferred_slots)
@@ -348,9 +349,14 @@ class SlotsBooking(APIView):
                 }, status=200)
 
         # Case 2: Either no preferences or no slots matched preferences - return all available tomorrow
-        all_slots_tomorrow = DoctorAvailableSlots.objects.filter(
-            base_query
-        ).select_related('doctor', 'date', 'time_slot')
+        # all_slots_tomorrow = DoctorAvailableSlots.objects.filter(
+        #     base_query
+        # ).select_related('doctor', 'date', 'time_slot')
+
+        all_slots_tomorrow = GeneralTimeSlots.objects.filter(
+            doctor_availability__is_available=True,
+            doctor_availability__date=tomorrow_date
+        ).select_related('date').distinct()
 
         data = self._serialize_slots(all_slots_tomorrow)
         
@@ -364,14 +370,10 @@ class SlotsBooking(APIView):
 
         return Response(response_data, status=200)
 
-    def _serialize_slots(self, slots):
+    def _serialize_slots(self, slots):  
         """Helper method to serialize slot data"""
         return [
             {
-                "doctor_id": slot.doctor.doctor_profile_id,
-                "doctor": slot.doctor.user.get_full_name(),
-                "doctor_gender": slot.doctor.gender,
-                "doctor_languages": list(slot.doctor.doctorlanguages_set.all().values_list('language__language', flat=True)),
                 "date": slot.date.date,
                 "day": slot.date.day,
                 "from_time": slot.time_slot.from_time,
