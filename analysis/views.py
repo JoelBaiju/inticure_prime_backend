@@ -436,24 +436,26 @@ class FinalSubmit(CreateAPIView):
             customerProfile = CustomerProfile.objects.get(user=user)
         except CustomerProfile.DoesNotExist:
             customerProfile = None
+        
         try :
-        if customerProfile:
-            customerProfile.date_of_birth = dob
-            customerProfile.preferred_name = preferred_name
-            customerProfile.save()
+            if customerProfile:
+                customerProfile.date_of_birth = dob
+                customerProfile.preferred_name = preferred_name
+                customerProfile.save()
 
-            customerProfile.user.first_name = first_name
-            customerProfile.user.last_name = last_name
-            customerProfile.user.save()
+                customerProfile.user.first_name = first_name
+                customerProfile.user.last_name = last_name
+                customerProfile.user.save()
 
-            try:
-                appointment = AppointmentHeader.objects.get(customer=customerProfile)
-            except AppointmentHeader.DoesNotExist:
-                appointment = None
-            if appointment:
-                appointment.customer_message = message
-                appointment.save()
-         
+                try:
+                    appointment = AppointmentHeader.objects.get(customer=customerProfile)
+                except AppointmentHeader.DoesNotExist:
+                    appointment = None
+                if appointment:
+                    appointment.customer_message = message
+                    appointment.save()
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
             return AllotDoctor(customerProfile,slot_id)
