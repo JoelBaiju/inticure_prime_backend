@@ -38,6 +38,3 @@ def send_otp_email(firstname,otp,toemail):
 
 
 
-
-
-def highPriotity()
