@@ -376,8 +376,8 @@ class SlotsBooking(APIView):
             {
                 "date": slot.date.date,
                 "day": slot.date.day,
-                "from_time": slot.time_slot.from_time,
-                "to_time": slot.time_slot.to_time,
+                "from_time": slot.from_time,
+                "to_time": slot.to_time,
                 "slot_id": slot.id
             }
             for slot in slots
