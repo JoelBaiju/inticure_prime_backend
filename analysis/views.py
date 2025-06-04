@@ -107,10 +107,19 @@ class PhoneNumberOrEmailVerificationView(APIView):
                 return Response({'error': 'Invalid OTP for email', 'verified': False}, status=HTTP_400_BAD_REQUEST)
 
         if user:
+            try :
+                customer_profile = CustomerProfile.objects.get(user=user)
+                if customer_profile.completed_first_analysis:
+                    exists = True
+
+            except CustomerProfile.DoesNotExist:
+                exists = False
+
+            
             # Existing user
             refresh = RefreshToken.for_user(user)
             return Response({
-                'user_exists': True,
+                'user_exists': exists,
                 'verified': True,
                 'message': 'Existing user Verified',
                 'user_id': user.id,
@@ -126,7 +135,7 @@ class PhoneNumberOrEmailVerificationView(APIView):
             user = User.objects.create_user(
                 username=username,
                 email=email if email else None,
-                password=otp  # optional: generate a random password instead
+                password=otp
             )
 
             refresh = RefreshToken.for_user(user)
@@ -187,13 +196,13 @@ class SubmitGenderCategoryView(APIView):
 
     
         if not CustomerProfile.objects.filter(user=user).exists():
-            CustomerProfile.objects.create(
+            customer_profile = CustomerProfile.objects.create(
                 user=user,
                 gender=gender,
             )
 
         appointment=AppointmentHeader.objects.create(
-            user=user,
+            customer=customer_profile,
             category=category_instance
             )
                 
@@ -239,7 +248,11 @@ class SubmitQuestionnaireView(APIView):
     def post(self, request):
         user = request.user
         answers = request.data.get('answers', [])
-
+        try:
+            customer = CustomerProfile.objects.get(user=user)
+        
+        except :
+            return  Response({'error': 'Seems like you missed something ,Please start again'}, status=HTTP_400_BAD_REQUEST)
         if not answers:
             return Response({'error': 'Answers are required'}, status=HTTP_400_BAD_REQUEST)
 
@@ -257,7 +270,7 @@ class SubmitQuestionnaireView(APIView):
                     appointment_id=AppointmentHeader.objects.get(user=user),
                     question=Questionnaire.objects.get(id=question),
                     answer=Options.objects.get(id=option),
-                    user=user
+                    customer= customer
                 )
 
         return Response({'message': 'Answers submitted successfully'}, status=HTTP_200_OK)
@@ -329,7 +342,7 @@ class SlotsBooking(APIView):
 
         # Case 1: Both preferences provided
         if preffered_gender and preffered_language:
-            appointment = AppointmentHeader.objects.filter(user=user).first()
+            appointment = AppointmentHeader.objects.filter(customer = CustomerProfile.objects.get(user=user)).first()
             appointment.language_pref = preffered_language
             appointment.gender_pref = preffered_gender
             appointment.save()
@@ -358,11 +371,7 @@ class SlotsBooking(APIView):
                     "matched_preferences": True
                 }, status=200)
 
-        # Case 2: Either no preferences or no slots matched preferences - return all available tomorrow
-        # all_slots_tomorrow = DoctorAvailableSlots.objects.filter(
-        #     base_query
-        # ).select_related('doctor', 'date', 'time_slot')
-
+      
         all_slots_tomorrow = GeneralTimeSlots.objects.filter(
             doctor_availability__is_available=True,
             doctor_availability__date__date=tomorrow_date
@@ -412,25 +421,46 @@ class FinalSubmit(CreateAPIView):
 
     def post(self, request):
         user = request.user
+        dob  = request.data.get('dob')
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
+        message = request.data.get('message')
+        preferred_name = request.data.get('preferred_name')
+        slot_id = request.data.get('slot_id')
+        
 
-        if CustomerProfile.objects.filter(user=user).exists():
-            return Response({"error": "Profile already exists."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            customerProfile = CustomerProfile.objects.get(user=user)
+        except CustomerProfile.DoesNotExist:
+            customerProfile = None
 
-        data = request.data.copy()
-        data['user'] = user.id  # Add user ID to the data manually
-        slot_id = data.pop('slot_id', None)  # Remove user_id if it exists in the data
-        serializer = self.get_serializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            # return Response({"message": "Profile submitted successfully.", "data": serializer.data}, status=status.HTTP_201_CREATED)
-            return AllotDoctor(user,slot_id)
+        if customerProfile:
+            customerProfile.date_of_birth = dob
+            customerProfile.preferred_name = preferred_name
+            customerProfile.save()
+
+            customerProfile.user.first_name = first_name
+            customerProfile.user.last_name = last_name
+            customerProfile.user.save()
+
+            try:
+                appointment = AppointmentHeader.objects.get(customer=customerProfile)
+            except AppointmentHeader.DoesNotExist:
+                appointment = None
+            if appointment:
+                appointment.customer_message = message
+                appointment.save()
+         
+
+
+            return AllotDoctor(customerProfile,slot_id)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def AllotDoctor(user,slot_id):
+def AllotDoctor(customer,slot_id):
     try:
-        appointment = ApointmentHeader.objects.filter(user=user).first()
+        appointment = ApointmentHeader.objects.filter(customer=customer).first()
         slot = GeneralTimeSlots.objects.filter(id=slot_id).first()
 
     except ApointmentHeader.DoesNotExist:
@@ -438,7 +468,16 @@ def AllotDoctor(user,slot_id):
     except GeneralTimeSlots.DoesNotExist:
         return Response({"error": "Slot not found."}, status=status.HTTP_404_NOT_FOUND)
    
+    try :
+        preferred_doctors = cache.get(f"preferred_doctors_{user.id}")
+    except Exception as e:
+        preferred_doctors = None
 
+    if preferred_doctors:
+        doctors_slots = DoctorAvailableSlots.objects.filter(
+            doctor__doctor_profile_id__in=preferred_doctors,
+            is_available=True,
+        )
 
     if slot:
         DocotrAvailableSlots.objects.filter(

@@ -4,6 +4,7 @@ from statistics import mode
 from django.db import models
 from django.contrib.auth.models import User
 from doctor.models import DoctorAvailableSlots
+from customer.models import CustomerProfile
 # Create your models here.
 """Holds the catergory of medical issues"""
 
@@ -50,7 +51,7 @@ class Options(models.Model):
 
 class AppointmentHeader(models.Model):
     appointment_id              = models.BigAutoField(primary_key=True)
-    user                        = models.ForeignKey(User, on_delete=models.CASCADE, related_name='appointment_header',null=True, blank=True)
+    customer                    = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='appointment_header',null=True, blank=True)
     category                    = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='appointment_header',null=True, blank=True)
     appointment_status          = models.IntegerField(default=0)
     appointment_date            = models.DateField(null=True)
@@ -80,10 +81,10 @@ class AppointmentHeader(models.Model):
 
 
 class AppointmentQuestionsAndAnswers(models.Model):
-    appointment_id = models.ForeignKey(AppointmentHeader, on_delete=models.CASCADE, related_name='appointment_questions_and_answers',null=True, blank=True)
-    user     = models.ForeignKey(User, on_delete=models.CASCADE, related_name='appointment_questions_and_answers',null=True, blank=True)
-    question = models.ForeignKey(Questionnaire, on_delete=models.CASCADE, related_name='appointment_questions',null=True, blank=True)
-    answer = models.ForeignKey(Options, on_delete=models.CASCADE, related_name='appointment_answers',null=True, blank=True)
+    appointment_id  = models.ForeignKey(AppointmentHeader, on_delete=models.CASCADE, related_name='appointment_questions_and_answers',null=True, blank=True)
+    customer        = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='appointment_questions_and_answers',null=True, blank=True)
+    question        = models.ForeignKey(Questionnaire, on_delete=models.CASCADE, related_name='appointment_questions',null=True, blank=True)
+    answer          = models.ForeignKey(Options, on_delete=models.CASCADE, related_name='appointment_answers',null=True, blank=True)
 
 
 """Order Invoice Details"""

@@ -13,6 +13,8 @@ class CustomerProfile(models.Model):
     mobile_number=models.BigIntegerField(blank=True, null=True)
     location=models.IntegerField(null=True)
     profile_pic=models.TextField(null=True)
+    completed_first_analysis = models.BooleanField(default=False)
+    preferred_name = models.CharField(max_length=110,blank=True, null=True)
 
 class AppointmentRatings(models.Model):
     appointment_id=models.BigIntegerField(null=True)
