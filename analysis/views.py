@@ -330,8 +330,8 @@ class SlotsBooking(APIView):
 
     def get(self, request):
         user = request.user
-        3
-         = request.query_params.get('preferred_gender')
+        
+        preffered_gender = request.query_params.get('preferred_gender')
         preffered_language = request.query_params.get('preferred_language')
         preffered_date = request.query_params.get('preferred_date')
         print(preffered_gender, preffered_language , preffered_date)
