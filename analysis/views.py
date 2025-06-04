@@ -337,7 +337,7 @@ class SlotsBooking(APIView):
             preferred_slots = GeneralTimeSlots.objects.filter(
                 doctor_availability__doctor__in=preferred_doctors,
                 doctor_availability__is_available=True,
-                doctor_availability__date=tomorrow_date
+                doctor_availability__date__date=tomorrow_date
             ).select_related('date').distinct()
 
             if preferred_slots.exists():
@@ -355,7 +355,7 @@ class SlotsBooking(APIView):
 
         all_slots_tomorrow = GeneralTimeSlots.objects.filter(
             doctor_availability__is_available=True,
-            doctor_availability__date=tomorrow_date
+            doctor_availability__date__date=tomorrow_date
         ).select_related('date').distinct()
 
         data = self._serialize_slots(all_slots_tomorrow)
