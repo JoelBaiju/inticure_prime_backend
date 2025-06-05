@@ -191,6 +191,9 @@ class SubmitGenderCategoryView(APIView):
                 gender=gender,
             )
 
+        else :
+            customer_profile = CustomerProfile.objects.get(user=user)
+
         appointment=AppointmentHeader.objects.create(
             customer=customer_profile,
             category=category_instance
@@ -547,106 +550,97 @@ class SlotsBooking(APIView):
 from customer.serializers import CustomerProfileSerializer
 from rest_framework.generics import CreateAPIView
 from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.generics import CreateAPIView
+from rest_framework.permissions import IsAuthenticated
+from django.core.cache import cache
 
 class FinalSubmit(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CustomerProfileSerializer
 
     def post(self, request):
+        user = request.user
         try:
-            user = request.user
-            dob  = request.data.get('dob')
+            # Extract form data
+            dob = request.data.get('dob')
             first_name = request.data.get('first_name')
             last_name = request.data.get('last_name')
             message = request.data.get('message')
             preferred_name = request.data.get('preferred_name')
             slot_id = request.data.get('slot_id')
+            confirmation_method = request.data.get('confirmation_method')
 
-            confirmation_method = request.get('confirmation_method')
+            # Validate confirmation method
             if confirmation_method not in ["SMS", "Email", "WhatsApp"]:
                 return Response({'error': 'Invalid confirmation method'}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                if confirmation_method == "SMS" or confirmation_method == "WhatsApp":
-                    phone_number = request.data.get('phone_number')
-                    if not phone_number:
-                        return Response({'error': 'Phone number is required for SMS confirmation'}, status=status.HTTP_400_BAD_REQUEST)
-                if confirmation_method == "Email":
-                    email = request.data.get('email')
-                    if not email:
-                        return Response({'error': 'Email is required for Email confirmation'}, status=status.HTTP_400_BAD_REQUEST)
-              
-        except:
-            return Response('Please provide valid data', status=status.HTTP_400_BAD_REQUEST)
-        
+            if confirmation_method in ["SMS", "WhatsApp"] and not request.data.get('phone_number'):
+                return Response({'error': 'Phone number is required for SMS/WhatsApp'}, status=status.HTTP_400_BAD_REQUEST)
+            if confirmation_method == "Email" and not request.data.get('email'):
+                return Response({'error': 'Email is required for Email confirmation'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            customerProfile = CustomerProfile.objects.get(user=user)
-        except CustomerProfile.DoesNotExist:
-            customerProfile = None
-        
-        try :
-            if customerProfile:
-                customerProfile.date_of_birth = dob
-                customerProfile.preferred_name = preferred_name
-                customerProfile.save()
+            # Update customer profile
+            customerProfile, created = CustomerProfile.objects.get_or_create(user=user)
+            customerProfile.date_of_birth = dob
+            customerProfile.preferred_name = preferred_name
+            customerProfile.save()
 
-                customerProfile.user.first_name = first_name
-                customerProfile.user.last_name = last_name
-                customerProfile.user.save()
+            # Update user's name
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save()
 
-                try:
-                    appointment = AppointmentHeader.objects.get(customer=customerProfile)
-                except AppointmentHeader.DoesNotExist:
-                    appointment = None
-                if appointment:
-                    appointment.customer_message = message
-                    appointment.save()
+            # Update appointment message
+            appointment = AppointmentHeader.objects.filter(customer=customerProfile).first()
+            if appointment:
+                appointment.customer_message = message
+                appointment.save()
+
+            # Allot doctor based on preferred doctors and slot
+            return AllotDoctor(customerProfile, slot_id)
+
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-            return AllotDoctor(customerProfile,slot_id)
-        
-        return Response( status=status.HTTP_400_BAD_REQUEST)
-
-
-def AllotDoctor(customer,slot_id):
+def AllotDoctor(customer, slot_id):
     try:
-        appointment = AppointmentHeader.objects.filter(customer=customer).first()
-        slot = GeneralTimeSlots.objects.filter(id=slot_id).first()
-
+        appointment = AppointmentHeader.objects.get(customer=customer)
+        slot = GeneralTimeSlots.objects.get(id=slot_id)
     except AppointmentHeader.DoesNotExist:
         return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
     except GeneralTimeSlots.DoesNotExist:
         return Response({"error": "Slot not found."}, status=status.HTTP_404_NOT_FOUND)
-   
-    try :
-        preferred_doctors = cache.get(f"preferred_doctors_{user.id}")
-    except Exception as e:
-        preferred_doctors = None
 
-    if preferred_doctors:
-        doctors_slots = DoctorAvailableSlots.objects.filter(
-            doctor__doctor_profile_id__in=preferred_doctors,
-            is_available=True,
-        )
+    # Get preferred doctors from cache
+    preferred_doctors = cache.get(f"preferred_doctors_{customer.user.id}")
 
-    if slot:
-        DocotrAvailableSlots.objects.filter(
-            time_slot=slot,
-            is_available=True,
-        )
-    slot.is_available = False
-    slot.save()
+    if not preferred_doctors:
+        return Response({"error": "Preferred doctors not available in cache."}, status=status.HTTP_400_BAD_REQUEST)
 
+    # Find available doctor for the given slot
+    available_doctor_slot = DoctorAvailableSlots.objects.filter(
+        doctor__doctor_profile_id__in=preferred_doctors,
+        is_available=True,
+        time_slot=slot
+    ).select_related('doctor').first()
 
-    if appointment:
-        preffered_gender = appointment.gender_pref
-        preffered_language = appointment.language_pref
+    if not available_doctor_slot:
+        return Response({"error": "No preferred doctor available for this slot."}, status=status.HTTP_404_NOT_FOUND)
 
+    # Assign doctor to appointment and update availability
+    appointment.junior_doctor = available_doctor_slot.doctor
+    appointment.save()
 
+    # Mark doctor slot and general slot as unavailable
+    available_doctor_slot.is_available = False
+    available_doctor_slot.save()
 
 
-    
-
-
+    return Response({
+        "message": "Appointment confirmed and doctor assigned.",
+        "assigned_doctor_id": available_doctor_slot.doctor.doctor_profile_id,
+        "slot_id": slot.id
+    }, status=status.HTTP_200_OK)
