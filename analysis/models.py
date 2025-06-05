@@ -47,7 +47,7 @@ class Options(models.Model):
     
 
 """Holds the details  of an appointment.here appointment_status 1= , 2= , 3= cancel, 4 = ,5 = , 6= completed, 7 =reschedule ,8= ,9= order marked no show"""
-
+from doctor.models import DoctorProfiles
 
 class AppointmentHeader(models.Model):
     appointment_id              = models.BigAutoField(primary_key=True)
@@ -59,8 +59,7 @@ class AppointmentHeader(models.Model):
     appointment_slot            = models.ForeignKey(DoctorAvailableSlots,null=True,on_delete=models.CASCADE, related_name='appointment_header')
     escalated_date              = models.DateField(null=True)
     escalated_time_slot         = models.CharField(null=True,max_length=20)
-    junior_doctor               = models.ForeignKey(DoctorProfiles, on_delete = models.CASCADE , null=True ,related_name='appointment_header')
-    senior_doctor               = models.ForeignKey(DoctorProfiles, on_delete = models.CASCADE , null=True ,related_name='appointment_header')
+    doctor                      = models.ForeignKey(DoctorProfiles, on_delete = models.CASCADE , null=True ,related_name='appointment_header')
     is_free                     = models.IntegerField(default=1)
     followup_id                 = models.IntegerField(null=True)
     booked_on                   = models.DateField(auto_now=True)

@@ -631,7 +631,7 @@ def AllotDoctor(customer, slot_id):
         return Response({"error": "No preferred doctor available for this slot."}, status=status.HTTP_404_NOT_FOUND)
 
     # Assign doctor to appointment and update availability
-    appointment.junior_doctor = available_doctor_slot.doctor
+    appointment.doctor = available_doctor_slot.doctor
     appointment.save()
 
     # Mark doctor slot and general slot as unavailable
