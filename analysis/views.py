@@ -196,7 +196,8 @@ class SubmitGenderCategoryView(APIView):
 
         appointment=AppointmentHeader.objects.create(
             customer=customer_profile,
-            category=category_instance
+            category=category_instance,
+            appointment_status=1,  # Assuming 1 means 'pending' or 'new'
             )
                 
 
@@ -265,6 +266,9 @@ class SubmitQuestionnaireView(APIView):
                     answer=Options.objects.get(id=option),
                     customer= customer
                 )
+        appointment = AppointmentHeader.objects.get(customer=customer)
+        appointment.appointment_status = 2
+        appointment.save()
 
         return Response({'message': 'Answers submitted successfully'}, status=HTTP_200_OK)
 
@@ -439,6 +443,7 @@ class SlotsBooking(APIView):
 
         # Save preferences to AppointmentHeader
         appointment = AppointmentHeader.objects.filter(customer=CustomerProfile.objects.get(user=user)).first()
+        
         if appointment:
             if gender: appointment.gender_pref = gender
             if language: appointment.language_pref = language
@@ -596,6 +601,7 @@ class FinalSubmit(CreateAPIView):
             appointment = AppointmentHeader.objects.filter(customer=customerProfile).first()
             if appointment:
                 appointment.customer_message = message
+                appointment.appointment_status = 3 
                 appointment.save()
 
             # Allot doctor based on preferred doctors and slot
@@ -632,6 +638,7 @@ def AllotDoctor(customer, slot_id):
 
     # Assign doctor to appointment and update availability
     appointment.doctor = available_doctor_slot.doctor
+    appointment.appointment_status = 4
     appointment.save()
 
     # Mark doctor slot and general slot as unavailable
