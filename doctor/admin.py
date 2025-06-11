@@ -18,7 +18,7 @@ class DoctorAvailableSlotsAdmin(admin.ModelAdmin):
 admin.site.register(DoctorAvailableSlots, DoctorAvailableSlotsAdmin)
 
 class DoctorProfilesAdmin(admin.ModelAdmin):
-    list_display = ['user', 'specialization', 'qualification']
+    list_display = ['user', 'specialization','gender', 'qualification']
 
 admin.site.register(DoctorProfiles, DoctorProfilesAdmin)
 

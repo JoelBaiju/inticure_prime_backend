@@ -43,7 +43,7 @@ class DoctorProfiles(models.Model):
     registration_year       = models.TextField(null=True)
 
     def __str__(self):
-        return f"{self.user.first_name}  {self.user.last_name} - {self.department} - {self.doctor_flag}"
+        return f"{self.user.first_name}  {self.user.last_name} - {self.department}-{self.gender} - {self.doctor_flag}"
     
 
 class DoctorLanguages(models.Model):
@@ -285,8 +285,9 @@ class GeneralTimeSlots(models.Model):   # This model is used to store the genera
 
 
     def __str__(self):
-        return self.from_time.strftime('%H:%M') + ' to ' + self.to_time.strftime('%H:%M')
+        return "id : " + str(self.id) + "  date   " +  str(self.date.date) + "   time : " + self.from_time.strftime('%H:%M') + ' to ' + self.to_time.strftime('%H:%M')
 
+    
 
 
 

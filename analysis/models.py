@@ -75,6 +75,9 @@ class AppointmentHeader(models.Model):
     customer_message            = models.TextField(null=True)
     payment_required            = models.IntegerField(null=True)
     payment_done                = models.IntegerField(null=True)
+    confirmation_method         = models.CharField(max_length=20,null=True)
+    confirmation_phone_number   = models.CharField(max_length=20,null=True)
+    confirmation_email          = models.CharField(max_length=100,null=True)
     
 """Holds the details  of analysis questions user submitted before taking appointment"""
 

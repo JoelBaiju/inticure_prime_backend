@@ -41,6 +41,7 @@ class PhoneNumberOrEmailSubmissionView(APIView):
         if email:
             otp_instance = Email_OTPs.objects.create(email=email, otp=generate_random_otp())
             send_otp_email(otp = otp_instance.otp , toemail=email , firstname = ' user')
+            print("OTP sent to email:", email)
             # send_otp_email(otp = generate_random_otp() , toemail=email)
         
             
@@ -57,7 +58,7 @@ class PhoneNumberOrEmailSubmissionView(APIView):
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -308,106 +309,6 @@ class GetAvailableLanguages(APIView):
 # ========API : 6=========GET: submitting preferences and getting the available slots   ========================//
 # ========URL : ==========/analysis/get_available_slots/ ========================//
 
-from datetime import datetime, timedelta
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.db.models import Q
-from django.core.cache import cache
-
-
-data = {} 
-
-
-# class SlotsBooking(APIView):
-#     permission_classes = [IsAuthenticated]
- 
-#     def get(self, request):
-#         user = request.user
-
-#         preffered_gender = request.query_params.get('preferred_gender')
-#         preffered_language = request.query_params.get('preferred_language')
-#         preffered_date = request.query_params.get('preferred_date')
-#         print(preffered_gender, preffered_language , preffered_date)
-
-
-#         high_priority = pref
-        
-#         # Get tomorrow's date
-#         tomorrow = datetime.now() + timedelta(days=1)
-#         if preffered_date:
-#             try:
-#                 tomorrow = datetime.strptime(preffered_date, '%Y-%m-%d')
-#             except ValueError:
-#                 return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
-#         tomorrow_date = tomorrow.date()
-
-#         # Base query for available slots tomorrow
-#         base_query = Q(is_available=True) & Q(date__date=tomorrow_date)
-
-#         # Case 1: Both preferences provided
-#         if preffered_gender and preffered_language:
-#             appointment = AppointmentHeader.objects.filter(customer = CustomerProfile.objects.get(user=user)).first()
-#             appointment.language_pref = preffered_language
-#             appointment.gender_pref = preffered_gender
-#             appointment.save()
-#             # Filter doctors by gender and language
-#             preferred_doctors = DoctorProfiles.objects.filter(
-#                 gender=preffered_gender,
-#                 doctorlanguages__language__language__iexact=preffered_language,
-#                 doctor_flag="junior"
-#                 ,
-#             ).distinct()
-#             preferred_doctor_ids = list(preferred_doctors.values_list('doctor_profile_id', flat=True))
-#             cache.set(f"preferred_doctors_{user.id}", preferred_doctor_ids, timeout=1000) 
-
-#             # Filter available slots for preferred doctors tomorrow
-#             preferred_slots = GeneralTimeSlots.objects.filter(
-#                 doctor_availability__doctor__in=preferred_doctors,
-#                 doctor_availability__is_available=True,
-#                 doctor_availability__date__date=tomorrow_date
-#             ).select_related('date').distinct()
-
-#             if preferred_slots.exists():
-#                 data = self._serialize_slots(preferred_slots)
-#                 return Response({
-#                     "message": "Slots matching your preferences",
-#                     "available_slots": data,
-#                     "matched_preferences": True
-#                 }, status=200)
-
-      
-#         all_slots_tomorrow = GeneralTimeSlots.objects.filter(
-#             doctor_availability__is_available=True,
-#             doctor_availability__date__date=tomorrow_date
-#         ).select_related('date').distinct()
-
-#         data = self._serialize_slots(all_slots_tomorrow)
-        
-#         response_data = {
-#             "available_slots": data,
-#             "matched_preferences": False if (preffered_gender and preffered_language) else None
-#         }
-        
-#         if preffered_gender and preffered_language:
-#             response_data["message"] = "No slots matching preferences, showing all available slots"
-
-#         return Response(response_data, status=200)
-
-#     def _serialize_slots(self, slots):  
-#         """Helper method to serialize slot data"""
-#         return [
-#             {
-#                 "date": slot.date.date,
-#                 "day": slot.date.day,
-#                 "time": f"{slot.from_time.strftime('%H:%M')} - {slot.to_time.strftime('%H:%M')}",
-#                 "slot_id": slot.id
-#             }
-#             for slot in slots
-#         ]
-
-
-
-
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -415,6 +316,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils.timezone import datetime, timedelta
 from django.db.models import Q
 from django.core.cache import cache
+from general.models import UserPreferredDoctors
 
 class SlotsBooking(APIView):
     permission_classes = [IsAuthenticated]
@@ -455,23 +357,61 @@ class SlotsBooking(APIView):
 
         preferred_doctors = DoctorProfiles.objects.none()
 
-        # Priority logic
-        if gender and language:
-            if gender_priority > language_priority:
-                preferred_doctors = doctors.filter(q_gender).distinct()
-            elif language_priority > gender_priority:
-                preferred_doctors = doctors.filter(q_language).distinct()
-            else:
-                preferred_doctors = doctors.filter(q_gender & q_language).distinct()
-                if not preferred_doctors.exists():
-                    preferred_doctors = doctors.filter(q_gender).distinct()
-        elif gender:
-            preferred_doctors = doctors.filter(q_gender).distinct()
-        elif language:
-            preferred_doctors = doctors.filter(q_language).distinct()
+        gender_matched = False
+        language_matched = False
 
+        if gender and language :
+            preferred_doctors = doctors.filter(q_gender & q_language).distinct()
+    
+            if not preferred_doctors.exists():
+                print("No doctors matched both preferences, checking individually")
+                if  gender_priority > language_priority:
+                    preferred_doctors = doctors.filter(q_gender).distinct()
+                    if preferred_doctors.exists():
+                        gender_matched = True
+                elif language_priority > gender_priority:
+                    preferred_doctors = doctors.filter(q_language).distinct()
+                    if preferred_doctors.exists():
+                        language_matched = True
+
+                if not preferred_doctors.exists():
+                    print("No doctors matched single high priority preference, checking fallback ")
+                    if gender_priority > language_priority:
+                        preferred_doctors = doctors.filter(q_language).distinct()
+                        if preferred_doctors.exists():
+                            language_matched = True
+
+                    elif language_priority > gender_priority:
+                        preferred_doctors = doctors.filter(q_gender).distinct()
+                        if preferred_doctors.exists():
+                           gender_matched = True
+
+                if preferred_doctors.exists():
+                    print(preferred_doctors)
+                    print("Fallback to one preference match")
+            
+            else:
+                gender_matched = True
+                language_matched = True
+
+        print(preferred_doctors)
+        print(gender_matched, "gender matched")
+        print(language_matched, "language matched")
+        
         preferred_doctor_ids = list(preferred_doctors.values_list('doctor_profile_id', flat=True))
-        cache.set(f"preferred_doctors_{user.id}", preferred_doctor_ids, timeout=1000)
+
+
+
+        print("Preferred doctor IDs:", preferred_doctor_ids)
+        user_preferred_doctors, created = UserPreferredDoctors.objects.get_or_create(user_id=user.id)
+        if created:
+            for doctor_id in preferred_doctor_ids:
+                user_preferred_doctors.add_doctor(doctor_id)
+        else:
+            user_preferred_doctors.clear_doctors()
+            for doctor_id in preferred_doctor_ids:
+                user_preferred_doctors.add_doctor(doctor_id)
+        user_preferred_doctors.save()
 
         # Find available slots for the next 14 days (safe cap)
         max_days = 14
@@ -503,6 +443,8 @@ class SlotsBooking(APIView):
                 "message": f"Slots matching preferences found on {matched_date}",
                 "available_slots": self._serialize_slots(matched_slots),
                 "matched_preferences": True,
+                "gender_matched":gender_matched,
+                "language_matched": language_matched,
                 "available_dates": all_available_dates
             }, status=200)
 
@@ -529,7 +471,10 @@ class SlotsBooking(APIView):
             "message": "No slots matching preferences, showing all available slots",
             "available_slots": self._serialize_slots(fallback_slots) if fallback_slots else [],
             "matched_preferences": False,
-            "available_dates": fallback_dates
+            "gender_matched":gender_matched,
+            "language_matched": language_matched,
+            "available_dates": fallback_dates,
+            'fallback_message': "Showing all available slots for the next 14 days.",
         }, status=200)
 
     def _serialize_slots(self, slots):
@@ -576,7 +521,12 @@ class FinalSubmit(CreateAPIView):
             message = request.data.get('message')
             preferred_name = request.data.get('preferred_name')
             slot_id = request.data.get('slot_id')
+            
             confirmation_method = request.data.get('confirmation_method')
+            phone_number = request.data.get('phone_number')
+            email = request.data.get('email')
+            country_code = request.data.get('country_code', '+91')  
+
 
             # Validate confirmation method
             if confirmation_method not in ["SMS", "Email", "WhatsApp"]:
@@ -602,16 +552,19 @@ class FinalSubmit(CreateAPIView):
             if appointment:
                 appointment.customer_message = message
                 appointment.appointment_status = 3 
+                appointment.confirmation_method = confirmation_method
+                appointment.confirmation_phone_number = phone_number if confirmation_method in ["SMS", "WhatsApp"] else None
+                appointment.confirmation_email = email if confirmation_method == "Email" else None
                 appointment.save()
 
             # Allot doctor based on preferred doctors and slot
-            return AllotDoctor(customerProfile, slot_id)
+            return AllotDoctor(request.user.id, customerProfile,slot_id)
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-def AllotDoctor(customer, slot_id):
+def AllotDoctor(user_id,customer, slot_id):
     try:
         appointment = AppointmentHeader.objects.get(customer=customer)
         slot = GeneralTimeSlots.objects.get(id=slot_id)
@@ -621,7 +574,17 @@ def AllotDoctor(customer, slot_id):
         return Response({"error": "Slot not found."}, status=status.HTTP_404_NOT_FOUND)
 
     # Get preferred doctors from cache
-    preferred_doctors = cache.get(f"preferred_doctors_{customer.user.id}")
+
+    preferred_doctors = UserPreferredDoctors.objects.filter(user_id=user_id).first()
+    if preferred_doctors:  
+        preferred_doctors = preferred_doctors.get_doctor_ids()
+    else:   
+        return Response({"error": "Preferred doctors not found in cache."}, status=status.HTTP_404_NOT_FOUND)
+        
+    print("Preferred doctors from cache:", preferred_doctors)   
+    print(slot_id )
+
+
 
     if not preferred_doctors:
         return Response({"error": "Preferred doctors not available in cache."}, status=status.HTTP_400_BAD_REQUEST)
@@ -645,9 +608,16 @@ def AllotDoctor(customer, slot_id):
     available_doctor_slot.is_available = False
     available_doctor_slot.save()
 
+    from general.smss import appointmentbooked
 
+    if appointment.confirmation_method == "SMS":
+        appointmentbooked(appointment)
     return Response({
         "message": "Appointment confirmed and doctor assigned.",
         "assigned_doctor_id": available_doctor_slot.doctor.doctor_profile_id,
         "slot_id": slot.id
     }, status=status.HTTP_200_OK)
+
+
+
+

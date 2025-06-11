@@ -145,3 +145,13 @@ def send_otp_sms(otp, to_number):
     except Exception as e:
         print(f"Failed to send OTP: {e}")
         raise
+
+def send_sms(body, to_number):
+    client = MessageClient()
+    try:
+        response = client.send_message(body, to_number)
+        print(response.status)
+        print(f"SMS sent successfully to {to_number}")
+    except Exception as e:
+        print(f"Failed to send SMS: {e}")
+        raise

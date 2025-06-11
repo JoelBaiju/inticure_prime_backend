@@ -22,9 +22,9 @@ class Plans(models.Model):
     location_id=models.IntegerField(default=0)
     number_of_sessions=models.IntegerField(null=True)
 
-class Locations(models.Model):
-    location_id=models.BigAutoField(primary_key=True)
-    location=models.CharField(max_length=20)
+class Countries(models.Model):
+    country_name=models.CharField(max_length=20)
+    representation=models.CharField(max_length=20,null=True)
     currency=models.CharField(max_length=10)
     country_code=models.CharField(max_length=10,null=True)
 

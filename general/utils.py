@@ -1,6 +1,8 @@
 
 import secrets
 import string
+from django.conf import settings
+
 
 def generate_random_otp(length=6):
     otp=''.join(secrets.choice(string.digits) for _ in range(length))
@@ -28,11 +30,12 @@ def send_otp_email(firstname,otp,toemail):
     email = EmailMultiAlternatives(
     subject,
     plain_message,
-    'brandsinfoguide@gmail.com',  # Replace with your "from" email address
+    settings.DEFAULT_FROM_EMAIL,  # Use the default from email
     [toemail]    
     )
     email.attach_alternative(html_message, 'text/html')
-    email.send()
+    print(f"Sending OTP email to {toemail}")
+    print(email.send())
     
     
 

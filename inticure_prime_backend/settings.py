@@ -175,19 +175,32 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'brandsinfoguide@gmail.com'  # Your Gmail account
-EMAIL_HOST_PASSWORD = 'cpav vbda pjjk lmxs'  # App Password or Gmail password
-DEFAULT_FROM_EMAIL = 'brandsinfoguide@gmail.com'  # Default from email (can be your Gmail or another verified email)
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'wecare@inticure.com'  # Your Gmail account
+# EMAIL_HOST_PASSWORD = 'kfqk vezg lylg nbuu'  # App Password or Gmail password
+# DEFAULT_FROM_EMAIL = 'wecare@inticure.com'  # Default from email (can be your Gmail or another verified email)
+
+
 
 
 
 
 
 from decouple import config
+
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.sendgrid.net'  # Use SendGrid SMTP server
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'apikey'  # Your Gmail account
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')  # App Password or Gmail password
+DEFAULT_FROM_EMAIL = 'wecare@inticure.com'  # Default from email (can be your Gmail or another verified email)
 
 
 
