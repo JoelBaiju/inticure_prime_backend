@@ -73,40 +73,55 @@ from django.conf import settings
 import json
 import razorpay
 from analysis.views import ConfirmAppointment
-
 @csrf_exempt
 def verify_payment(request):
     if request.method != "POST":
         print("❌ Invalid request method:", request.method)
         return JsonResponse({"error": "Invalid request method"}, status=400)
 
-    webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET
+    # Validate webhook secret exists
+    webhook_secret = getattr(settings, 'RAZORPAY_WEBHOOK_SECRET', None)
+    if not webhook_secret:
+        print("❌ Razorpay webhook secret not configured")
+        return JsonResponse({"error": "Server configuration error"}, status=500)
+
+    # Validate signature header exists
     received_signature = request.headers.get('X-Razorpay-Signature')
-    
+    if not received_signature:
+        print("❌ Missing X-Razorpay-Signature header")
+        return JsonResponse({"error": "Missing signature header"}, status=400)
+
+    # Validate request body exists
     try:
-        request_body = request.body.decode('utf-8')
+        request_body = request.body
+        if not request_body:
+            print("❌ Empty request body")
+            return JsonResponse({"error": "Empty request body"}, status=400)
+            
+        request_body = request_body.decode('utf-8')
     except UnicodeDecodeError as e:
         print(f"❌ UnicodeDecodeError: {str(e)}")
         return JsonResponse({"error": "Invalid request body encoding"}, status=400)
     except Exception as e:
         print(f"❌ Unexpected error decoding request body: {type(e).__name__}: {str(e)}")
-        return JsonResponse({"error": "Invalid request body encoding"}, status=400)
+        return JsonResponse({"error": "Invalid request body"}, status=400)
 
+    # Verify signature
     try:
         razorpay_client.utility.verify_webhook_signature(
             request_body,
             received_signature,
             webhook_secret
         )
+        print("✅ Signature verified")
+        # Continue with payment processing...
+        
     except razorpay.errors.SignatureVerificationError as e:
         print(f"❌ SignatureVerificationError: {str(e)}")
         return JsonResponse({"status": "failed", "message": "Signature verification failed"}, status=400)
     except Exception as e:
-        print(f"❌ Error during verification:before everything else {type(e).__name__}: {str(e)} ")
+        print(f"❌ Error during verification: {type(e).__name__}: {str(e)}")
         return JsonResponse({"status": "failed", "message": "Error during verification"}, status=400)
-
-    print("✅ Signature verified")
-
     try:
         data = json.loads(request_body)
         event = data.get("event")
