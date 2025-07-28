@@ -116,12 +116,24 @@ SIMPLE_JWT = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'inticure',   
+#         'USER': 'root',       
+#         'PASSWORD': 'root@123',  
+#         'HOST': 'localhost',    
+#         'PORT': '3306',         
+#     }
+# }
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'inticure',   
         'USER': 'root',       
-        'PASSWORD': 'root@123',  
+        'PASSWORD': 'Berlin@123',  
         'HOST': 'localhost',    
         'PORT': '3306',         
     }
