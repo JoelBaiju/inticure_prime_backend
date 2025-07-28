@@ -54,14 +54,15 @@ class LoginView(APIView):
         email = request.data.get('email_id')
         country_code = request.data.get('country_code', '+91')  
 
-
+        # otp = generate_random_otp()
+        otp = 000000
 
         if phone_number:
             if not DoctorProfiles.objects.filter(mobile_number = phone_number).exists():
                 return Response('The provided mobile number is not connected with any account',status=status.HTTP_400_BAD_REQUEST)
 
             print("Phone number received and got in:", phone_number)
-            otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = generate_random_otp())
+            otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = otp)
             send_otp_sms(otp = otp_instance.otp , to_number=country_code+phone_number)
             print("OTP sent to phone number:", phone_number)
             
@@ -69,7 +70,7 @@ class LoginView(APIView):
             if not DoctorProfiles.objects.filter(email_id = email).exists():
                 return Response('The provided email id is not connected with any account',status=status.HTTP_400_BAD_REQUEST)
 
-            otp_instance = Email_OTPs.objects.create(email=email, otp=generate_random_otp())
+            otp_instance = Email_OTPs.objects.create(email=email, otp=otp)
             send_otp_email(otp = otp_instance.otp , toemail=email , firstname = 'user')
             print("OTP sent to email:", email)
         
