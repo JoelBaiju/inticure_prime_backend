@@ -76,11 +76,11 @@ def get_preferred_doctors(gender_info, language_info, flag, country, specializat
             effective_payment = rule.get_effective_payment()
             if is_couple:
                 if effective_payment.get("custom_doctor_fee_couple", 0) > 2:
-                    filtered_doctors.append(doctor.id)
+                    filtered_doctors.append(doctor.doctor_profile_id)
                     break
             else:
                 if effective_payment.get("custom_doctor_fee_single", 0) > 2:
-                    filtered_doctors.append(doctor.id)
+                    filtered_doctors.append(doctor.doctor_profile_id)
                     break
 
     # Convert list of doctor IDs to a QuerySet
