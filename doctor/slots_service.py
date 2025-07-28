@@ -268,6 +268,7 @@ def get_available_slots(specialization_id=None, date=None, is_couple=False,
 
     # Case 2: doctor_id not provided — proceed with filtering logic
     if is_junior:
+        specialization = Specializations.objects.get(specialization_id=specialization_id)
         doctors, _, gender_matched, language_matched, fallback_reason = get_preferred_doctors(
             gender_info, language_info, flag="junior", country=country, specialization=specialization , is_couple = is_couple
         )
