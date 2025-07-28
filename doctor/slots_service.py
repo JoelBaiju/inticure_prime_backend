@@ -47,18 +47,18 @@ def generate_clean_slots(free_blocks, session_duration, alignment_minutes):
 
     return clean_slots
 
-def get_preferred_doctors( gender_info, language_info, flag , country , specialization , is_couple):
+
+
+def get_preferred_doctors(gender_info, language_info, flag, country, specialization, is_couple):
     gender = gender_info.get('value') if gender_info else None
     gender_priority = int(gender_info.get('priority', 0)) if gender_info else 0
     language = language_info.get('value') if language_info else None
     language_priority = int(language_info.get('priority', 0)) if language_info else 0
 
-    # print(f"Filtering doctors with gender{gender} (priority) {gender_priority} and language {language} (priority) {language_priority}  with country {country} and specialization {specialization}")
-
     q_gender = Q(gender=gender) if gender else Q()
     q_language = Q(known_languages__language__language__iexact=language) if language else Q()
-    
-    print(country, specialization.specialization)
+
+    # Initial query
     doctors = DoctorProfiles.objects.filter(
         doctor_flag=flag,
         is_accepted=True,
@@ -66,7 +66,7 @@ def get_preferred_doctors( gender_info, language_info, flag , country , speciali
         payment_assignments__specialization=specialization,
     ).distinct()
 
-# Step 2: Filter using .get_effective_payment in Python
+    # Filter based on effective payment
     filtered_doctors = []
     for doctor in doctors:
         for rule in doctor.payment_assignments.filter(
@@ -75,22 +75,26 @@ def get_preferred_doctors( gender_info, language_info, flag , country , speciali
         ):
             effective_payment = rule.get_effective_payment()
             if is_couple:
-                if effective_payment["custom_doctor_fee_couple"] > 2:
-                    filtered_doctors.append(doctor)
-                    break 
+                if effective_payment.get("custom_doctor_fee_couple", 0) > 2:
+                    filtered_doctors.append(doctor.id)
+                    break
             else:
-                if effective_payment["custom_doctor_fee_single"] > 2:
-                    filtered_doctors.append(doctor)
-                    break 
-    doctors = filtered_doctors
+                if effective_payment.get("custom_doctor_fee_single", 0) > 2:
+                    filtered_doctors.append(doctor.id)
+                    break
 
-    print([doctor.first_name for doctor in doctors])
+    # Convert list of doctor IDs to a QuerySet
+    if filtered_doctors:
+        doctors = DoctorProfiles.objects.filter(id__in=filtered_doctors)
+    else:
+        doctors = DoctorProfiles.objects.none()
 
+    # Preference filtering
     gender_matched = False
     language_matched = False
     fallback_reason = None
-
     preferred_doctors = DoctorProfiles.objects.none()
+
     if gender and language:
         preferred_doctors = doctors.filter(q_gender & q_language).distinct()
         if preferred_doctors.exists():
@@ -117,28 +121,24 @@ def get_preferred_doctors( gender_info, language_info, flag , country , speciali
                     if preferred_doctors.exists():
                         gender_matched = True
                         fallback_reason = "No doctors matched language, fallback to gender only"
+
     elif gender:
         preferred_doctors = doctors.filter(q_gender).distinct()
         if preferred_doctors.exists():
             gender_matched = True
+
     elif language:
         preferred_doctors = doctors.filter(q_language).distinct()
         if preferred_doctors.exists():
             language_matched = True
+
     else:
         preferred_doctors = doctors
-        print([doctor.first_name for doctor in doctors])
         fallback_reason = "No preferences provided, showing all doctors"
-    print([doctor.first_name for doctor in doctors])
-    print([doctor.first_name for doctor in preferred_doctors])
 
-
-    preferred_doctor_ids = []
-
+    preferred_doctor_ids = list(preferred_doctors.values_list("id", flat=True))
 
     return preferred_doctors, preferred_doctor_ids, gender_matched, language_matched, fallback_reason
-
-
 
 
 
