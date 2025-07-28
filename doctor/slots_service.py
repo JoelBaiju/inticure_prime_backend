@@ -136,7 +136,7 @@ def get_preferred_doctors(gender_info, language_info, flag, country, specializat
         preferred_doctors = doctors
         fallback_reason = "No preferences provided, showing all doctors"
 
-    preferred_doctor_ids = list(preferred_doctors.values_list("id", flat=True))
+    preferred_doctor_ids = list(preferred_doctors.values_list("doctor_profile_id", flat=True))
 
     return preferred_doctors, preferred_doctor_ids, gender_matched, language_matched, fallback_reason
 
