@@ -434,7 +434,10 @@ def get_multiple_doctor_profiles(request):
     specialization_id = request.data.get("specialization_id")
     is_couple = request.data.get("is_couple")
     try:
-        specialization = Specializations.objects.get(specialization_id =specialization_id)
+        if not specialization_id : 
+            specialization = Specializations.objects.get(specialization = "No Specialization")
+        else:
+            specialization = Specializations.objects.get(specialization_id =specialization_id)
         print(specialization)
     except Specializations.DoesNotExist:
         return Response({'error': 'specialization invalid'}, status=400)
