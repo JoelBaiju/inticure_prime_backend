@@ -85,7 +85,7 @@ def get_preferred_doctors(gender_info, language_info, flag, country, specializat
 
     # Convert list of doctor IDs to a QuerySet
     if filtered_doctors:
-        doctors = DoctorProfiles.objects.filter(id__in=filtered_doctors)
+        doctors = DoctorProfiles.objects.filter(doctor_profile_id__in=filtered_doctors)
     else:
         doctors = DoctorProfiles.objects.none()
 
