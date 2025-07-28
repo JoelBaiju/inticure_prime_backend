@@ -74,7 +74,7 @@ class LoginView(APIView):
             send_otp_email(otp = otp_instance.otp , toemail=email , firstname = 'user')
             print("OTP sent to email:", email)
         
-        print(otp_instance.otp)
+            print(otp_instance.otp)
         return Response({
             'message': 'OTP sent successfully',
             'phone_number': phone_number,
