@@ -395,8 +395,8 @@ class SlotsBooking(APIView):
 
         if not specialization_id or  specialization_id == "No Specialization":
             print('no Specialization')
-            specialization_id = Specializations.objects.filter(specialization = "No Specialization").specialization_id
-        
+            specializations= Specializations.objects.filter(specialization = "No Specialization").first()
+            specialization_id =specializations.specialization_id
         slot_data = get_available_slots(
             specialization_id=specialization_id,
             date=preferred_date,
