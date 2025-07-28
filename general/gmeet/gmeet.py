@@ -8,10 +8,17 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from .create_client_secret import create_google_credentials_file
+
+
+
 
 # Google Calendar API scope
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Generate credentials file dynamically from environment
+create_google_credentials_file(filename=os.path.join(BASE_DIR, 'gmeet/client_secret.json'))
+
 
 def generate_google_meet(summary, description, start_time, end_time, timezone='Asia/Kolkata'):
     """
@@ -34,6 +41,9 @@ def generate_google_meet(summary, description, start_time, end_time, timezone='A
         creds = None
         token_path = os.path.join(BASE_DIR, 'gmeet/token.json')
         client_secret_path = os.path.join(BASE_DIR, 'gmeet/client_secret.json')
+
+        # 👇 Create client_secret.json from environment variables
+        create_google_credentials_file(filename=client_secret_path)
 
         # Load credentials if token exists
         if os.path.exists(token_path):
