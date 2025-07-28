@@ -47,7 +47,7 @@ def generate_clean_slots(free_blocks, session_duration, alignment_minutes):
 
     return clean_slots
 
-def get_preferred_doctors( gender_info, language_info, flag , country , specialization):
+def get_preferred_doctors( gender_info, language_info, flag , country , specialization , is_couple):
     gender = gender_info.get('value') if gender_info else None
     gender_priority = int(gender_info.get('priority', 0)) if gender_info else 0
     language = language_info.get('value') if language_info else None
@@ -58,14 +58,31 @@ def get_preferred_doctors( gender_info, language_info, flag , country , speciali
     q_gender = Q(gender=gender) if gender else Q()
     q_language = Q(known_languages__language__language__iexact=language) if language else Q()
     
-
-    
+    print(country, specialization.specialization)
     doctors = DoctorProfiles.objects.filter(
         doctor_flag=flag,
         is_accepted=True,
         payment_assignments__country__country_name=country,
-        payment_assignments__specialization__specialization=specialization
+        payment_assignments__specialization=specialization,
     ).distinct()
+
+# Step 2: Filter using .get_effective_payment in Python
+    filtered_doctors = []
+    for doctor in doctors:
+        for rule in doctor.payment_assignments.filter(
+            country__country_name=country,
+            specialization=specialization
+        ):
+            effective_payment = rule.get_effective_payment()
+            if is_couple:
+                if effective_payment["custom_doctor_fee_couple"] > 2:
+                    filtered_doctors.append(doctor)
+                    break 
+            else:
+                if effective_payment["custom_doctor_fee_single"] > 2:
+                    filtered_doctors.append(doctor)
+                    break 
+    doctors = filtered_doctors
 
     print([doctor.first_name for doctor in doctors])
 
@@ -252,7 +269,7 @@ def get_available_slots(specialization_id=None, date=None, is_couple=False,
     # Case 2: doctor_id not provided — proceed with filtering logic
     if is_junior:
         doctors, _, gender_matched, language_matched, fallback_reason = get_preferred_doctors(
-            gender_info, language_info, flag="junior", country=country, specialization=specialization
+            gender_info, language_info, flag="junior", country=country, specialization=specialization , is_couple = is_couple
         )
     else:
         specialization = Specializations.objects.get(specialization_id=specialization_id)
@@ -270,7 +287,7 @@ def get_available_slots(specialization_id=None, date=None, is_couple=False,
         ).distinct()
 
         doctors, _, gender_matched, language_matched, fallback_reason = get_preferred_doctors(
-            gender_info, language_info, flag="senior", country=country, specialization=specialization
+            gender_info, language_info, flag="senior", country=country, specialization=specialization ,is_couple=is_couple
         )
         doctors = doctors.filter(doctor_specializations__in=doctor_specs).distinct()
 

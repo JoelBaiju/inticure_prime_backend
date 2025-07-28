@@ -428,7 +428,13 @@ from .serializers import DoctorProfilePublicSerializer
 def get_multiple_doctor_profiles(request):
     doctor_ids = request.data.get("doctor_ids")
     country = request.data.get("country")
-
+    specialization_id = request.data.get("specialization_id")
+    is_couple = request.data.get("is_couple")
+    try:
+        specialization = Specializations.objects.get(specialization_id =specialization_id)
+        print(specialization)
+    except Specializations.DoesNotExist:
+        return Response({'error': 'specialization invalid'}, status=400)
     if not doctor_ids or not isinstance(doctor_ids, list):
         return Response(
             {"detail": "doctor_ids must be a list of IDs."},
@@ -445,11 +451,16 @@ def get_multiple_doctor_profiles(request):
     for doc in response_data:
         rule = DoctorPaymentRules.objects.filter(
             doctor__doctor_profile_id=doc['doctor_profile_id'],
-            country__country_name=country
+            country__country_name=country,
+            specialization = specialization
         ).first()
-
-        doc['final_price'] = rule.get_effective_payment()['custom_user_total_fee_single'] if rule else None
-
+        if rule:
+            if is_couple:
+                doc['final_price'] = rule.get_effective_payment()['custom_user_total_fee_couple'] if rule else None
+            else:
+                print(rule.get_effective_payment)
+                doc['final_price'] = rule.get_effective_payment()['custom_user_total_fee_single'] if rule else None
+        
     try:
         country_obj = Countries.objects.get(country_name=country)
         currency = country_obj.currency
@@ -597,6 +608,8 @@ class FinalSubmit(CreateAPIView):
                     confirmation_email      = data.get('email') if data.get('confirmation_method') == "Email" else None,
                     appointment_date        = slot_date,
                     appointment_time        = from_time,
+                    start_time              = from_time,
+                    end_time                = to_time,
                     doctor                  = doctor,
                     customer_message        = data.get('message'),
                     language_pref           = language_pref,
@@ -650,7 +663,7 @@ def ConfirmAppointment(appointment_id , pretransaction_id):
         temp_transaction = PreTransactionData.objects.filter(pretransaction_id=pretransaction_id).first()
         customer = appointment.customer
         customer.completed_first_analysis = True
-        customer.save()
+        customer.save() 
     except DoctorAppointment.DoesNotExist:
         appointment.payment_done = True
         appointment.appointment_status = 'pending_slot'
@@ -691,6 +704,56 @@ def ConfirmAppointment(appointment_id , pretransaction_id):
 
 
 
+from datetime import datetime, time
+from django.db.models import Q
+from doctor.models import DoctorAvailableHours, DoctorAppointment, Calendar, DoctorProfiles
+
+def is_doctor_available(doctor_id, date_obj, from_time, to_time):
+   
+
+    try:
+        # Get the calendar object for the given date
+        calendar_obj = Calendar.objects.get(date=date_obj)
+    except Calendar.DoesNotExist:
+        return False  # No calendar entry for this date
+
+    # Check if the doctor is available at the requested time
+    availability_qs = DoctorAvailableHours.objects.filter(
+        doctor_id=doctor_id,
+        date=calendar_obj,
+        start_time__lte=from_time,
+        end_time__gte=to_time
+    )
+    if not availability_qs.exists():
+        return False  # Not available in general hours
+
+    # Check if doctor already has a confirmed or pending appointment during this time
+    overlapping_appointments = DoctorAppointment.objects.filter(
+        doctor_id=doctor_id,
+        date=calendar_obj,
+        confirmed=True,  # only consider confirmed appointments as blocking
+    ).filter(
+        Q(start_time__lt=to_time, end_time__gt=from_time)
+    )
+
+    return not overlapping_appointments.exists()
+
+
+
+def create_action_data_for_pending_appointments(appointment):
+
+    appointment = AppointmentHeader.objects.get(appointment_id = appointment.appointment_id)
+    if appointment.appointment_status == "pending_payment":
+        try:
+            doctor_appointment = DoctorAppointment.objects.filter(appointment=appointment).first()
+         
+        except DoctorAppointment.DoesNotExist:
+            appointment.payment_done = True
+            is_doctor_available = is_doctor_available(appointment.doctor.doctor_profile_id ,appointment.appointment_date, appointment.start_time , appointment.end_time)
+            if is_doctor_available:
+                pass
+            handled=True
+    return
 
 # class FinalSubmit(CreateAPIView):
 #     permission_classes = [IsAuthenticated]

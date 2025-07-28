@@ -102,7 +102,7 @@ def verify_payment(request):
         print(f"❌ SignatureVerificationError: {str(e)}")
         return JsonResponse({"status": "failed", "message": "Signature verification failed"}, status=400)
     except Exception as e:
-        print(f"❌ Error during verification: {type(e).__name__}: {str(e)}")
+        print(f"❌ Error during verification:before everything else {type(e).__name__}: {str(e)} ")
         return JsonResponse({"status": "failed", "message": "Error during verification"}, status=400)
 
     print("✅ Signature verified")
