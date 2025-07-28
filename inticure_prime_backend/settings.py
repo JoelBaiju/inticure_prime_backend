@@ -131,11 +131,11 @@ SIMPLE_JWT = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'inticure',   
-        'USER': 'root',       
-        'PASSWORD': 'Berlin@123',  
-        'HOST': 'localhost',    
-        'PORT': '3306',         
+        'NAME': 'inticure',
+        'USER': 'root',
+        'PASSWORD': 'Berlin@123',
+        'HOST': '/var/run/mysqld/mysqld.sock',  # Use socket path instead of 'localhost'
+        'PORT': '',  # Leave PORT blank when using socket
     }
 }
 
