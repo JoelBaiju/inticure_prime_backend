@@ -393,9 +393,10 @@ class SlotsBooking(APIView):
         except ValueError:
             return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
 
-        if specialization_id == "No Specialization":
+        if not specialization_id or  specialization_id == "No Specialization":
             print('no Specialization')
             specialization_id = Specializations.objects.filter(specialization = "No Specialization").specialization_id
+        
         slot_data = get_available_slots(
             specialization_id=specialization_id,
             date=preferred_date,
