@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Appointment Reminder</title>
+  </head>
+  <body style="margin: 0; padding: 0; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 40px 0;">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; padding: 40px; font-family: 'DM Sans', sans-serif, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;">
+            <tr>
+              <td style="text-align: center; padding-bottom: 20px;">
+                <img src="https://inicure-public-files.s3.ap-south-1.amazonaws.com/email/assets/logo-black.png" alt="Inticure Logo" style="height: 25px;" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <h4 style="font-style: normal; font-weight: 400; font-size: 18px; line-height: 25px;">
+                  Hi {{c_name}},
+                </h4>
+                <p>This is a reminder for your upcoming <strong>First</strong> consultation on <strong>{{date}}, {{weekday}}</strong> at <strong>{{time}}</strong></p>
+                <p>with one of our non-judgemental, empathetic, and courteous doctors.</p>
+
+                <p>Please click the link below at the time of your appointment for your consultation:</p>
+                <p><a href="{{meeting_link}}" style="color: #007bff;">{{meeting_link}}</a></p>
+
+                <p>You can also access this <a href="https://customers.inticure.online/" style="color: #007bff;">link</a> and see all your current and upcoming appointments.</p>
+
+                <p>During your consultation, your doctor may review your assessment or ask additional
+                  clarifying questions and take your medical history to better understand your issue and
+                  guide you to the appropriate specialist(s).</p>
+
+                <p><strong>Please keep in mind that during your First consultation, your doctor cannot write
+                  a prescription for you. A prescription, if needed, will only be given by one of our world-class
+                  specialists after your consultation with them.</strong></p>
+
+                <p>If you need to reschedule or cancel your First consultation, please click
+                  <a href="https://customers.inticure.online/consultations" style="color: #007bff;">here</a>.</p>
+
+                <p>With you on your journey,<br />Team Inticure</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-top: 30px; border-top: 1px solid #eee; text-align: center; font-size: 12px; color: #777;">
+                <p>© {{year}} Inticure. All rights reserved.</p>
+                <p><a href="https://www.inticure.com" style="color: #007bff;">www.inticure.com</a></p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

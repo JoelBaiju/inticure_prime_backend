@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from django.shortcuts import render
 from rest_framework import generics
 from django.shortcuts import render
@@ -17,6 +18,21 @@ from inticure_prime_backend.settings import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKE
 # ======================FIRST ANALYSIS INTERROGATION ========================//
 
 
+# analysis/views.py
+class StartAnalysisView(APIView):
+    def get(self, request):
+        session = AnalysisSession.objects.create()
+        return Response({
+            "message": "Analysis session started",
+            "analysis_token": str(session.token)
+        }, status=200)
+    
+
+def get_analysis_session(token):
+    try:
+        return AnalysisSession.objects.get(token=token)
+    except AnalysisSession.DoesNotExist:
+        raise ValidationError("Invalid or expired analysis token.")
 
 
 # ========API : 1=========verifying the user authenticity using email or phone along with existing user checking ========================//
@@ -33,16 +49,16 @@ class PhoneNumberOrEmailSubmissionView(APIView):
         print("Phone number:", phone_number)
         if phone_number:
             print("Phone number received and got in:", phone_number)
-            otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = generate_random_otp())
-            send_otp_sms(otp = otp_instance.otp , to_number=country_code+phone_number)
-            # send_otp_sms(otp = generate_random_otp() , to_number="+917034761676")
+            otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = '666666')
+            # otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = generate_random_otp())
+            # send_otp_sms(otp = otp_instance.otp , to_number=country_code+phone_number)
             print("OTP sent to phone number:", phone_number)
             
         if email:
-            otp_instance = Email_OTPs.objects.create(email=email, otp=generate_random_otp())
+            otp_instance = Email_OTPs.objects.create(email=email, otp='666666')
+            # otp_instance = Email_OTPs.objects.create(email=email, otp=generate_random_otp())
             send_otp_email(otp = otp_instance.otp , toemail=email , firstname = ' user')
             print("OTP sent to email:", email)
-            # send_otp_email(otp = generate_random_otp() , toemail=email)
         
             
         return Response({
@@ -79,22 +95,28 @@ class PhoneNumberOrEmailVerificationView(APIView):
 
         user = None
 
-        # Phone OTP verification
         if phone_number:
             try:
-                phone_otp = Phone_OTPs.objects.get(phone=phone_number, otp=otp)
+                phone_otp = Phone_OTPs.objects.filter(phone=phone_number, otp=otp).order_by('-created_at').first()
+                if not phone_otp:
+                    return Response('Invalid OTP for phone number', status=HTTP_400_BAD_REQUEST)
+
                 user = User.objects.filter(username=phone_number).first()
-            except Phone_OTPs.DoesNotExist:
-                return Response({'error': 'Invalid OTP for phone number', 'verified': False}, status=HTTP_400_BAD_REQUEST)
+
+            except DoctorProfiles.DoesNotExist:
+                return Response('Account not found, Invalid phone number', status=HTTP_400_BAD_REQUEST)
 
         # Email OTP verification
         if email:
             try:
-                email_otp = Email_OTPs.objects.get(email=email, otp=otp)
-                user = User.objects.filter(email=email).first()
-            except Email_OTPs.DoesNotExist:
-                return Response({'error': 'Invalid OTP for email', 'verified': False}, status=HTTP_400_BAD_REQUEST)
+                email_otp = Email_OTPs.objects.filter(email=email, otp=otp).order_by('-created_at').first()
+                if not email_otp:
+                    return Response('Invalid OTP for email', status=HTTP_400_BAD_REQUEST)
 
+                user = User.objects.filter(email=email).first()
+
+            except DoctorProfiles.DoesNotExist:
+                return Response('Account not found, Invalid Email ID', status=HTTP_400_BAD_REQUEST)
         if user:
             try :
                 customer_profile = CustomerProfile.objects.get(user=user)
@@ -128,6 +150,11 @@ class PhoneNumberOrEmailVerificationView(APIView):
                 email=email if email else None,
                 password=otp
             )
+            customer_profile = CustomerProfile.objects.create(
+                user=user,
+                mobile_number=phone_number if phone_number else None,
+                completed_first_analysis=False,
+            )
 
             refresh = RefreshToken.for_user(user)
             return Response({
@@ -154,8 +181,8 @@ from customer.models import CustomerProfile
 from .models import Category, Questionnaire, Options
 from .serializers import *
 
+
 class SubmitGenderCategoryView(APIView):
-    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         # This method can be used to retrieve categories if needed
@@ -166,68 +193,66 @@ class SubmitGenderCategoryView(APIView):
             'status': 'Ok',
             'data': serialized_categories
         })
-
     def post(self, request):
-        user = request.user
-        if user.is_anonymous:
-            return Response({'error': 'User is not authenticated'}, status=HTTP_401_UNAUTHORIZED)
-        user = request.user
-        category_id = request.data.get('category')
+        token = request.data.get("analysis_token")
+        if not token:
+            return Response({'error': 'Missing analysis_token'}, status=400)
+
+        try:
+            session = AnalysisSession.objects.get(token=token)
+        except AnalysisSession.DoesNotExist:
+            return Response({'error': 'Invalid analysis_token'}, status=400)
+
         gender = request.data.get('gender')
+        category_id = request.data.get('category')
 
         if not gender:
-            return Response({'error': 'Gender is required'}, status=HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Gender is required'}, status=400)
 
-        category_instance = None
+        # Save gender
+        session.gender = gender
+
+        # Save category if provided
         if category_id:
             try:
                 category_instance = Category.objects.get(id=category_id)
+                session.category = category_instance
             except Category.DoesNotExist:
-                return Response({'error': 'Category does not exist'}, status=HTTP_400_BAD_REQUEST)
+                return Response({'error': 'Category does not exist'}, status=400)
 
-    
-        if not CustomerProfile.objects.filter(user=user).exists():
-            customer_profile = CustomerProfile.objects.create(
-                user=user,
-                gender=gender,
-            )
+        session.save()
+        print(category_id,gender)
+        # Now fetch questionnaire based on gender (and optionally category)
+        filter = {}
+        # Use the correct field name as per your Questionnaire model
+        # For example, if the field is 'gender' and 'category', use those
+        filter_field_gender = 'customer_gender'  # Change this to your actual field name in Questionnaire
+        filter_field_category = 'category'  # Change this to your actual field name in Questionnaire
 
-        else :
-            customer_profile = CustomerProfile.objects.get(user=user)
-
-        appointment=AppointmentHeader.objects.create(
-            customer=customer_profile,
-            category=category_instance,
-            appointment_status=1,  # Assuming 1 means 'pending' or 'new'
-            )
-                
-
+        filter[filter_field_gender] = gender
+        if session.category:
+            filter[filter_field_category] = session.category
 
         try:
-            filter = {}
-            filter['category_id'] = category_id
-            filter['customer_gender'] = gender
+            questionnaire = Questionnaire.objects.filter(customer_gender = gender )
+            print("Questionnaire:", questionnaire)
+            questionnaire_serialized = QuestionnaireSerializer(questionnaire, many=True).data
 
-            questionnaire_serialized = QuestionnaireSerializer(Questionnaire.objects.filter(**filter), many=True).data
-            
-        except Exception as e:
-            return Response({'error': str(e)}, status=HTTP_400_BAD_REQUEST)
-
-        for question in questionnaire_serialized:
-            try:
-                question['options'] = OptionsSerializer(Options.objects.filter(question=question['id']),  
-                                                        many=True).data
-            except Exception as e:
-                print("Error fetching options for question:", question['id'], e)
-                question['options'] = ""
+            for question in questionnaire_serialized:
+                question['options'] = OptionsSerializer(
+                    Options.objects.filter(question=question['id']),
+                    many=True
+                ).data
+        except Category.DoesNotExist:
+            return Response({'error': 'Category does not exist'}, status=400)
+        except ValidationError as ve:
+            return Response({'error': str(ve)}, status=400)
+        print("Questionnaire data:", questionnaire_serialized)
         return Response({
             'response_code': 200,
             'status': 'Ok',
             'questionnaire': questionnaire_serialized
         })
-       
-        return Response({'message': 'Profile created successfully'}, status=HTTP_200_OK)
-
 
 
 
@@ -235,45 +260,39 @@ class SubmitGenderCategoryView(APIView):
 
 # ========API : 4========= Saving the selected answers from question ========================//
 # ========URL : ==========/analysis/submit_questionnaire/ ========================//
-
-
 class SubmitQuestionnaireView(APIView):
-    permission_classes = [IsAuthenticated]
-
     def post(self, request):
-        user = request.user
-        answers = request.data.get('answers', [])
-        try:
-            customer = CustomerProfile.objects.get(user=user)
-        
-        except :
-            return  Response({'error': 'Seems like you missed something ,Please start again'}, status=HTTP_400_BAD_REQUEST)
+        token = request.data.get("analysis_token")
+        answers = request.data.get("answers", [])
+
+        if not token:
+            return Response({"error": "Missing analysis_token"}, status=400)
         if not answers:
-            return Response({'error': 'Answers are required'}, status=HTTP_400_BAD_REQUEST)
+            return Response({"error": "Answers are required"}, status=400)
+
+        try:
+            session = AnalysisSession.objects.get(token=token)
+        except AnalysisSession.DoesNotExist:
+            return Response({"error": "Invalid analysis_token"}, status=400)
 
         for answer in answers:
-            question = answer.get('question')
-            options = answer.get('option')
+            question_id = answer.get("question")
+            option_ids = answer.get("option", [])
 
-            if not question or not options:
-                return Response({'error': 'Question ID and selected option are required'}, status=HTTP_400_BAD_REQUEST)
+            if not question_id or not option_ids:
+                return Response({"error": "Question ID and selected option are required"}, status=400)
 
-            # Save the answer (you may need to create a model for this)
-            for option in options:
-
+            for option_id in option_ids:
                 AppointmentQuestionsAndAnswers.objects.create(
-                    appointment = AppointmentHeader.objects.get(customer=customer),
-                    question=Questionnaire.objects.get(id=question),
-                    answer=Options.objects.get(id=option),
-                    customer= customer
+                    tempsession=session,
+                    question_id=question_id,
+                    answer_id=option_id
                 )
-        appointment = AppointmentHeader.objects.get(customer=customer)
-        appointment.appointment_status = 2
-        appointment.save()
 
-        return Response({'message': 'Answers submitted successfully'}, status=HTTP_200_OK)
+        session.analysis_status = "questionnaire_completed"
+        session.save()
 
-
+        return Response({"message": "Answers saved successfully"}, status=200)
 
 
 
@@ -287,7 +306,6 @@ class SubmitQuestionnaireView(APIView):
 from doctor.serializers import DoctorLanguagesSerializer
 
 class GetAvailableLanguages(APIView):
-    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         # Pull only the unique language names from related model
@@ -317,178 +335,132 @@ from django.utils.timezone import datetime, timedelta
 from django.db.models import Q
 from django.core.cache import cache
 from general.models import UserPreferredDoctors
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from datetime import datetime, timedelta
+from doctor.slots_service import get_available_slots
+
+
+
+
 
 class SlotsBooking(APIView):
-    permission_classes = [IsAuthenticated]
-
     def post(self, request):
-        user = request.user
-
-        # Extract preference data from request body
+        token = request.data.get("analysis_token")
         gender_info = request.data.get('preferred_gender', {})
         language_info = request.data.get('preferred_language', {})
         preferred_date = request.data.get('preferred_date')
+        country = request.data.get('country')
+        specialization_id = request.data.get('specialization')  # Ensure it's an ID
+        is_couple = request.data.get('is_couple', False)
+        is_junior = request.data.get('is_junior', False)
+        alignment_minutes = request.data.get('alignment_minutes')  # Optional
+        specialization = request.data.get('specialization_name', "No Specialization")  
+        authorization = request.headers.get('Authorization')
+        first_analysis = request.data.get('first_analysis', False)
 
-        gender = gender_info.get('value')
-        gender_priority = int(gender_info.get('priority', 0)) if gender_info else 0
+        if first_analysis:
+            if not token:
+                return Response({"error": "Missing analysis_token"}, status=400)
 
-        language = language_info.get('value')
-        language_priority = int(language_info.get('priority', 0)) if language_info else 0
-
-        # Start date from preferred or tomorrow
-        base_date = datetime.now().date() + timedelta(days=1)
-        if preferred_date:
             try:
-                base_date = datetime.strptime(preferred_date, '%Y-%m-%d').date()
-            except ValueError:
-                return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
-
-        # Save preferences to AppointmentHeader
-        appointment = AppointmentHeader.objects.filter(customer=CustomerProfile.objects.get(user=user)).first()
-        
-        if appointment:
-            if gender: appointment.gender_pref = gender
-            if language: appointment.language_pref = language
-            appointment.save()
-
-        doctors = DoctorProfiles.objects.filter(doctor_flag="junior")
-        q_gender = Q(gender=gender) if gender else Q()
-        q_language = Q(doctorlanguages__language__language__iexact=language) if language else Q()
-
-        preferred_doctors = DoctorProfiles.objects.none()
-
-        gender_matched = False
-        language_matched = False
-
-        if gender and language :
-            preferred_doctors = doctors.filter(q_gender & q_language).distinct()
-    
-            if not preferred_doctors.exists():
-                print("No doctors matched both preferences, checking individually")
-                if  gender_priority > language_priority:
-                    preferred_doctors = doctors.filter(q_gender).distinct()
-                    if preferred_doctors.exists():
-                        gender_matched = True
-                elif language_priority > gender_priority:
-                    preferred_doctors = doctors.filter(q_language).distinct()
-                    if preferred_doctors.exists():
-                        language_matched = True
-
-                if not preferred_doctors.exists():
-                    print("No doctors matched single high priority preference, checking fallback ")
-                    if gender_priority > language_priority:
-                        preferred_doctors = doctors.filter(q_language).distinct()
-                        if preferred_doctors.exists():
-                            language_matched = True
-
-                    elif language_priority > gender_priority:
-                        preferred_doctors = doctors.filter(q_gender).distinct()
-                        if preferred_doctors.exists():
-                           gender_matched = True
-
-                if preferred_doctors.exists():
-                    print(preferred_doctors)
-                    print("Fallback to one preference match")
-            
-            else:
-                gender_matched = True
-                language_matched = True
-
-        print(preferred_doctors)
-        print(gender_matched, "gender matched")
-        print(language_matched, "language matched")
-        
-        preferred_doctor_ids = list(preferred_doctors.values_list('doctor_profile_id', flat=True))
+                session = AnalysisSession.objects.get(token=token)
+            except AnalysisSession.DoesNotExist:
+                return Response({"error": "Invalid analysis_token"}, status=400)
 
 
+            # Save preferences in session
+            session.gender_preference = gender_info.get("value")
+            session.language_preference = language_info.get("value")
+            session.preferred_date = preferred_date
+            session.specialization_id = specialization_id
+            session.specialization_name = specialization
+            session.country = country
+            session.is_couple = is_couple
+            session.is_junior = is_junior
+            session.alignment_minutes = alignment_minutes
+            session.analysis_status = "slots_queried"
+            session.save()
 
-        print("Preferred doctor IDs:", preferred_doctor_ids)
-        user_preferred_doctors, created = UserPreferredDoctors.objects.get_or_create(user_id=user.id)
-        if created:
-            for doctor_id in preferred_doctor_ids:
-                user_preferred_doctors.add_doctor(doctor_id)
-        else:
-            user_preferred_doctors.clear_doctors()
-            for doctor_id in preferred_doctor_ids:
-                user_preferred_doctors.add_doctor(doctor_id)
-        user_preferred_doctors.save()
 
-        # Find available slots for the next 14 days (safe cap)
-        max_days = 14
-        current_date = base_date
-        matched_slots = None
-        matched_date = None
-        all_available_dates = []
+        try:
+            base_date = datetime.now().date() + timedelta(days=1)
+            preferred_date = datetime.strptime(preferred_date, '%Y-%m-%d').date() if preferred_date else base_date
+        except ValueError:
+            return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
 
-        for i in range(max_days):
-            # All doctors available on this date
-            slots_today = GeneralTimeSlots.objects.filter(
-                doctor_availability__doctor__in=preferred_doctors,
-                doctor_availability__is_available=True,
-                doctor_availability__date__date=current_date
-            ).select_related('date').distinct()
+        # Call the slot logic
+        slot_data = get_available_slots(
+            specialization_id=specialization_id,
+            date=preferred_date,
+            is_couple=is_couple,
+            alignment_minutes=alignment_minutes,
+            is_junior=is_junior,
+            gender_info=gender_info,
+            language_info=language_info,
+            country=country,
+            specialization=specialization
+        )
 
-            if slots_today.exists() and matched_slots is None:
-                matched_slots = slots_today
-                matched_date = current_date
-
-            if slots_today.exists():
-                all_available_dates.append(str(current_date))
-
-            current_date += timedelta(days=1)
-
-        # If matched slots found
-        if matched_slots:
-            return Response({
-                "message": f"Slots matching preferences found on {matched_date}",
-                "available_slots": self._serialize_slots(matched_slots),
-                "matched_preferences": True,
-                "gender_matched":gender_matched,
-                "language_matched": language_matched,
-                "available_dates": all_available_dates
-            }, status=200)
-
-        # No match with preferences; fallback to all doctors (any slot)
-        fallback_current_date = base_date
-        fallback_slots = None
-        fallback_dates = []
-
-        for i in range(max_days):
-            all_slots = GeneralTimeSlots.objects.filter(
-                doctor_availability__is_available=True,
-                doctor_availability__date__date=fallback_current_date
-            ).select_related('date').distinct()
-
-            if all_slots.exists() and fallback_slots is None:
-                fallback_slots = all_slots
-
-            if all_slots.exists():
-                fallback_dates.append(str(fallback_current_date))
-
-            fallback_current_date += timedelta(days=1)
-
-        return Response({
-            "message": "No slots matching preferences, showing all available slots",
-            "available_slots": self._serialize_slots(fallback_slots) if fallback_slots else [],
-            "matched_preferences": False,
-            "gender_matched":gender_matched,
-            "language_matched": language_matched,
-            "available_dates": fallback_dates,
-            'fallback_message': "Showing all available slots for the next 14 days.",
+        return Response({   
+            "slots": slot_data["slots"],
+            "matched_preferences": slot_data["matched_preferences"],
+            "gender_matched": slot_data["gender_matched"],
+            "language_matched": slot_data["language_matched"],
+            "available_dates": slot_data["available_dates"],
+            "fallback_message": slot_data["fallback_reason"] or "",
+            "doctors_found_but_unavailable": slot_data["doctors_found_but_unavailable"]
         }, status=200)
 
-    def _serialize_slots(self, slots):
-        return [
-            {
-                "date": slot.date.date,
-                "day": slot.date.day,
-                "time": f"{slot.from_time.strftime('%H:%M')} - {slot.to_time.strftime('%H:%M')}",
-                "slot_id": slot.id
-            }
-            for slot in slots
-        ]
 
 
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
+from .models import DoctorProfiles
+from .serializers import DoctorProfilePublicSerializer
+
+
+@api_view(['POST'])
+def get_multiple_doctor_profiles(request):
+    doctor_ids = request.data.get("doctor_ids")
+    country = request.data.get("country")
+
+    if not doctor_ids or not isinstance(doctor_ids, list):
+        return Response(
+            {"detail": "doctor_ids must be a list of IDs."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    doctors = DoctorProfiles.objects.filter(pk__in=doctor_ids)
+    if not doctors.exists():
+        return Response({"detail": "No matching doctors found."}, status=404)
+
+    serialized = DoctorProfilePublicSerializer(doctors, many=True)
+    response_data = serialized.data  # list
+
+    for doc in response_data:
+        rule = DoctorPaymentRules.objects.filter(
+            doctor__doctor_profile_id=doc['doctor_profile_id'],
+            country__country_name=country
+        ).first()
+
+        doc['final_price'] = rule.get_effective_payment()['custom_user_total_fee_single'] if rule else None
+
+    try:
+        country_obj = Countries.objects.get(country_name=country)
+        currency = country_obj.currency
+        currency_symbol = country_obj.currency_symbol
+    except Countries.DoesNotExist:
+        currency = None
+        currency_symbol = None
+
+    return Response({
+        "country": country,
+        "currency": currency,
+        "currency_symbol": currency_symbol,
+        "doctors": response_data
+    }, status=200)
 
 
 
@@ -506,117 +478,370 @@ from rest_framework import status
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from django.core.cache import cache
+from general.gmeet.gmeet import generate_google_meet
+
+
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import CreateAPIView
+from rest_framework import status
+from django.utils import timezone
+from datetime import datetime
+# from .models import CustomerProfile, AppointmentHeader, GeneralTimeSlots, DoctorAvailableSlots, Countries
+from general.models import UserPreferredDoctors
+from customer.serializers import CustomerProfileSerializer
+from general.utils import calculate_age, calculate_from_to_time_with_date
+from general.utils import send_appointment_confirmation_email
+from general.smss import appointmentbooked
+
 
 class FinalSubmit(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CustomerProfileSerializer
 
     def post(self, request):
-        user = request.user
         try:
-            # Extract form data
-            dob = request.data.get('dob')
-            first_name = request.data.get('first_name')
-            last_name = request.data.get('last_name')
-            message = request.data.get('message')
-            preferred_name = request.data.get('preferred_name')
-            slot_id = request.data.get('slot_id')
+            user = request.user
+            data = request.data
+            token = data.get('analysis_token')
+
             
-            confirmation_method = request.data.get('confirmation_method')
-            phone_number = request.data.get('phone_number')
-            email = request.data.get('email')
-            country_code = request.data.get('country_code', '+91')  
+          
+
+            try:
+                customer_profile    = CustomerProfile.objects.get(user=user)
+
+                if not customer_profile.completed_first_analysis:
+                    country             = Countries.objects.get(country_name=data.get('country'))
+                    if not token:
+                        return Response({'error': 'Missing analysis_token'}, status=400)
+                    session             = AnalysisSession.objects.get(token=token)
+
+                    customer_profile.gender         = session.gender
+                    customer_profile.date_of_birth  = data.get('dob')
+                    customer_profile.age            = calculate_age(data.get('dob'))
+                    customer_profile.preferred_name  = data.get('preferred_name')
+                    customer_profile.country_details = country
+                    customer_profile.save()
+
+                    user.first_name = data.get('first_name')
+                    user.last_name = data.get('last_name')
+                    user.save()
+
+                    category        = session.category
+                    gender_pref     = session.gender
+                    language_pref   = session.language_preference
+                    specialization  = session.specialization
+                    is_couple       = session.is_couple
+                    
+                    answer_objs = AppointmentQuestionsAndAnswers.objects.filter(tempsession=session)
+                    
+                    for ans in answer_objs:
+                        ans.customer = customer_profile
+                        ans.save()
+
+                    session.status = "final_submitted"
+                    session.save()
+                
+                else :
+                    category        = Category.objects.get(id= data.get('category'))
+                    gender_pref     = data.get('gender_pref')
+                    language_pref   = data.get('language_pref')
+
+                    specialization  = Specializations.objects.get(specialization_id=data.get('specialization'))
+                    is_couple               = True if data.get('is_couple')else False,                
+
+            except CustomerProfile.DoesNotExist:
+                return Response({'error': 'Customer profile not found'}, status=400)
+            except Countries.DoesNotExist:
+                print("country",data.get('country'))
+                return Response({'error': 'Invalid country'}, status=400)
+            except AnalysisSession.DoesNotExist:
+                return Response({'error': 'Invalid analysis_token'}, status=400)
 
 
-            # Validate confirmation method
-            if confirmation_method not in ["SMS", "Email", "WhatsApp"]:
-                return Response({'error': 'Invalid confirmation method'}, status=status.HTTP_400_BAD_REQUEST)
-            if confirmation_method in ["SMS", "WhatsApp"] and not request.data.get('phone_number'):
-                return Response({'error': 'Phone number is required for SMS/WhatsApp'}, status=status.HTTP_400_BAD_REQUEST)
-            if confirmation_method == "Email" and not request.data.get('email'):
-                return Response({'error': 'Email is required for Email confirmation'}, status=status.HTTP_400_BAD_REQUEST)
+            # Update user details
+         
 
-            # Update customer profile
-            customerProfile, created = CustomerProfile.objects.get_or_create(user=user)
-            customerProfile.date_of_birth = dob
-            customerProfile.preferred_name = preferred_name
-            customerProfile.save()
+            # Appointment slot
+            slot = data.get('slot', {})
+            slot_date = datetime.strptime(slot.get('date'), "%Y-%m-%d").date()
+            from_time = datetime.strptime(slot.get('start'), "%H:%M:%S").time()
+            to_time = datetime.strptime(slot.get('end'), "%H:%M:%S").time()
+            doctor_id = data.get('doctor_id')
+            doctor = DoctorProfiles.objects.get(doctor_profile_id=doctor_id)
 
-            # Update user's name
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
+            # Check slot overlap
+            overlapping = DoctorAppointment.objects.filter(
+                doctor=doctor,
+                date__date=slot_date,
+                start_time__lt=to_time,
+                end_time__gt=from_time
+            ).exists()
+            if overlapping:
+                return Response({'error': 'The selected time slot overlaps with an existing appointment.'}, status=409)
 
-            # Update appointment message
-            appointment = AppointmentHeader.objects.filter(customer=customerProfile).first()
-            if appointment:
-                appointment.customer_message = message
-                appointment.appointment_status = 3 
-                appointment.confirmation_method = confirmation_method
-                appointment.confirmation_phone_number = phone_number if confirmation_method in ["SMS", "WhatsApp"] else None
-                appointment.confirmation_email = email if confirmation_method == "Email" else None
-                appointment.save()
+            # Create new appointment
+            print(specialization)
+            appointment = AppointmentHeader.objects.create(
+                    customer                = customer_profile,
+                    category                = category,
+                    gender_pref             = gender_pref,
+                    appointment_status      = "pending_payment",
+                    status_detail           = "initiated by customer waiting for payment",
+                    confirmation_method     = data.get('confirmation_method'),
+                    confirmation_phone_number= data.get('phone_number') if data.get('confirmation_method') in ["SMS", "WhatsApp"] else None,
+                    confirmation_email      = data.get('email') if data.get('confirmation_method') == "Email" else None,
+                    appointment_date        = slot_date,
+                    appointment_time        = from_time,
+                    doctor                  = doctor,
+                    customer_message        = data.get('message'),
+                    language_pref           = language_pref,
+                    specialization          = specialization if specialization else Specializations.objects.get(specialization="No Specialization"),
+                    is_couple               = is_couple,
+            )
 
-            # Allot doctor based on preferred doctors and slot
-            return AllotDoctor(request.user.id, customerProfile,slot_id)
+            # Generate meet link
+            aware_from = timezone.make_aware(datetime.combine(slot_date, from_time))
+            aware_to = timezone.make_aware(datetime.combine(slot_date, to_time))
+            appointment.meeting_link = generate_google_meet(
+                summary='Appointment',
+                description='Appointment with doctor',
+                start_time=aware_from,
+                end_time=aware_to
+            )
+            appointment.save()
+            print('haiiii')
+            # Save into DoctorAppointment
+            DoctorAppointment.objects.create(
+                doctor=doctor,
+                specialization=specialization,
+                date=Calendar.objects.get_or_create(date=slot_date)[0],
+                start_time=from_time,
+                end_time=to_time,
+                appointment=appointment,
+            )
+         
+            from .tasks import delete_unpaid_appointment
+            # delete_unpaid_appointment.apply_async((appointment.appointment_id,), countdown=300)
+
+            return Response({
+                'message': 'Appointment successfully booked',
+                'appointment': AppointmentHeaderSerializer(appointment).data,
+            }, status=200)
 
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)}, status=400)
 
 
-def AllotDoctor(user_id,customer, slot_id):
+
+
+
+from general.models import PreTransactionData
+
+def ConfirmAppointment(appointment_id , pretransaction_id):
+    handled = False
     try:
-        appointment = AppointmentHeader.objects.get(customer=customer)
-        slot = GeneralTimeSlots.objects.get(id=slot_id)
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        doctor_appointment = DoctorAppointment.objects.filter(appointment=appointment).first()
+        temp_transaction = PreTransactionData.objects.filter(pretransaction_id=pretransaction_id).first()
+        customer = appointment.customer
+        customer.completed_first_analysis = True
+        customer.save()
+    except DoctorAppointment.DoesNotExist:
+        appointment.payment_done = True
+        appointment.appointment_status = 'pending_slot'
+        appointment.status_detail='Payment done but doctor slot was released, due to time limit passed, have to select new slot'
+        appointment.save()
+        handled=True
+    except PreTransactionData.DoesNotExist:
+        return Response({"error": "Pretransaction data not found for the given pretransaction ID."}, status=404)
     except AppointmentHeader.DoesNotExist:
-        return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
-    except GeneralTimeSlots.DoesNotExist:
-        return Response({"error": "Slot not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "Appointment not found for the given appointment ID."}, status=404)
+    except CustomerProfile.DoesNotExist:
+        return Response({"error": "Customer profile not found for the given appointment ID."}, status=404)
 
-    # Get preferred doctors from cache
+    if not handled:
+        appointment.payment_done = True
+        appointment.appointment_status = 'confirmed'
+        appointment.save()
+        doctor_appointment.confirmed = True
+        doctor_appointment.save()
+        if appointment.confirmation_method == "SMS":
+            appointmentbooked(appointment.appointment_id)
+        elif appointment.confirmation_method == "Email":
+            send_appointment_confirmation_email(
+                name=f"{appointment.user.first_name} {appointment.user.last_name}",
+                to_email=appointment.email,
+                doctor_flag=appointment.doctor.doctor_flag,
+                doctor_name=f"{appointment.doctor.user.first_name} {appointment.doctor.user.last_name}",
+                date=appointment.appointment_date,
+                time=appointment.from_time,
+                meet_link=appointment.meeting_link
+            )
+    Transactions.objects.create(
+        transaction_id = temp_transaction.pretransaction_id,
+        invoice_id = temp_transaction.total_amount,
+        trasanction_amount = temp_transaction.total_amount,
+        payments_status = "success",
+    )
 
-    preferred_doctors = UserPreferredDoctors.objects.filter(user_id=user_id).first()
-    if preferred_doctors:  
-        preferred_doctors = preferred_doctors.get_doctor_ids()
-    else:   
-        return Response({"error": "Preferred doctors not found in cache."}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+# class FinalSubmit(CreateAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = CustomerProfileSerializer
+
+#     def post(self, request):
+#         user = request.user
+#         try:
+#             # Extract form data
+#             dob = request.data.get('dob')
+#             first_name = request.data.get('first_name')
+#             last_name = request.data.get('last_name')
+#             message = request.data.get('message')
+#             preferred_name = request.data.get('preferred_name')
+#             slot_id = request.data.get('slot_id')
+            
+#             confirmation_method = request.data.get('confirmation_method')
+#             phone_number = request.data.get('phone_number')
+#             email = request.data.get('email')
+#             country = request.data.get('country')  
+#             if not country:
+#                 return Response({'error': 'Country is required'}, status=status.HTTP_400_BAD_REQUEST)
+#             else:
+#                 try:
+#                     country = Countries.objects.get(representation=country)
+#                 except Countries.DoesNotExist:
+#                     return Response({'error': 'Invalid country '}, status=status.HTTP_400_BAD_REQUEST)
+                
+#             # Validate required fields
+#             required_fields = ['dob', 'first_name', 'last_name', 'slot_id', 'confirmation_method']
+#             for field in required_fields:
+#                 if not request.data.get(field):
+#                     return Response({'error': f'{field} is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+#             # Validate confirmation method
+#             if confirmation_method not in ["SMS", "Email", "WhatsApp"]:
+#                 return Response({'error': 'Invalid confirmation method'}, status=status.HTTP_400_BAD_REQUEST)
+#             if confirmation_method in ["SMS", "WhatsApp"] and not phone_number:
+#                 return Response({'error': 'Phone number is required for SMS/WhatsApp'}, status=status.HTTP_400_BAD_REQUEST)
+#             if confirmation_method == "Email" and not email:
+#                 return Response({'error': 'Email is required for Email confirmation'}, status=status.HTTP_400_BAD_REQUEST)
+
+#             # Update customer profile
+#             customerProfile, created = CustomerProfile.objects.get_or_create(user=user)
+#             customerProfile.date_of_birth = dob
+#             customerProfile.age = calculate_age(dob)
+#             customerProfile.preferred_name = preferred_name
+#             customerProfile.country_details = country
+#             customerProfile.save()
+
+#             # Update user's name
+#             user.first_name = first_name
+#             user.last_name = last_name
+#             user.save()
+
+#             # Update appointment message
+#             appointment = AppointmentHeader.objects.filter(customer=customerProfile).first()
+#             if not appointment:
+#                 return Response({'error': 'Appointment not found'}, status=status.HTTP_404_NOT_FOUND)
+                
+#             appointment.customer_message = message
+#             appointment.appointment_status = 3 
+#             appointment.confirmation_method = confirmation_method
+#             appointment.confirmation_phone_number = phone_number if confirmation_method in ["SMS", "WhatsApp"] else None
+#             appointment.confirmation_email = email if confirmation_method == "Email" else None
+#             appointment.save()
+
+#             # Allot doctor
+#             try:
+#                 appointment_id = self.allot_doctor(request.user.id, customerProfile, slot_id)
+#                 appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+#                 from_time , to_time =  calculate_from_to_time_with_date(appointment_id)
+#                 appointment.meeting_link = generate_google_meet(
+#                     summary='appointment_id',
+#                     description='Appointment with doctor',
+#                     start_time=from_time,
+#                     end_time=to_time
+#                 )
+#                 appointment.save()
+
+#                 response_data = {
+#                     'message': 'Personal data submitted successfully',
+#                     'appointment': AppointmentHeaderSerializer(appointment).data,
+#                 }            
+#                 return Response(response_data, status=status.HTTP_200_OK)
+#             except Exception as e:
+#                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+#     def allot_doctor(self, user_id, customer, slot_id):
+#         try:
+#             appointment = AppointmentHeader.objects.get(customer=customer)
+#             slot = GeneralTimeSlots.objects.get(id=slot_id)
+#         except AppointmentHeader.DoesNotExist:
+#             raise Exception("Appointment not found.")
+#         except GeneralTimeSlots.DoesNotExist:
+#             raise Exception("Slot not found.")
+
+#         # Get preferred doctors
+#         preferred_doctors = UserPreferredDoctors.objects.filter(user_id=user_id).first()
+#         if not preferred_doctors:  
+#             raise Exception("Preferred doctors not found.")
+            
+#         doctor_ids = preferred_doctors.get_doctor_ids()
+#         if not doctor_ids:
+#             raise Exception("Preferred doctors not available.")
+
+#         # Find available doctor for the given slot
+#         for doctor_id in doctor_ids:
+#             print("Checking availability for doctor ID:", doctor_id)
+
+#         print("time slot:", slot.from_time, slot.to_time, slot.date.date ,slot.id)
         
-    print("Preferred doctors from cache:", preferred_doctors)   
-    print(slot_id )
+#         available_doctor_slot = DoctorAvailableSlots.objects.filter(
+#             doctor__doctor_profile_id__in=doctor_ids,
+#             is_available=True,
+#             time_slot=slot
+#         ).select_related('doctor').first()
 
+#         if not available_doctor_slot:
+#             raise Exception("No preferred doctor available for this slot.")
 
+#         # Assign doctor to appointment and update availability
+#         appointment.doctor = available_doctor_slot.doctor
+#         appointment.appointment_status = 4
+#         appointment.appointment_slot = available_doctor_slot
+#         appointment.appointment_date = slot.date.date
+#         appointment.appointment_time = slot.from_time
+#         appointment.save()
 
-    if not preferred_doctors:
-        return Response({"error": "Preferred doctors not available in cache."}, status=status.HTTP_400_BAD_REQUEST)
+#         # Mark doctor slot as unavailable
+#         available_doctor_slot.is_available = False
+#         available_doctor_slot.save()
 
-    # Find available doctor for the given slot
-    available_doctor_slot = DoctorAvailableSlots.objects.filter(
-        doctor__doctor_profile_id__in=preferred_doctors,
-        is_available=True,
-        time_slot=slot
-    ).select_related('doctor').first()
+#         # Send confirmation if needed
+#         from general.smss import appointmentbooked
+#         if appointment.confirmation_method == "SMS":
+#             appointmentbooked(appointment.appointment_id)
+            
+#         if appointment.confirmation_method == "Email":
+#             send_appointment_confirmation_email(
+#                 name=f"{customer.user.first_name} {customer.user.last_name}",
+#                 to_email=appointment.confirmation_email,
+#                 doctor_flag=appointment.doctor.doctor_flag,
+#                 doctor_name=f"{appointment.doctor.user.first_name} {appointment.doctor.user.last_name}",
+#                 date=appointment.appointment_date,
+#                 time=appointment.appointment_time,
+#                 meet_link=appointment.meeting_link
+#             )
 
-    if not available_doctor_slot:
-        return Response({"error": "No preferred doctor available for this slot."}, status=status.HTTP_404_NOT_FOUND)
+#         return appointment.appointment_id 
 
-    # Assign doctor to appointment and update availability
-    appointment.doctor = available_doctor_slot.doctor
-    appointment.appointment_status = 4
-    appointment.save()
-
-    # Mark doctor slot and general slot as unavailable
-    available_doctor_slot.is_available = False
-    available_doctor_slot.save()
-
-    from general.smss import appointmentbooked
-
-    if appointment.confirmation_method == "SMS":
-        appointmentbooked(appointment)
-    return Response({
-        "message": "Appointment confirmed and doctor assigned.",
-        "assigned_doctor_id": available_doctor_slot.doctor.doctor_profile_id,
-        "slot_id": slot.id
-    }, status=status.HTTP_200_OK)
 
 
 

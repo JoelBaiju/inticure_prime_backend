@@ -1,12 +1,12 @@
 from .twilio import send_sms
+from analysis.models import AppointmentHeader
 
+def appointmentbooked(appointment_id):
 
-def appointmentbooked(appointment):
-
-
+    appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
     message = "Your appointment has been booked successfully."
     
-    body = f"Dear {appointment.customer.user.first_name},\n\n{message}\n\nAppointment Details:\nDate: {appointment['appointment_date']}\nTime: {appointment['appointment_time']}\nThank you for choosing our service!"
+    body = f"Dear {appointment.customer.user.first_name},\n\n{message}\n\nAppointment Details:\nDate: {appointment.appointment_date}\nTime: {appointment.appointment_time}\nThank you for choosing our service!"
 
     send_sms(body, appointment.confirmation_phone_number)
 

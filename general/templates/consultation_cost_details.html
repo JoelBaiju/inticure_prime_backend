@@ -1,0 +1,40 @@
+<!-- templates/consultation_cost_details.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Consultation Cost Details</title>
+    <style>
+        body { font-family: Arial; padding: 2rem; }
+        input[type="text"] { padding: 8px; width: 300px; }
+        button { padding: 8px 16px; }
+        table { margin-top: 1rem; border-collapse: collapse; width: 80%; }
+        th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+    </style>
+</head>
+<body>
+    <h2>Consultation Cost Breakdown</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <label for="appointment_id">Enter Appointment ID:</label>
+        <input type="text" id="appointment_id" name="appointment_id" required>
+        <button type="submit">Get Details</button>
+    </form>
+
+    {% if entry %}
+        <h3>Details for Appointment ID: {{ appointment_id }}</h3>
+        <table>
+            <tr><th>Total Cost</th><td>{{ entry.total_amount }}</td></tr>
+            <tr><th>Doctor Share</th><td>{{ entry.doctor_share }}</td></tr>
+            <tr><th>Inticure Share</th><td>{{ entry.inticure_share }}</td></tr>
+            <tr><th>Doctor Base Rate</th><td>{{ entry.doctor_base_rate }}</td></tr>
+            <tr><th>Country Base Rate</th><td>{{ entry.country_base_rate }}</td></tr>
+            <tr><th>Inticure Share (Min %)</th><td>{{ entry.inticure_share_from_min_percent }}</td></tr>
+            <tr><th>Inticure Share (Country Diff)</th><td>{{ entry.inticure_share_from_country_diff }}</td></tr>
+            <tr><th>Min % Used</th><td>{{ entry.inticure_min_percent }}%</td></tr>
+        </table>
+    {% elif appointment_id %}
+        <p style="color: red;">No payment entry found for Appointment ID {{ appointment_id }}.</p>
+    {% endif %}
+</body>
+</html>

@@ -164,6 +164,12 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+import os
+
+MEDIA_URL = 'media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -175,13 +181,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'wecare@inticure.com'  # Your Gmail account
-# EMAIL_HOST_PASSWORD = 'kfqk vezg lylg nbuu'  # App Password or Gmail password
-# DEFAULT_FROM_EMAIL = 'wecare@inticure.com'  # Default from email (can be your Gmail or another verified email)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'wecare@inticure.com'  # Your Gmail account
+EMAIL_HOST_PASSWORD = 'kfqk vezg lylg nbuu'  # App Password or Gmail password
+DEFAULT_FROM_EMAIL = 'wecare@inticure.com'  # Default from email (can be your Gmail or another verified email)
 
 
 
@@ -194,13 +200,13 @@ from decouple import config
 
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.sendgrid.net'  # Use SendGrid SMTP server
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'apikey'  # Your Gmail account
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')  # App Password or Gmail password
-DEFAULT_FROM_EMAIL = 'wecare@inticure.com'  # Default from email (can be your Gmail or another verified email)
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.sendgrid.net'  # Use SendGrid SMTP server
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'apikey'  # Your Gmail account
+# EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')  # App Password or Gmail password
+# DEFAULT_FROM_EMAIL = 'wecare@inticure.com'  # Default from email (can be your Gmail or another verified email)
 
 
 
@@ -211,8 +217,27 @@ TWILIO_NUMBER = config("TWILIO_NUMBER")
 
 
 
-RAZORPAY_API_KEY = config('RAZORPAY_API_KEY')
-RAZORPAY_API_SECRET = config('RAZORPAY_API_SECRET')
+# RAZORPAY_API_KEY = config('RAZORPAY_API_KEY')
+# RAZORPAY_API_SECRET = config('RAZORPAY_API_SECRET')
+
+RAZORPAY_API_KEY = config('RAZORPAY_API_KEY_test')
+RAZORPAY_API_SECRET = config('RAZORPAY_API_SECRET_test')
+RAZORPAY_WEBHOOK_SECRET = config('RAZORPAY_WEBHOOK_SECRET')
+
 
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+
+
+
+
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Assuming Redis is on default port
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+
+
+
+FRONT_END_SUCCESS_URL= config('FRONT_END_SUCCESS_URL')
+FRONT_END_FAILIURE_URL = config('FRONT_END_FAILIURE_URL')

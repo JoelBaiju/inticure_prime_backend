@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Email Template</title>
+  <style>
+    body {
+      background-color: LightGray;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 0;
+      box-sizing: border-box;
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .header {
+      background: #8F619D;
+      color: white;
+      padding: 1px;
+      position: relative;
+      text-align: center;
+      width: 100%;
+    }
+
+    .header p {
+      display: inline-block;
+      font-family: "DM Sans", sans-serif, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      font-style: normal;
+      font-weight: 600;
+      font-size: 25px;
+      line-height: 35px;
+    }
+
+    .logo {
+      display: block;
+      max-width: 150px;
+      height: auto;
+      margin: 0 auto;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      float: left;
+      padding-left: 22px;
+      padding-top: 13px;
+    }
+
+    .image {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: inline-block;
+      max-width: 150px;
+      height: auto;
+      vertical-align: middle;
+    }
+
+    .email-body {
+      margin-top: 40px;
+      text-align: left;
+      min-height: 500px;
+      width: 100%;
+      padding: 0 40px;
+      box-sizing: border-box;
+      background-color: white;
+    }
+
+    .footer {
+      background: #8F619D;
+      padding: 60px;
+      position: relative;
+      width: 100%;
+    }
+
+    .pale-white-bg {
+      background-color: LightGray;
+    }
+
+    .top-header {
+      background-color: white;
+      float: left;
+      width: 100%;
+      height: 90px;
+    }
+
+    .blank-header,
+    .blank-footer {
+      background-color: LightGray;
+      width: 100%;
+      height: 86px;
+    }
+
+    .email-body h4,
+    .email-body p {
+      font-family: "DM Sans", sans-serif, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      font-style: normal;
+      font-weight: 400;
+      font-size: 18px;
+      line-height: 25px;
+    }
+
+    .social_logos {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .social_logos img {
+      margin: 0 10px;
+      width: 25px;
+      height: 25px;
+    }
+  </style>
+</head>
+<body>
+  <div class="pale-white-bg">
+    <div class="container">
+      <div class="blank-header"></div>
+
+      <!-- Logo -->
+      <div class="top-header">
+        <img src="https://api.inticure.online/media/inticure_logo.jpeg" alt="Logo" class="logo">
+      </div>
+
+      <!-- Email Body -->
+      <div class="email-body">
+        {% if doctor_flag == 0 %}
+        <h4>Hi {{name}},</h4>
+        <p>
+          Looks like something you said or did was not appreciated by your specialist.<br>
+          Perhaps it was just a misunderstanding or a momentary lapse of judgement.<br>
+          Whatever the case may be, if the same specialist or another specialist reports you again,<br>
+          unfortunately you will be permanently banned from our platform. Hopefully we wouldn't have to<br>
+          do that.
+        </p>
+        <p class="mt-4">
+          With you on your journey,<br>
+          Team Inticure
+        </p>
+        {% endif %}
+
+        {% if doctor_flag == 1 %}
+        <h4>Hi {{salutation}} {{doctor_name}},</h4>
+        <p>
+          We want to let you know that we have initiated the appropriate response based on you reporting<br>
+          {{name}}. We have also made the patient aware that if the inappropriate behavior is<br>
+          repeated, he/she will be permanently banned from our platform.<br>
+          We apologize for this rare negative experience you encountered. Rest assured, we are always<br>
+          trying our best to make sure you have a wonderful experience with us.<br>
+          Along the way, if you need any assistance, feel free to reach out to us via drsupport@inticure.com
+        </p>
+        <p class="mt-4">
+          With you on your journey,<br>
+          Team Inticure
+        </p>
+        {% endif %}
+
+        <br><br><br>
+        <p>Please refer to our <a href="https://inticure.online/faq/">Terms and Conditions</a></p>
+        <p>Read our <a href="https://inticure.online/faq/">Privacy Policy</a></p>
+        <p>See our <a href="https://inticure.online/faq/">Cancellation and Refund Policy</a></p>
+        <br>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div style="text-align: center; color: white;">
+          <p><b>Your safety and privacy is our number one priority. ALWAYS!</b></p>
+          <p><b>Follow Us</b></p>
+          <div class="social_logos">
+            <a href="https://www.facebook.com/profile.php?id=100086973277320">
+              <img src="http://api.inticure.com/media/facebook_x3t0h7Z.png" alt="Facebook">
+            </a>
+            <a href="https://www.youtube.com/channel/UCmFHPhjy7R6E_Lfv9_4nr-Q">
+              <img src="http://api.inticure.com/media/Youtube.png" alt="YouTube">
+            </a>
+            <a href="https://www.instagram.com/get_inticured/">
+              <img src="http://api.inticure.com/media/instagram.png" alt="Instagram">
+            </a>
+            <a href="https://www.linkedin.com/company/inticure/?viewAsMember=true">
+              <img src="http://api.inticure.com/media/linkedin.png" alt="LinkedIn">
+            </a>
+          </div>
+          <p style="margin-top: 20px;"><b>Privacy Policy © 2022 NextBig HealthCare Pvt. Ltd</b></p>
+        </div>
+      </div>
+
+      <div class="blank-footer"></div>
+    </div>
+  </div>
+</body>
+</html>

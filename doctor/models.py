@@ -3,52 +3,63 @@ from django.contrib.auth.models import User
 from administrator.models import *
 # Create your models here.
 
-class DoctorPaymentRates(models.Model):
-    country_code            = models.CharField(max_length=10, null=True)
-    country_name            = models.CharField(max_length=50, null=True)
-    currency                = models.CharField(max_length=10, null=True)
-    specialization          = models.CharField(max_length=50, null=True)
-    location                = models.CharField(max_length=50, null=True)
-    rate_per_session        = models.DecimalField(max_digits=10, decimal_places=2, null=True)
-    doctor_flag             = models.CharField(max_length=10, null=True)
 
 
 class DoctorProfiles(models.Model):
     doctor_profile_id       = models.BigAutoField(primary_key=True)
+    first_name              = models.CharField(max_length=50 , null=True)
+    last_name               = models.CharField(max_length=50 , null=True)
     user                    = models.ForeignKey(User, on_delete=models.CASCADE, related_name='doctor_profile',null=True)
-    location                = models.CharField(max_length=30)
-    department              = models.CharField(max_length=20)
-    specialization          = models.CharField(max_length=20)
-    doctor_flag             = models.CharField(max_length=10)
-    doctor_payment_rate     = models.ForeignKey(DoctorPaymentRates, on_delete=models.CASCADE, null=True, blank=True)
-    mobile_number           = models.CharField(max_length=12)
+    country                 = models.ForeignKey(Countries , on_delete=models.CASCADE ,related_name='doctor_profile' , null = True)
+    doctor_flag             = models.CharField(max_length=10,null=True)
+    mobile_number           = models.CharField(max_length=12 ,null= True , unique=True)
+    email_id                = models.CharField(max_length=50 , null=True , unique=True)
     gender                  = models.CharField(max_length=10,null=True)
     qualification           = models.TextField(null=True)
-    address                 = models.TextField(null=True)
-    is_accepted             = models.IntegerField(null=True)
-    registration_certificate= models.TextField(null=True)
-    address_proof           = models.TextField(null=True)
-    sign_file_name          = models.TextField(null=True)
-    sign_file_size          = models.CharField(null=True,max_length=20)
-    reg_file_name           = models.TextField(null=True)
-    reg_file_size           = models.CharField(null=True,max_length=20)
-    addr_file_name          = models.TextField(null=True)
-    addr_file_size          = models.CharField(null=True,max_length=20)
-    signature               = models.TextField(null=True)
     certificate_no          = models.TextField(null=True)
-    profile_pic             = models.TextField(null=True)
-    profile_file_name       = models.TextField(null=True)
-    profile_file_size       = models.TextField(null=True)
-    doctor_bio              = models.CharField(null=True,max_length=10000)
-    registration_year       = models.TextField(null=True)
+    certificate_file        = models.FileField(upload_to='certificates/', null=True, blank=True)
+    address                 = models.TextField(null=True)   
+    address_proof           = models.FileField(upload_to='address_proofs/', null=True, blank=True)
 
+    sign_file_name          = models.FileField(upload_to='signatures/', null=True, blank=True)
+    profile_pic             = models.FileField(upload_to='profile_pics/', null=True, blank=True)
+   
+    doctor_bio              = models.CharField(null=True,max_length=10000)
+    registration_year       = models.CharField(max_length=10,null=True)
+    is_accepted             = models.BooleanField(default=False)
+    rejected                = models.BooleanField(default=False)
+    rejection_reason        = models.CharField(null=True, max_length=500)
+    joined_date             = models.DateField(auto_now_add=True,null= True)
+    accepted_date           = models.DateField(null=True, blank=True)
+    experience              = models.CharField(max_length=10 , null=True)
+    dob                     = models.DateField(null=True)
     def __str__(self):
-        return f"{self.user.first_name}  {self.user.last_name} - {self.department}-{self.gender} - {self.doctor_flag}"
+        return f"{self.first_name}  {self.last_name} -{self.gender} - {self.doctor_flag}"
     
 
+class DoctorSpecializations(models.Model):
+    specialization  = models.ForeignKey(Specializations , on_delete= models.CASCADE , related_name='doctor_specializations' , null=True)
+    time_duration   = models.IntegerField(null=True)
+    doctor          = models.ForeignKey(DoctorProfiles,on_delete= models.CASCADE ,null=True,related_name='doctor_specializations' )
+
+
 class DoctorLanguages(models.Model):
-    doctor      = models.ForeignKey(DoctorProfiles,on_delete= models.CASCADE ,null=True)
+    doctor      = models.ForeignKey(DoctorProfiles,on_delete= models.CASCADE ,null=True,related_name='known_languages' )
     language    = models.ForeignKey(LanguagesKnown , on_delete=models.CASCADE, max_length=100,null=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -60,6 +71,7 @@ class Obeservations(models.Model):
     uploaded_time=models.TimeField(auto_now=True)
     uploaded_date=models.DateField(auto_now=True)
     observe=models.TextField()
+
 class AppointmentReshedule(models.Model):
     appointment_id=models.BigIntegerField()
     user_id=models.BigIntegerField()
@@ -119,6 +131,7 @@ class AnalysisInfo(models.Model):
     analysis_info_path=models.TextField(null=True)
     file_name=models.TextField(null=True)
     file_size=models.CharField(null=True,max_length=20)
+
 class CommonFileUploader(models.Model):
     # appointment_id=models.BigIntegerField()
     uploaded_time=models.TimeField(auto_now=True,null=True)
@@ -145,10 +158,6 @@ class JrDoctorEngagement(models.Model):
     date=models.DateField()
     time_slot=models.CharField(max_length=30)
 
-class DoctorSpecializations(models.Model):
-    specialization=models.CharField(max_length=100)
-    time_duration=models.IntegerField(null=True)
-    description=models.TextField(null=True)
 class AppointmentTransferHistory(models.Model):
     appointment_id=models.BigIntegerField(null=True)
     new_doctor=models.IntegerField(null=True)
@@ -182,12 +191,13 @@ class DoctorAvailableTimeslots(models.Model):
     time_slot_from=models.IntegerField(null=True)
     time_slot_to=models.IntegerField(null=True)
     slot_counter=models.IntegerField(null=True)
+
 class DoctorAvailableDates(models.Model):
     doctor_id=models.BigIntegerField(null=True)
     date=models.DateField(null=True)
     day=models.CharField(null=True,max_length=30)
     
-    '''store information if a doctor is available for particular date'''
+'''store information if a doctor is available for particular date'''
 class DoctorCalenderUpdate(models.Model):
     doctor_id=models.BigIntegerField(null=True)
     date=models.DateField(null=True)
@@ -197,6 +207,7 @@ class DoctorCalenderUpdate(models.Model):
     
 class Time(models.Model):
     time=models.CharField(null=True,max_length=10)
+
 class AppointmentCancellationLog(models.Model):
     appointment_id=models.BigIntegerField()
     cancelled_date=models.DateField(auto_now=True)
@@ -254,15 +265,7 @@ class JuniorDoctorSlots(models.Model):
 
 
 
-
-
-
-
-
-
-
-
-
+# ======================================================common for both junior and senior :-
 
 
 
@@ -276,6 +279,34 @@ class Calendar(models.Model):   # This model is used to store the calendar dates
     class Meta:
         verbose_name_plural = "Calendar"
         ordering = ['date']
+
+
+class DoctorAvailableHours(models.Model):
+    doctor      = models.ForeignKey(DoctorProfiles , on_delete=models.CASCADE , related_name='doctor_available_hours')
+    start_time  = models.TimeField()
+    end_time    = models.TimeField()
+    date        = models.ForeignKey(Calendar , on_delete=models.CASCADE ,related_name='doctor_available_hours')
+
+
+
+
+
+
+class DoctorAppointment(models.Model):
+    doctor = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE)
+    specialization = models.ForeignKey("administrator.Specializations", on_delete=models.SET_NULL, null=True , related_name='doctor_appointment')
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    date = models.ForeignKey(Calendar , on_delete=models.CASCADE ,related_name='doctor_appointment' , null=True)
+    appointment = models.ForeignKey('analysis.AppointmentHeader', on_delete=models.CASCADE, related_name='doctor_appointment', null=True, blank=True)
+    confirmed = models.BooleanField(default=False)
+    completed = models.BooleanField(default=False)
+    
+ 
+
+
+
+# =================================================================only for junior doctors :-
 
 
 class GeneralTimeSlots(models.Model):   # This model is used to store the general time slots for each day in the calendar
@@ -302,8 +333,60 @@ class DoctorAvailableSlots(models.Model):  # This model is used to store the ava
         return f"{self.doctor.user_id} - {self.date.date} - {self.time_slot.from_time} to {self.time_slot.to_time}"
 
     class Meta:
-        verbose_name_plural = "Doctor Availability"
         ordering = ['doctor', 'date', 'time_slot']
 
 
+class DoctorPaymentRules(models.Model):
+    pricing_name = models.CharField(
+        max_length=100, null=True, blank=True,
+        help_text="Optional name for this doctor's specific pricing rule"
+    )
 
+    doctor           = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE, related_name='payment_assignments')
+    specialization   = models.ForeignKey(Specializations, on_delete=models.CASCADE, related_name='doctor_assignments' ,blank=True, null=True)
+    country          = models.ForeignKey(Countries, on_delete=models.CASCADE, related_name='doctor_assignments',blank=True , null= True)
+
+    general_rule    = models.ForeignKey(
+        GeneralPaymentRules,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='assigned_doctors',
+        help_text="Optional. Link to reusable rule template"
+    )
+
+    session_count               = models.PositiveIntegerField(default=1, help_text="Number of sessions for this override")
+
+    custom_doctor_fee_single    = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    custom_user_total_fee_single = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    custom_doctor_fee_couple     = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    custom_user_total_fee_couple = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    actual_price_single          = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    actual_price_couple          = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('doctor', 'specialization', 'country', 'session_count')
+
+    def __str__(self):
+        label = self.pricing_name or f"{self.doctor} | {self.specialization} | {self.country} | {self.session_count} sessions"
+        return f"[Doctor] {label}"
+
+    def get_effective_payment(self, *args, **kwargs):
+        def get_value(attr, fallback_attr):
+            val = getattr(self, attr, None)
+            if val is not None:
+                return float(val)
+            if self.general_rule:
+                return float(getattr(self.general_rule, fallback_attr, 0) or 0)
+            return 0.0
+
+        return {
+            "custom_doctor_fee_single": get_value("custom_doctor_fee_single", "doctor_fee_single"),
+            "custom_user_total_fee_single": get_value("custom_user_total_fee_single", "user_total_fee_single"),
+            "custom_doctor_fee_couple": get_value("custom_doctor_fee_couple", "doctor_fee_couple"),
+            "custom_user_total_fee_couple": get_value("custom_user_total_fee_couple", "user_total_fee_couple"),
+            "actual_price_single": get_value("actual_price_single", "actual_price_single"),
+            "actual_price_couple": get_value("actual_price_couple", "actual_price_couple"),
+            "session_count": int(get_value("session_count", "session_count")),
+        }

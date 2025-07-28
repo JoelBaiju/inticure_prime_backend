@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Confirmation</title>
+    <style>
+        body {
+            background-color: LightGray;
+            font-family: "DM Sans", sans-serif, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 700px; /* width of an A4 size paper */
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header styles */
+        .header {
+            background: #8F619D;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header p {
+            font-size: 25px;
+            font-weight: 600;
+            line-height: 35px;
+        }
+
+        .logo {
+            display: block;
+            max-width: 150px;
+            margin: 20px auto;
+        }
+
+        .header-image {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            max-width: 150px;
+            height: auto;
+        }
+
+        /* Email body styles */
+        .email-body {
+            padding: 40px;
+            text-align: left;
+        }
+
+        .email-body p {
+            font-size: 18px;
+            line-height: 25px;
+            margin-bottom: 15px;
+        }
+
+        .email-btn {
+            background-color: #8F619D;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .link-block {
+            color: #8F619D;
+            text-decoration: none;
+            display: block;
+            margin-top: 10px;
+        }
+
+        h4.email-heading-s2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .footer {
+            background: #8F619D;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .social_logos img {
+            margin: 0 10px;
+            width: 25px;
+            height: 25px;
+        }
+
+        .social_logos {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .blank-header, .blank-footer {
+            background-color: LightGray;
+            width: 100%;
+            height: 86px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo -->
+        <div class="top-header">
+            <img src="https://api.inticure.online/media/inticure_logo.jpeg" alt="Logo" class="logo">
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+            <p>Confirm Your Account</p>
+            <img src="https://api.inticure.online/media/doctor_img.png" alt="Image" class="header-image">
+        </div>
+
+        <!-- Email Body -->
+        <div class="email-body">
+            <p>Hi {{email}},</p>
+            <p>Welcome to Inticure! You are receiving this email because you have registered on our site.</p>
+            <p>This is an automatically generated email, please do not reply to this email. If you face any issues, please contact us at help@dashlite.com</p>
+
+		<br>
+		<br>
+        <br>
+		<p>Please refer our Terms and Conditions <a href="https://inticure.online/faq/">click</a></p>
+		<p>Please refer our Privacy Policy <a href="https://inticure.online/faq/">click</a></p>
+		<p>Please refer our Cancellation and Refund Policy <a href="https://inticure.online/faq/">click</a></p>
+		<br>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Your safety and privacy is our number one priority. ALWAYS!</strong></p>
+            <p><strong>Follow Us</strong></p>
+            <div class="social_logos">
+                <a href="https://www.facebook.com/profile.php?id=100086973277320">
+                    <img src="http://api.inticure.com/media/facebook_x3t0h7Z.png" alt="Facebook">
+                </a>
+                <a href="https://www.youtube.com/channel/UCmFHPhjy7R6E_Lfv9_4nr-Q">
+                    <img src="http://api.inticure.com/media/Youtube.png" alt="YouTube">
+                </a>
+                <a href="https://www.instagram.com/get_inticured/">
+                    <img src="http://api.inticure.com/media/instagram.png" alt="Instagram">
+                </a>
+                <a href="https://www.linkedin.com/company/inticure/?viewAsMember=true">
+                    <img src="http://api.inticure.com/media/linkedin.png" alt="LinkedIn">
+                </a>
+            </div>
+            <p><strong>Privacy Policy © 2022 NextBig HealthCare Pvt. Ltd</strong></p>
+        </div>
+
+        <div class="blank-footer"></div>
+    </div>
+</body>
+</html>

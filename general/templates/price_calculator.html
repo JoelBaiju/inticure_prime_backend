@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inticure Price Calculator - Inticure</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6A1B78;
+            --primary-light: #8F619D;
+            --secondary: #F5F5F7;
+            --text: #333333;
+            --text-light: #666666;
+            --border: #E0E0E0;
+            --white: #FFFFFF;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--secondary);
+            color: var(--text);
+            padding: 2rem;
+            margin: auto;
+            line-height: 1.6;
+        }
+        
+        .calculator-wrapper {
+            display: flex;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .input-section, .result-section {
+            flex: 1;
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .input-section:hover, .result-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        h2 {
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            font-size: 1.8rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: 3px;
+        }
+        
+        .input-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        label {
+            font-weight: 500;
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+            transition: color 0.3s ease;
+        }
+        
+        input {
+            padding: 12px 15px;
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(143, 97, 157, 0.2);
+        }
+        
+        h3 {
+            color: var(--primary);
+            margin-bottom: 1.2rem;
+            font-weight: 500;
+            font-size: 1.3rem;
+        }
+        
+        table {
+            width: 100%;
+            margin-top: 1rem;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            animation: slideUp 0.4s ease-out;
+        }
+        
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        
+        
+        th {
+            /* background-color: #8F619D; */
+            /* color: white; */
+            font-weight: 500;
+        }
+
+        th:hover{
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: var(--secondary);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+            font-weight: 500;
+            color: var(--primary);
+        }
+        
+        tr:hover {
+            background-color: rgba(143, 97, 157, 0.05);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .highlight {
+            animation: highlight 1.5s ease;
+        }
+        
+        @keyframes highlight {
+            0% { background-color: rgba(106, 27, 120, 0.1); }
+            100% { background-color: transparent; }
+        }
+
+        /* Responsive design for smaller screens */
+        @media (max-width: 768px) {
+            .calculator-wrapper {
+                flex-direction: column;
+            }
+            
+            .input-section, .result-section {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-wrapper">
+        <div class="input-section">
+            <h2>Inticure Price Calculator</h2>
+
+            <div class="input-group">
+                <label for="doctor_fee">Doctor Fee</label>
+                <input type="number" id="doctor_fee" value="400" step="0.01">
+            </div>
+
+            <div class="input-group">
+                <label for="country_rate">Country Rate</label>
+                <input type="number" id="country_rate" value="1500" step="0.01">
+            </div>
+
+            <div class="input-group">
+                <label for="min_share_percent">Minimum Inticure Share (%)</label>
+                <input type="number" id="min_share_percent" value="10" step="0.01">
+            </div>
+        </div>
+
+        <div class="result-section">
+            <h3>Calculation Breakdown</h3>
+            <table>
+                <tr><th>Doctor Fee</th><td id="r_doctor_fee">-</td></tr>
+                <tr><th>Country Rate</th><td id="r_country_rate">-</td></tr>
+                <tr><th>Inticure Share (Min %)</th><td id="r_min_percent_share">-</td></tr>
+                <tr><th>Inticure Share (Country Diff)</th><td id="r_country_diff_share">-</td></tr>
+                <tr><th>Final Inticure Share</th><td id="r_final_share">-</td></tr>
+                <tr><th>Total Cost</th><td id="r_total_cost">-</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const doctorFeeInput = document.getElementById('doctor_fee');
+        const countryRateInput = document.getElementById('country_rate');
+        const minSharePercentInput = document.getElementById('min_share_percent');
+
+        const resultElements = [
+            document.getElementById('r_doctor_fee'),
+            document.getElementById('r_country_rate'),
+            document.getElementById('r_min_percent_share'),
+            document.getElementById('r_country_diff_share'),
+            document.getElementById('r_final_share'),
+            document.getElementById('r_total_cost')
+        ];
+
+        function calculate() {
+            const doctorFee = parseFloat(doctorFeeInput.value) || 0;
+            const countryRate = parseFloat(countryRateInput.value) || 0;
+            const minPercent = (parseFloat(minSharePercentInput.value) || 0) / 100;
+
+            const inticureFromMin = minPercent * doctorFee;
+            const inticureFromCountryDiff = Math.max(countryRate - doctorFee, 0);
+            const finalInticureShare = Math.max(inticureFromMin, inticureFromCountryDiff);
+            const totalCost = doctorFee + finalInticureShare;
+
+            // Update results with animation
+            const results = [
+                doctorFee.toFixed(2),
+                countryRate.toFixed(2),
+                inticureFromMin.toFixed(2),
+                inticureFromCountryDiff.toFixed(2),
+                finalInticureShare.toFixed(2),
+                totalCost.toFixed(2)
+            ];
+
+            resultElements.forEach((el, index) => {
+                if (el.textContent !== results[index]) {
+                    el.textContent = results[index];
+                    el.classList.add('highlight');
+                    setTimeout(() => el.classList.remove('highlight'), 1500);
+                }
+            });
+        }
+
+        // Add input event listeners with debounce
+        let timeout;
+        function debounceCalculate() {
+            clearTimeout(timeout);
+            timeout = setTimeout(calculate, 300);
+        }
+
+        doctorFeeInput.addEventListener('input', debounceCalculate);
+        countryRateInput.addEventListener('input', debounceCalculate);
+        minSharePercentInput.addEventListener('input', debounceCalculate);
+
+        // Initial calculation
+        window.onload = calculate;
+    </script>
+
+</body>
+</html>

@@ -17,14 +17,32 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
-# from administrator import urls as administrator_urls
+from administrator import urls as administrator_urls
 from customer import urls as customer_urls
-# from doctor import urls as doctor_urls
+from doctor import urls as doctor_urls
 from analysis import urls as analysis_urls
+from general import urls as general_urls
+from django.conf.urls.static import static
+from  . import settings 
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('customer/', include(customer_urls)),
-    # path('doctor/', include(doctor_urls)),
+    path('doctor/', include(doctor_urls)),
     path('analysis/', include(analysis_urls)),
-    # path('administrator/', include(administrator_urls)),
+    path('general/', include(general_urls)),
+    path('iadmin/', include(administrator_urls)),
+
+
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    
 ]
+
+
+
+
+
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

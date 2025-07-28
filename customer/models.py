@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+from administrator.models import Countries
 
 # Create your models here.
 class CustomerProfile(models.Model):
@@ -11,10 +11,23 @@ class CustomerProfile(models.Model):
     address=models.CharField(max_length=50,blank=True, null=True)
     date_of_birth=models.DateField(blank=True, null=True,auto_now_add=False)
     mobile_number=models.BigIntegerField(blank=True, null=True)
-    location=models.IntegerField(null=True)
+    country_details = models.ForeignKey(Countries, on_delete=models.CASCADE, related_name='customer_profile', null=True, blank=True)
     profile_pic=models.TextField(null=True)
     completed_first_analysis = models.BooleanField(default=False)
     preferred_name = models.CharField(max_length=110,blank=True, null=True)
+    weight = models.CharField(max_length=255, null=True, blank=True)
+    height = models.CharField(max_length=255, null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.user.username} -{self.user.first_name}-{self.user.last_name}- {self.preferred_name if self.preferred_name else 'No Preferred Name'}"
+
+class Extra_questions(models.Model):
+    question = models.CharField(max_length=255, null=True, blank=True)
+
+class Extra_questions_answers(models.Model):
+    question = models.ForeignKey(Extra_questions, on_delete=models.CASCADE, related_name='extra_questions_answers')
+    answer = models.CharField(max_length=255, null=True, blank=True)
+    customer = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='extra_questions_answers')
 
 class AppointmentRatings(models.Model):
     appointment_id=models.BigIntegerField(null=True)
@@ -30,16 +43,6 @@ class StripeCustomer(models.Model):
     stripe_customer_token_id = models.TextField()
     customer_id = models.IntegerField()
 
-class TemporaryTransactionData(models.Model):
-    temp_id=models.BigAutoField(primary_key=True)
-    user_id=models.IntegerField()
-    currency=models.CharField(max_length=10,null=True)
-    total_amount=models.IntegerField(null=True)
-    appointment_id=models.IntegerField(null=True)
-    discount=models.IntegerField(null=True)
-    coupon_id=models.IntegerField(null=True)
-    tax=models.IntegerField(null=True)
-    vendor_fee=models.IntegerField(null=True)
 
 class Refund(models.Model):
     refund_id=models.CharField(max_length=50)
@@ -50,5 +53,4 @@ class Refund(models.Model):
     appointment_id=models.IntegerField()
     appointment_date=models.DateField()
     refund_amount=models.IntegerField(default=0)
-    
     

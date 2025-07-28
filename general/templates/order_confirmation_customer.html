@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Confirmation | Inticure</title>
+    <style>
+        /* Base Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Email Container */
+        .email-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Section */
+        .email-header {
+            background-color: #8F619D;
+            padding: 20px 0;
+            position: relative;
+            text-align: center;
+        }
+
+        .header-content {
+            display: flex;
+			flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0 40px;
+        }
+
+        .logo {
+            max-width: 150px;
+            height: auto;
+        }
+
+        .header-text {
+            font-size: 18px;
+            font-weight: 500;
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .doctor-image {
+            max-width: 150px;
+            height: auto;
+        }
+
+        /* White Space */
+        .spacer {
+            height: 40px;
+            background-color: #f5f5f5;
+        }
+
+        /* Email Body */
+        .email-body {
+            padding: 40px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .appointment-details {
+            margin-bottom: 30px;
+        }
+
+        .highlight {
+            font-weight: 600;
+            color: #6A1B78;
+        }
+
+        /* Button Styles */
+        .action-button {
+            display: inline-block;
+            background-color: #6A1B78;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            margin: 20px 0;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+
+        .action-button:hover {
+            background-color: #5a1466;
+        }
+
+        /* Footer Styles */
+        .email-footer {
+            background-color: #8F619D;
+            padding: 40px;
+            color: #ffffff;
+        }
+
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .signature {
+            margin: 20px 0;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .social-icon {
+            margin: 0 10px;
+            width: 25px;
+            height: 25px;
+        }
+
+        .disclaimer {
+            font-size: 11px;
+            margin-top: 30px;
+            line-height: 1.4;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+		 .logo-container {
+            width: 100px;
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .logo-container img {
+            width: 120px;
+            border-radius: 50%;
+        }
+
+        /* Responsive Adjustments */
+        @media only screen and (max-width: 600px) {
+            .header-content {
+                flex-direction: column;
+                padding: 0 20px;
+            }
+            
+            .logo, .doctor-image {
+                margin: 10px 0;
+            }
+            
+            .email-body {
+                padding: 30px 20px;
+            }
+            
+            .email-footer {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div class="spacer"></div>
+    
+    <div class="email-container">
+        <!-- Header with Logo and Doctor Image -->
+        <div class="header">
+            <div class="header-content">
+				<div class="logo-container">
+                	<img src="https://drive.usercontent.google.com/download?id=1EG5ekcAFS3_YgdXYncrIhHnd3j5H9OrJ&authuser=0" alt="Inticure">
+            	</div>                
+				<p class="header-text">Congratulations on taking the first step on your journey to go from oh no, to OH YES!</p>
+            </div>
+        </div>
+        
+        <!-- Email Content -->
+        <div class="email-body">
+            <h4 class="greeting"><b>Hi {{name}}</b></h4>
+            
+            <div class="appointment-details">
+                <p>Your FIRST consultation with one of our non-judgemental, empathetic, and courteous doctors has been confirmed for <span class="highlight">{{date}}</span> at <span class="highlight">{{time}}</span> with <span class="highlight">Dr {{doctor_name}}</span>.</p>
+                
+                <p>Please click the button below at the time of your appointment for your consultation.</p>
+              	<div style="text-align: center;">
+    				<a href="{{meet_link}}" 
+       					style="color: white; text-decoration: none; background-color: #6A1B78; padding: 10px 20px; border-radius: 5px; display: inline-block;">
+       					Join your appointment
+    				</a>
+				</div>
+
+                
+                <p>You can also access this <a href="https://customers.inticure.online/consultations" style="color: #6A1B78;">link</a> to see all your current and upcoming appointments.</p>
+                
+                <p>If you can't make it for your appointment, please click <a href="https://customers.inticure.online/consultations" style="color: #6A1B78;">here</a> to cancel or reschedule.</p>
+                
+                <p><b>Keep in mind you can only Reschedule once. You cannot reschedule or cancel an appointment within 24 hours of your appointment time.</b></p>
+                
+                <p><b>Please keep in mind that during your FIRST consultation, your doctor cannot write a prescription for you.</b> To ensure that you receive the most effective treatment, a prescription, if needed, will only be given by one of our world-class specialists after your consultation with them.</p>
+            </div>
+            
+            <div style="margin: 40px 0;">
+                <p>Please refer our <a href="https://inticure.online/faq/" style="color: #6A1B78;">Terms and Conditions</a></p>
+                <p>Please refer our <a href="https://inticure.online/faq/" style="color: #6A1B78;">Privacy Policy</a></p>
+                <p>Please refer our <a href="https://inticure.online/faq/" style="color: #6A1B78;">Cancellation and Refund Policy</a></p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="email-footer">
+            <div class="footer-content">
+                <p><b>Your safety and privacy is our number one priority. ALWAYS!</b></p>
+                
+                <div class="signature">
+                    <p>With you on your journey,<br>Team Inticure</p>
+                </div>
+                
+                <div style="text-align: center; margin: 30px 0;">
+					<p style="margin-bottom: 15px; font-size: 18px; font-weight: 600; color: #ffffff;">Connect With Us</p>
+					<div class="social-links" style="display: flex; justify-content: center; gap: 20px;">
+						<a href="https://www.facebook.com/profile.php?id=100086973277320" 
+						style="text-decoration: none; color: #ffffff; font-size: 24px;">
+						<i class="fa-brands fa-facebook"></i>
+						</a>
+						<a href="https://www.youtube.com/channel/UCmFHPhjy7R6E_Lfv9_4nr-Q" 
+						style="text-decoration: none; color: #ffffff; font-size: 24px;">
+						<i class="fa-brands fa-youtube"></i>
+						</a>
+						<a href="https://www.instagram.com/get_inticured/" 
+						style="text-decoration: none; color: #ffffff; font-size: 24px;">
+						<i class="fa-brands fa-instagram"></i>
+						</a>
+						<a href="https://www.linkedin.com/company/inticure/?viewAsMember=true" 
+						style="text-decoration: none; color: #ffffff; font-size: 24px;">
+						<i class="fa-brands fa-linkedin"></i>
+						</a>
+					</div>
+				</div>
+                
+                <div class="disclaimer">
+                    <p><b>Disclaimer:</b></p>
+                    <p>*By clicking on the meeting link above, you hereby:</p>
+                    <p>1. provide your absolute, unconditional, and informed consent to undergo a virtual consultation with the practitioner, whose name and details are provided above (Practitioner);</p>
+                    <p>2. agree and understand that the Practitioner is providing this consultation within the jurisdiction of India, that he/she is only licensed and authorized to practice and provide this consultation within the jurisdiction of India, and that he/she cannot in any manner be construed to be providing consultations outside the jurisdiction of India, irrespective of your location/jurisdiction;</p>
+                    <p>3. agree and understand that any prescription provided to you may be utilized only within the territory of India; and</p>
+                    <p>4. declare that you have read, understood, and agree to abide by our Privacy Policy and Terms of Use.</p>
+                </div>
+                
+                <p class="copyright">Privacy Policy © 2022 NextBig HealthCare Pvt. Ltd</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="spacer"></div>
+</body>
+</html>

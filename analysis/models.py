@@ -11,13 +11,17 @@ from customer.models import CustomerProfile
 
 class Category(models.Model):
     title = models.CharField(max_length=100)
-    description = models.CharField(max_length=250, null=True)
+    description = models.CharField(max_length=250, null=True ,blank=True)
 
     
     def __str__(self):
-        return self.title
+        return self.title +str(self.id)
     
     
+"""Answer type selection"""
+class AnswerType(models.Model):
+    answer_type=models.CharField(max_length=100,null=True)
+
 
 
 """Holds the details  of analysis questions  that user submit before taking an appointment"""
@@ -53,14 +57,15 @@ class AppointmentHeader(models.Model):
     appointment_id              = models.BigAutoField(primary_key=True)
     customer                    = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='appointment_header',null=True, blank=True)
     category                    = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='appointment_header',null=True, blank=True)
-    appointment_status          = models.IntegerField(default=0)
+    appointment_status          = models.CharField(max_length=50 , null=True , blank=True)
+    status_detail               = models.CharField(max_length=100 , null=True , blank=True)
     appointment_date            = models.DateField(null=True)
     appointment_time            = models.TimeField(null=True)
     appointment_slot            = models.ForeignKey(DoctorAvailableSlots,null=True,on_delete=models.CASCADE, related_name='appointment_header')
     escalated_date              = models.DateField(null=True)
     escalated_time_slot         = models.CharField(null=True,max_length=20)
     doctor                      = models.ForeignKey(DoctorProfiles, on_delete = models.CASCADE , null=True ,related_name='appointment_header')
-    is_free                     = models.IntegerField(default=1)
+    is_free                     = models.BooleanField(default=False)
     followup_id                 = models.IntegerField(null=True)
     booked_on                   = models.DateField(auto_now=True)
     booked_on_time              = models.TimeField(auto_now=True,null=True)
@@ -73,58 +78,86 @@ class AppointmentHeader(models.Model):
     meeting_link                = models.CharField(max_length=200,null=True)
     senior_meeting_link         = models.CharField(max_length=200,null=True)
     customer_message            = models.TextField(null=True)
-    payment_required            = models.IntegerField(null=True)
-    payment_done                = models.IntegerField(null=True)
+    payment_required            = models.BooleanField(default=False)
+    payment_done                = models.BooleanField(default=False)
     confirmation_method         = models.CharField(max_length=20,null=True)
     confirmation_phone_number   = models.CharField(max_length=20,null=True)
     confirmation_email          = models.CharField(max_length=100,null=True)
-    
+    analysis_session            = models.OneToOneField("AnalysisSession", null=True, blank=True, on_delete=models.SET_NULL)
+    is_couple                   = models.BooleanField(default=False)
+    file_is_open                = models.BooleanField(default=True)
+    prescription                = models.TextField(null=True, blank=True)
+    appointment_notes           = models.TextField(null=True, blank=True)
+    is_referred                 = models.BooleanField(default=False)
+    referral                    = models.ForeignKey('Referral', on_delete=models.CASCADE, related_name='appointment_header', null=True, blank=True)
+    specialization              = models.ForeignKey('administrator.Specializations', on_delete=models.CASCADE, related_name='appointment_header', null=True, blank=True)
 """Holds the details  of analysis questions user submitted before taking appointment"""
 
 
+
+
+ 
+
+class Referral(models.Model):
+    customer        = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='referrals', null=True, blank=True)
+    doctor          = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE, related_name='referrals_made', null=True, blank=True)
+    referred_doctor     = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE, related_name='referrals', null=True, blank=True)
+    referred_date   = models.DateField(auto_now_add=True)
+    referral_notes  = models.TextField(null=True, blank=True)
+
+
+class Doctor_Suggested_Plans(models.Model):
+    refferral = models.ForeignKey(Referral, on_delete=models.CASCADE, related_name='suggested_plans', null=True, blank=True)
+    plan      = models.ForeignKey('doctor.DoctorPaymentRules' , on_delete=models.CASCADE, related_name='suggested_plans', null=True, blank=True)
+
+
+
+
+
+# analysis/models.py
+import uuid
+from django.db import models
+from analysis.models import Category
+
+class AnalysisSession(models.Model):
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    gender = models.CharField(max_length=10, null=True, blank=True)
+    category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
+    otp = models.CharField(max_length=10, null=True, blank=True)
+    otp_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    gender_preference = models.CharField(max_length=50, null=True, blank=True)
+    language_preference = models.CharField(max_length=50, null=True, blank=True)
+    preferred_date = models.DateField(null=True, blank=True)
+    specialization = models.ForeignKey('administrator.Specializations', on_delete=models.SET_NULL, null=True, blank=True, related_name='analysis_sessions')
+    country = models.CharField(max_length=100, null=True, blank=True)
+    is_couple = models.BooleanField(default=False)
+    is_junior = models.BooleanField(default=False)
+    alignment_minutes = models.IntegerField(null=True, blank=True)
+    session_status = models.CharField(max_length=20, default='started')
+    customer = models.ForeignKey('customer.CustomerProfile' , on_delete=models.CASCADE , null=True , related_name='analysis_session')
+    def __str__(self):
+        return str(self.token)
+
+
+
 class AppointmentQuestionsAndAnswers(models.Model):
-    appointment     = models.ForeignKey(AppointmentHeader, on_delete=models.CASCADE, related_name='appointment_questions_and_answers',null=True, blank=True)
-    customer        = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='appointment_questions_and_answers',null=True, blank=True)
-    question        = models.ForeignKey(Questionnaire, on_delete=models.CASCADE, related_name='appointment_questions',null=True, blank=True)
-    answer          = models.ForeignKey(Options, on_delete=models.CASCADE, related_name='appointment_answers',null=True, blank=True)
+    customer        = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE,related_name='appointment_questions_and_answers',null=True, blank=True)
+    question        = models.ForeignKey(Questionnaire, on_delete=models.CASCADE,related_name='appointment_questions',null=True, blank=True)
+    answer          = models.ForeignKey(Options, on_delete=models.CASCADE,related_name='appointment_answers',null=True, blank=True)
+    tempsession     = models.ForeignKey(AnalysisSession, on_delete=models.CASCADE,related_name='temp_questionnaire_answers',null=True, blank=True)
 
 
-"""Order Invoice Details"""
-class Invoices(models.Model):
-    invoice_id=models.BigAutoField(primary_key=True)
-    appointment_id=models.IntegerField()
-    user_id=models.IntegerField()
-    bill_for=models.CharField(max_length=25)
-    gender=models.CharField(max_length=15,null=True)
-    age=models.IntegerField(null=True)
-    mobile_number=models.BigIntegerField(null=True)
-    date_of_birth=models.DateField(null=True)
-    address=models.CharField(max_length=50,null=True)
-    email=models.CharField(max_length=30,null=True)
-    appointment_date=models.DateField(null=True)
-    appointment_time=models.TextField(null=True)
-    appointment_for=models.CharField(max_length=20,null=True)
-    issue_date=models.DateField(auto_now=True)
-    issue_time=models.TimeField(auto_now=True,null=True)
-    service=models.CharField(max_length=60,null=True)
-    due_date=models.DateField()
-    vendor_fee=models.IntegerField(null=True)
-    tax=models.IntegerField(null=True)
-    discounts=models.IntegerField(null=True)
-    total=models.IntegerField()
-    status=models.IntegerField() 
-    mode_of_pay=models.CharField(max_length=20,null=True)
-    doctor_id=models.IntegerField(null=True)
-    doctor_name=models.CharField(max_length=100,null=True)
-    category_id=models.IntegerField(null=True)
 
-"""Verify otp of user"""
-class OtpVerify(models.Model):
-    mobile_number=models.BigIntegerField()
-    otp=models.CharField(max_length=10,null=True)
-class EmailOtpVerify(models.Model):
-    email=models.CharField(max_length=100)
-    otp=models.CharField(max_length=10,null=True)
-"""Answer type selection"""
-class AnswerType(models.Model):
-    answer_type=models.CharField(max_length=100,null=True)
+
+class Prescriptions(models.Model):
+    remarks = models.TextField(null=True, blank=True)
+    customer = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='prescriptions', null=True, blank=True)
+    doctor = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE, related_name='prescriptions', null=True, blank=True)
+    appointment = models.ForeignKey(AppointmentHeader, on_delete=models.CASCADE, related_name='prescriptions', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
