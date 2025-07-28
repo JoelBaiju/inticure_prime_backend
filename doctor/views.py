@@ -55,7 +55,7 @@ class LoginView(APIView):
         country_code = request.data.get('country_code', '+91')  
 
         # otp = generate_random_otp()
-        otp = 000000
+        otp = 666666
 
         if phone_number:
             if not DoctorProfiles.objects.filter(mobile_number = phone_number).exists():
