@@ -569,7 +569,7 @@ class FinalSubmit(CreateAPIView):
                     language_pref   = data.get('language_pref')
 
                     specialization  = Specializations.objects.get(specialization_id=data.get('specialization'))
-                    is_couple               = True if data.get('is_couple')else False,                
+                    is_couple               = True if data.get('is_couple')else False                
 
             except CustomerProfile.DoesNotExist:
                 return Response({'error': 'Customer profile not found'}, status=400)
