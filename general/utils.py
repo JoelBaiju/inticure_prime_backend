@@ -28,24 +28,29 @@ def send_otp_email(firstname,otp,toemail):
     #     to_email=toemail
     # )
 
-    subject = 'Your OTP for Email Verification'
-    html_message = render_to_string('email_otp.html', {
-    'name': firstname,
-    'otp': otp
-    })
-    plain_message = strip_tags(html_message)
+    try:
 
-    email = EmailMultiAlternatives(
-    subject,
-    plain_message,
-    settings.DEFAULT_FROM_EMAIL,  # Use the default from email
-    [toemail]    
-    )
-    email.attach_alternative(html_message, 'text/html')
-    print(f"Sending OTP email to {toemail}")
-    print(email.send())
+        subject = 'Your OTP for Email Verification'
+        html_message = render_to_string('email_otp.html', {
+        'name': firstname,
+        'otp': otp
+        })
+        plain_message = strip_tags(html_message)
+
+        email = EmailMultiAlternatives(
+        subject,
+        plain_message,
+        settings.DEFAULT_FROM_EMAIL,  # Use the default from email
+        [toemail]    
+        )
+        email.attach_alternative(html_message, 'text/html')
+        print(f"Sending OTP email to {toemail}")
+        print(email.send())
     
-    
+    except Exception as e:
+        print(f"Failed to send OTP email to {toemail}: {str(e)}")
+        print(f"Email sending failed: {e}")
+
 
 
 
