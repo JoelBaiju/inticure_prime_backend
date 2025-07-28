@@ -1,4 +1,3 @@
-from turtle import window_height
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from administrator.models import LanguagesKnown,Countries , Specializations
