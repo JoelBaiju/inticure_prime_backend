@@ -386,6 +386,7 @@ class SlotsBooking(APIView):
 
         try:
             base_date = datetime.now().date() + timedelta(days=1)
+            print(datetime.now())
             print(base_date)
             preferred_date = datetime.strptime(preferred_date, '%Y-%m-%d').date() if preferred_date else base_date
             print(preferred_date)
