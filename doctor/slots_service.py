@@ -249,7 +249,7 @@ def get_available_slots(specialization_id=None, date=None, is_couple=False,
         ]
 
         available_dates = []
-        date_cursor = date
+        date_cursor = timezone.now().date() + timedelta(days=1)
         for _ in range(14):
             temp_pool = generate_slots_for_doctors(doctors, date_cursor, session_duration, alignment_minutes)
             if temp_pool:
