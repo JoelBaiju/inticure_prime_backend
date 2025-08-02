@@ -56,7 +56,7 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
     def get_pending_appointments(self,obj):
         today = timezone.localdate()
         appointments = obj.appointment_header.filter(
-            appointment_status__in=['initiated_by_doctor','pending_payment'],
+            appointment_status__in=['initiated_by_doctor','pending_payment','rescheduled_by_doctor'],
             appointment_date__gte=today
         ).order_by('appointment_date', 'appointment_time')
         return [{
@@ -66,7 +66,6 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
             'doctor_name': appointment.doctor.first_name + ' ' + appointment.doctor.last_name if appointment.doctor else 'N/A',
             'status': appointment.appointment_status,
             'specialization': appointment.specialization.specialization if appointment.specialization else 'N/A',
-            'meeting_link': appointment.meeting_link,
             'type_booking':"Couples" if appointment.is_couple else "Individual",
             "actions":""
         } for appointment in appointments]

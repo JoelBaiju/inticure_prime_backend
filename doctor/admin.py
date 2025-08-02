@@ -7,16 +7,6 @@ class CalendarAdmin(admin.ModelAdmin):
 
 admin.site.register(Calendar, CalendarAdmin)
 
-class GeneralTimeSlotsAdmin(admin.ModelAdmin):
-    list_display = ["id",'from_time', 'to_time',"date"]
-
-admin.site.register(GeneralTimeSlots , GeneralTimeSlotsAdmin)
-
-class DoctorAvailableSlotsAdmin(admin.ModelAdmin):
-    list_display = ['doctor', 'date', 'time_slot', 'is_available']
-
-admin.site.register(DoctorAvailableSlots, DoctorAvailableSlotsAdmin)
-
 class DoctorProfilesAdmin(admin.ModelAdmin):
     list_display = ['doctor_profile_id','user' , 'is_accepted' , 'doctor_flag','gender', 'qualification']
 
@@ -48,4 +38,6 @@ class DoctorPaymentRulesAdmin(admin.ModelAdmin):
     list_display = [ 'doctor' ,'specialization' , 'country' , 'session_count']
 
 admin.site.register(DoctorPaymentRules,DoctorPaymentRulesAdmin)
+
+
 

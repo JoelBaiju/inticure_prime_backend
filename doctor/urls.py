@@ -12,7 +12,6 @@ urlpatterns = [
     path('doctor-profiles/create/', create_doctor_profile, name='create_doctor_profile'),
     path('login/', LoginView.as_view(), name='doctor_login'),
     path('verify_login/', Verify_Login.as_view(), name='doctor_login'),
-    path('generate_slots/', create_calendar_and_slots_for_next_six_days, name='create_calendar_and_slots_for_next_six_days'),
     path("available_hours/", DoctorAvailableHoursView.as_view(), name="available-hours"),
     path("dashboard/", DoctorDashboardView.as_view(), name="available-slots"),
     path("available_slots/", SlotsBooking.as_view(), name="available-slots"),
@@ -22,4 +21,10 @@ urlpatterns = [
     path('doctor_slots/', Get_availableSlots_docid, name='doctor_slots'),
     path('create_appointment/', Create_NewAppointment, name='initiate_appointment'),
     path('customer_details_update/', Customer_details_update.as_view(), name='customer_details_update'),
+    path('prescribe_medicine/', PrescribedMedicationsCreateView.as_view(), name='prescribe_medicine'),
+    path('prescribe_tests/', PrescribedTestsCreateView.as_view(), name='prescribe_Tests'),
+    path('obs_notes_add/', AddObservatioinNotesView.as_view(), name='obs_notes_add'),
+    path('fp_notes_add/', AddFollowUpNotesView.as_view(), name='fp_notes_add'),
+    path('appointment_details/<int:appointment_id>/', AppointmentFullDetailsView.as_view(), name='appointment_full_details'),
+    
 ]

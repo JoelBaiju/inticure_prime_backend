@@ -8,7 +8,7 @@ from general.utils import send_otp_email
 from general.twilio import send_otp_sms
 from general.utils import generate_random_otp
 from rest_framework.views import APIView
-
+from rest_framework.decorators import permission_classes
 
 
 
@@ -321,8 +321,6 @@ from datetime import date, datetime, time
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .models import GeneralTimeSlots
-from .serializers import GeneralTimeSlotSerializer
 
 
 from datetime import datetime, date, timedelta, time
@@ -330,47 +328,6 @@ from django.utils import timezone
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Calendar, GeneralTimeSlots
-
-@api_view(['GET'])
-def create_calendar_and_slots_for_next_six_days(request):
-    start_date = date.today()
-    num_days = 6  # Today + next 5 days
-
-    slot_duration = timedelta(minutes=15)
-    gap_duration = timedelta(minutes=5)
-
-    for i in range(num_days):
-        current_date = start_date + timedelta(days=i)
-        day_name = current_date.strftime('%A')
-
-        # Create calendar entry if not exists
-        calendar_obj, created = Calendar.objects.get_or_create(date=current_date, defaults={'day': day_name})
-
-        # Delete existing slots for clean regeneration
-        GeneralTimeSlots.objects.filter(date=calendar_obj).delete()
-
-        # Start generating slots from 00:00 to 23:59
-        current_time = datetime.combine(current_date, time(0, 0))
-        end_time = datetime.combine(current_date, time(23, 59))
-
-        while current_time + slot_duration <= end_time:
-            from_time = current_time.time()
-            to_time = (current_time + slot_duration).time()
-
-            GeneralTimeSlots.objects.create(
-                date=calendar_obj,
-                from_time=from_time,
-                to_time=to_time
-            )
-
-            current_time += slot_duration + gap_duration
-
-    return Response({"message": "Calendar and time slots created for today and next 5 days."}, status=status.HTTP_201_CREATED)
-
-
-
-
 
 
 
@@ -495,102 +452,8 @@ from datetime import datetime, timedelta
 from .slots_service import get_available_slots
 
 
-# @api_view(['GET'])
-# def available_slots_view(request):
-#     specialization_id = request.GET.get('specialization_id')
-#     date_str = request.GET.get('date')  # Optional: YYYY-MM-DD
-#     is_couple = request.GET.get('couple', 'false').lower() == 'true'
-
-#     if not specialization_id:
-#         return Response({"error": "specialization_id is required."}, status=status.HTTP_400_BAD_REQUEST)
-
-#     try:
-#         if date_str:
-#             date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
-#         else:
-#             date_obj = (datetime.now() + timedelta(days=1)).date()  # Default to tomorrow
-
-#         slots = get_available_slots(
-#             specialization_id=int(specialization_id),
-#             date=date_obj,
-#             is_couple=is_couple
-#         )
-#         return Response({"slots": slots}, status=status.HTTP_200_OK)
-#     except Exception as e:
-#         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
-
-
-
-
-
-
-
-# views.py
-
-from rest_framework.decorators import api_view, permission_classes
-# from rest_framework.permissions import IsAuthenticated
-# from rest_framework.response import Response
-# from rest_framework import status
-# from datetime import datetime, timedelta
-
-# from .services.slot_generator import get_available_slots
-
-# from rest_framework.decorators import api_view, permission_classes
-# from rest_framework.permissions import IsAuthenticated
-# from rest_framework.response import Response
-# from rest_framework import status
-# from datetime import datetime, timedelta
-# import json
-
-# # @permission_classes([IsAuthenticated])
-# @api_view(['POST'])
-# def available_slots_view(request):
-#     try:
-#         user = request.user
-#         is_junior = request.data.get('is_junior', False)
-#         is_couple = request.data.get('is_couple', False)
-#         alignment_minutes = int(request.data.get('alignment', 0))  # will default to session_duration if 0
-
-#         # Preferred date
-#         preferred_date_str = request.data.get('preferred_date')
-#         if preferred_date_str:
-#             try:
-#                 date = datetime.strptime(preferred_date_str, "%Y-%m-%d").date()
-#             except ValueError:
-#                 return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
-#         else:
-#             date = datetime.now().date() + timedelta(days=1)
-
-#         # Optional nested preference fields
-#         gender_info = request.data.get('preferred_gender', {}) or {}
-#         language_info = request.data.get('preferred_language', {}) or {}
-
-#         # Required only for senior doctors
-#         specialization_id = request.data.get('specialization_id')
-#         if not is_junior and not specialization_id:
-#             return Response({"error": "specialization_id is required for senior doctors."}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # Call core slot generator logic
-#         slots = get_available_slots(
-#             specialization_id=int(specialization_id) if specialization_id else None,
-#             date=date,
-#             is_couple=is_couple,
-#             alignment_minutes=alignment_minutes if alignment_minutes > 0 else None,
-#             is_junior=is_junior,
-#             user_id=5,
-#             gender_info=gender_info,
-#             language_info=language_info
-#         )
-
-#         return Response({"slots": slots}, status=status.HTTP_200_OK)
-
-#     except Exception as e:
-#         import traceback
-#         traceback.print_exc()
-#         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -607,128 +470,42 @@ from analysis.models import AppointmentHeader
 from collections import defaultdict
 
 
-# class DoctorDashboardView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         try:
-#             doctor = DoctorProfiles.objects.get(user=request.user)
-#         except DoctorProfiles.DoesNotExist:
-#             return Response({"detail": "Doctor profile not found."}, status=404)
-
-#         today = dt_date.today()
-
-#         # Earnings today
-#         earnings_qs = PreTransactionData.objects.filter(
-#             appointment__doctor=doctor,
-#             appointment__appointment_date=today
-#         ).aggregate(total=Sum("total_amount"))
-#         earnings_today = earnings_qs["total"] or 0
-#         earnings_change = 5.0  # placeholder or computed
-
-#         # Appointments today
-  
-#         appointments = DoctorAppointment.objects.filter(doctor=doctor , confirmed=True ,completed=False)
-#         total_appointments = appointments.count()
-#         completed = appointments.filter(completed = True).count()
-#         pending = total_appointments - completed
-
-#         # Doctor info
-#         specialization = doctor.doctor_specializations
-#         specializations = [spec for spec in specialization.all()]
-#         specialization_name = ", ".join([spec.specialization.specialization for spec in specializations]) if specializations else "no specialization" 
-
-#         doctor_info = {
-#             "name": f"Dr. {doctor.first_name} {doctor.last_name}",
-#             "specialization": specialization_name,
-#             "experience": doctor.experience  if doctor.experience else "N/A",
-#             "rating": 4.9  # Placeholder for now
-#         }
-
-#         # Upcoming appointments
-#         # Fetch upcoming appointments for today (limit 3)
-#         upcoming = DoctorAppointment.objects.filter(
-#             doctor=doctor,
-#             date__date=today,
-#             confirmed=True,
-#             completed=False
-#         ).order_by("start_time")[:3]
-
-#         upcoming_list = []
-
-#         # Group by specialization
-#         grouped_by_specialization = defaultdict(list)
-
-#         for appt in upcoming:
-#             customer_name = appt.appointment.customer.preferred_name if appt.appointment.customer else "Unknown"
-#             appt_type = appt.appointment.is_couple and "Couple" or "Individual"
-#             time_str = appt.start_time.strftime("%I:%M %p") if appt.start_time else "N/A"
-#             if appt.start_time and appt.end_time:
-#                 duration_minutes = int((datetime.combine(today, appt.end_time) - datetime.combine(today, appt.start_time)).total_seconds() // 60)
-#                 duration = f"{duration_minutes} mins"
-#             else:
-#                 duration = "Unknown"
-#             specialization_name = appt.specialization.specialization if appt.specialization else "General"
-
-#             grouped_by_specialization[specialization_name].append({
-#                 "name": customer_name,
-#                 "type": appt_type,
-#                 "time": time_str,
-#                 "duration": duration
-#             })
-
-#         upcoming_grouped = [
-#             {"specialization": key, "appointments": value}
-#             for key, value in grouped_by_specialization.items()
-#         ]
-
-
-#         # Final response data
-#         response_data = {
-#             "earnings_today": earnings_today,
-#             "earnings_change": earnings_change,
-#             "appointments_today": {
-#                 "total": total_appointments,
-#                 "completed": completed,
-#                 "pending": pending
-#             },
-#             "doctor_info": doctor_info,
-#             "upcoming_appointments": upcoming_grouped
-#         }
-
-#         serializer = DoctorDashboardSerializer(response_data)
-#         return Response(serializer.data)
-
 from customer.models import CustomerProfile
 from customer.models import Extra_questions_answers
-
+from analysis.models import Observation_Notes
 class Customer_details_update(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
         data = request.data
-        customer_id = data.get('customer_id')
+        appointment_id = data.get('appointment_id')
         try:
-            customer = CustomerProfile.objects.get(id=customer_id)
+            appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+            customer = appointment.customer
             message = ""
             if data.get('weight'):
                 customer.weight = data.get('weight')
+                customer.weight_unit = data.get('weight_unit')
                 message = "Weight"
             if data.get('height'):
                 customer.height = data.get('height')
+                customer.height_unit = data.get('height_unit')
                 message = message + "Height"
+            if data.get('note'):
+                note = Observation_Notes.objects.create(note = data.get('note') ,appointment = appointment )
             customer.save()
 
 
             if data.get('extra_questions'):
                 for question in data.get('extra_questions'):
-                    Extra_questions_answers.objects.create(question=question, answer=data.get('answer'), customer=customer)
+                    Extra_questions_answers.objects.create(question_id=question.get('question_id'), answer=question.get('answer'), customer=customer)
                 message = message + "Extra questions"
 
             message = message + " updated successfully."
             return Response({"message": message}, status=status.HTTP_200_OK)
-        except CustomerProfile.DoesNotExist:
+        except AppointmentHeader.DoesNotExist:
             return Response({"error": "Customer not found."}, status=status.HTTP_404_NOT_FOUND)
-
+    
+from .serializers import ExtraQuestionsSerializer
 
 
 from rest_framework.views import APIView
@@ -1218,3 +995,220 @@ def Create_NewAppointment(request):
 
 
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from analysis.models import *
+from .models import *
+from customer.models import *
+from .serializers import (
+    AppointmentDetailSerializer, PatientSerializer, GroupedQuestionAnswerSerializer,
+    ExtraQuestionAnswerSerializer, ReferralSerializer, SuggestedPlanSerializer
+)
+from django.shortcuts import get_object_or_404
+
+class AppointmentFullDetailsView(APIView):
+    def get(self, request, appointment_id):
+        appointment = get_object_or_404(AppointmentHeader, appointment_id=appointment_id)
+        customer = appointment.customer
+
+        appointment_data = AppointmentDetailSerializer(appointment).data
+        patient_data = PatientSerializer(customer).data
+
+        questionnaire_answers = AppointmentQuestionsAndAnswers.objects.filter(customer=appointment.customer)
+        grouped = defaultdict(list)
+        customer = appointment.customer
+
+        # Preload all answers for the customer into a dict
+        answers = {
+            ans.question_id: ans.answer
+            for ans in Extra_questions_answers.objects.filter(customer=customer)
+        }
+
+        extra_questions = [
+            {
+                "question": q.question,
+                "question_id":q.id,
+                "answer": answers.get(q.id)  # Will be None if no answer
+            }
+            for q in Extra_questions.objects.all()
+        ]
+
+
+        suggested_plans = Doctor_Suggested_Plans.objects.filter(refferral=appointment.referral)
+        notes = Observation_Notes.objects.filter(appointment__customer = customer )
+        response = {
+            "appointment": appointment_data,
+            "patient": patient_data,
+            "questionnaire_answers": GroupedQuestionAnswerSerializer.from_queryset(questionnaire_answers),
+            "extra_questions": extra_questions, 
+            "referral": ReferralSerializer(appointment.referral).data if appointment.referral else None,
+            "suggested_plans": SuggestedPlanSerializer(suggested_plans, many=True).data,
+            "notes":Observation_notes_serializer(notes,many = True).data
+        }
+
+        return Response(response, status=status.HTTP_200_OK)
+
+
+
+
+        # INSERT_YOUR_CODE
+
+class AppointmentRescheduleView_Doctor(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """
+        API to reschedule an appointment.
+        Expects:
+            - appointment_id: ID of the appointment to reschedule
+        """
+        data = request.data
+        appointment_id = data.get('appointment_id')
+     
+     
+        try:
+            appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        except AppointmentHeader.DoesNotExist:
+            return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if appointment.status in ['completed', 'cancelled']:
+            return Response({"error": "Cannot reschedule a completed or cancelled appointment."}, status=status.HTTP_400_BAD_REQUEST)
+
+     
+        # Update appointment details
+        appointment.status = 'rescheduled_by_doctor'
+        appointment.meeting_link = ''
+        appointment.start_time = None
+        appointment.end_time = None
+        appointment.appointment_date = None
+        appointment.save()
+
+      
+        return Response({
+            "message": "Appointment reschedule initiated.",
+            "appointment_id": appointment.appointment_id
+        }, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+class PrescribedMedicationsCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        appointment_id = request.data.get('appointment')
+
+        if not appointment_id :
+            return Response({'error': 'appointment and medicine_details are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            doctor = DoctorProfiles.objects.get(user = request.user)
+            appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        except AppointmentHeader.DoesNotExist:
+            return Response({'error': 'Appointment not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except DoctorProfiles.DoesNotExist:
+            return Response({'error': 'Doctor invalid not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        data = request.data.copy()
+        data['customer'] = appointment.customer.id
+        data['doctor'] = doctor.doctor_profile_id
+
+        serializer = PrescribedMedicationsSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Medication added successfully', 'data': serializer.data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PrescribedTestsCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        appointment_id = request.data.get('appointment')
+
+        if not appointment_id :
+            return Response({'error': 'appointment and medicine_details are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            doctor = DoctorProfiles.objects.get(user = request.user)
+            appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        except AppointmentHeader.DoesNotExist:
+            return Response({'error': 'Appointment not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except DoctorProfiles.DoesNotExist:
+            return Response({'error': 'Doctor invalid not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        data = request.data.copy()
+        customer = appointment.customer.id
+        doctor = doctor.doctor_profile_id
+        tests=request.data.get('tests')
+
+        for test in tests:
+            data = {'customer':customer,'doctor':doctor,'test_name':test.get('test_name'),'instruction':test.get('instruction'),'appointment':appointment}  
+            serializer = PrescribedTestsSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Tests Added successfully', 'data': serializer.data}, status=status.HTTP_201_CREATED)
+
+
+
+
+class AddObservatioinNotesView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        appointment_id = request.data.get('appointment')
+        note = request.data.get('note')
+
+        if not appointment_id or not note:
+            return Response({'error': 'appointment and note are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        except AppointmentHeader.DoesNotExist:
+            return Response({'error': 'Appointment not found.'}, status=status.HTTP_404_NOT_FOUND)
+       
+        data = Observation_Notes.objects.create(appointment = appointment , note = note)
+
+
+        return Response({'message': 'Note Added successfully'}, status=status.HTTP_201_CREATED)
+
+
+
+
+class AddFollowUpNotesView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        appointment_id = request.data.get('appointment')
+        note = request.data.get('note')
+
+        if not appointment_id or not note:
+            return Response({'error': 'appointment and note are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        except AppointmentHeader.DoesNotExist:
+            return Response({'error': 'Appointment not found.'}, status=status.HTTP_404_NOT_FOUND)
+       
+        data = Follow_Up_Notes.objects.create(appointment = appointment , note = note)
+
+
+        return Response({'message': 'Note Added successfully'}, status=status.HTTP_201_CREATED)
+
+

@@ -16,14 +16,18 @@ class CustomerProfile(models.Model):
     completed_first_analysis = models.BooleanField(default=False)
     preferred_name = models.CharField(max_length=110,blank=True, null=True)
     weight = models.CharField(max_length=255, null=True, blank=True)
+    weight_unit = models.CharField(max_length=20 , null=True )
     height = models.CharField(max_length=255, null=True, blank=True)
-    
+    height_unit = models.CharField(max_length=20 , null=True )
+
     def __str__(self):
         return f"{self.user.username} -{self.user.first_name}-{self.user.last_name}- {self.preferred_name if self.preferred_name else 'No Preferred Name'}"
 
 class Extra_questions(models.Model):
     question = models.CharField(max_length=255, null=True, blank=True)
+    group    = models.CharField(max_length=20 , null=True)
 
+    
 class Extra_questions_answers(models.Model):
     question = models.ForeignKey(Extra_questions, on_delete=models.CASCADE, related_name='extra_questions_answers')
     answer = models.CharField(max_length=255, null=True, blank=True)

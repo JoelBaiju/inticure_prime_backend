@@ -624,15 +624,7 @@ class FinalSubmit(CreateAPIView):
             )
 
             # Generate meet link
-            aware_from = timezone.make_aware(datetime.combine(slot_date, from_time))
-            aware_to = timezone.make_aware(datetime.combine(slot_date, to_time))
-            appointment.meeting_link = generate_google_meet(
-                summary='Appointment',
-                description='Appointment with doctor',
-                start_time=aware_from,
-                end_time=aware_to
-            )
-            appointment.save()
+
             print('haiiii')
             # Save into DoctorAppointment
             DoctorAppointment.objects.create(
@@ -670,6 +662,16 @@ def ConfirmAppointment(appointment_id , pretransaction_id):
         customer = appointment.customer
         customer.completed_first_analysis = True
         customer.save() 
+        # generate meeting link
+        aware_from = timezone.make_aware(datetime.combine(appointment.appointment_date, appointment.start_time))
+        aware_to = timezone.make_aware(datetime.combine(appointment.appointment_date, appointment.end_time))
+        appointment.meeting_link = generate_google_meet(
+            summary='Appointment',
+            description='Appointment with doctor',
+            start_time=aware_from,
+            end_time=aware_to
+        )
+        appointment.save()
     except DoctorAppointment.DoesNotExist:
         appointment.payment_done = True
         appointment.appointment_status = 'pending_slot'
@@ -746,173 +748,44 @@ def is_doctor_available(doctor_id, date_obj, from_time, to_time):
 
 
 
-def create_action_data_for_pending_appointments(appointment):
-
-    appointment = AppointmentHeader.objects.get(appointment_id = appointment.appointment_id)
-    if appointment.appointment_status == "pending_payment":
-        try:
-            doctor_appointment = DoctorAppointment.objects.filter(appointment=appointment).first()
-         
-        except DoctorAppointment.DoesNotExist:
-            appointment.payment_done = True
-            is_doctor_available = is_doctor_available(appointment.doctor.doctor_profile_id ,appointment.appointment_date, appointment.start_time , appointment.end_time)
-            if is_doctor_available:
-                pass
-            handled=True
-    return
-
-# class FinalSubmit(CreateAPIView):
-#     permission_classes = [IsAuthenticated]
-#     serializer_class = CustomerProfileSerializer
-
-#     def post(self, request):
-#         user = request.user
-#         try:
-#             # Extract form data
-#             dob = request.data.get('dob')
-#             first_name = request.data.get('first_name')
-#             last_name = request.data.get('last_name')
-#             message = request.data.get('message')
-#             preferred_name = request.data.get('preferred_name')
-#             slot_id = request.data.get('slot_id')
+class Appointment_actions(APIView):
+    def get(self,request):
+        appointment_id = request.GET.get('appointment_id')
+        appointment = AppointmentHeader.objects.get(appointment_id = appointment.appointment_id)
+        actions = []
+        if appointment.appointment_status == "pending_payment":
+            try:
+                doctor_appointment = DoctorAppointment.objects.filter(appointment=appointment).first()
             
-#             confirmation_method = request.data.get('confirmation_method')
-#             phone_number = request.data.get('phone_number')
-#             email = request.data.get('email')
-#             country = request.data.get('country')  
-#             if not country:
-#                 return Response({'error': 'Country is required'}, status=status.HTTP_400_BAD_REQUEST)
-#             else:
-#                 try:
-#                     country = Countries.objects.get(representation=country)
-#                 except Countries.DoesNotExist:
-#                     return Response({'error': 'Invalid country '}, status=status.HTTP_400_BAD_REQUEST)
-                
-#             # Validate required fields
-#             required_fields = ['dob', 'first_name', 'last_name', 'slot_id', 'confirmation_method']
-#             for field in required_fields:
-#                 if not request.data.get(field):
-#                     return Response({'error': f'{field} is required'}, status=status.HTTP_400_BAD_REQUEST)
+            except DoctorAppointment.DoesNotExist:
+                is_doctor_available = is_doctor_available(appointment.doctor.doctor_profile_id ,appointment.appointment_date, appointment.start_time , appointment.end_time)
+                if not is_doctor_available:
+                    actions.append('Select new slot')
 
-#             # Validate confirmation method
-#             if confirmation_method not in ["SMS", "Email", "WhatsApp"]:
-#                 return Response({'error': 'Invalid confirmation method'}, status=status.HTTP_400_BAD_REQUEST)
-#             if confirmation_method in ["SMS", "WhatsApp"] and not phone_number:
-#                 return Response({'error': 'Phone number is required for SMS/WhatsApp'}, status=status.HTTP_400_BAD_REQUEST)
-#             if confirmation_method == "Email" and not email:
-#                 return Response({'error': 'Email is required for Email confirmation'}, status=status.HTTP_400_BAD_REQUEST)
+                else :
+                    actions.append('Complete Payment')
 
-#             # Update customer profile
-#             customerProfile, created = CustomerProfile.objects.get_or_create(user=user)
-#             customerProfile.date_of_birth = dob
-#             customerProfile.age = calculate_age(dob)
-#             customerProfile.preferred_name = preferred_name
-#             customerProfile.country_details = country
-#             customerProfile.save()
+        elif appointment.appointment_status == 'initiated_by_doctor':   
+            pass
 
-#             # Update user's name
-#             user.first_name = first_name
-#             user.last_name = last_name
-#             user.save()
 
-#             # Update appointment message
-#             appointment = AppointmentHeader.objects.filter(customer=customerProfile).first()
-#             if not appointment:
-#                 return Response({'error': 'Appointment not found'}, status=status.HTTP_404_NOT_FOUND)
-                
-#             appointment.customer_message = message
-#             appointment.appointment_status = 3 
-#             appointment.confirmation_method = confirmation_method
-#             appointment.confirmation_phone_number = phone_number if confirmation_method in ["SMS", "WhatsApp"] else None
-#             appointment.confirmation_email = email if confirmation_method == "Email" else None
-#             appointment.save()
 
-#             # Allot doctor
-#             try:
-#                 appointment_id = self.allot_doctor(request.user.id, customerProfile, slot_id)
-#                 appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
-#                 from_time , to_time =  calculate_from_to_time_with_date(appointment_id)
-#                 appointment.meeting_link = generate_google_meet(
-#                     summary='appointment_id',
-#                     description='Appointment with doctor',
-#                     start_time=from_time,
-#                     end_time=to_time
-#                 )
-#                 appointment.save()
-
-#                 response_data = {
-#                     'message': 'Personal data submitted successfully',
-#                     'appointment': AppointmentHeaderSerializer(appointment).data,
-#                 }            
-#                 return Response(response_data, status=status.HTTP_200_OK)
-#             except Exception as e:
-#                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    def post(self,request):
+        appointment_id = request.data.get('appointment_id')
+        appointment = AppointmentHeader.objects.get(appointment_id = appointment.appointment_id)
+        if appointment.appointment_status == "pending_payment":
+            try:
+                doctor_appointment = DoctorAppointment.objects.filter(appointment=appointment).first()
             
-#         except Exception as e:
-#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            except DoctorAppointment.DoesNotExist:
+                is_doctor_available = is_doctor_available(appointment.doctor.doctor_profile_id ,appointment.appointment_date, appointment.start_time , appointment.end_time)
+                if is_doctor_available:
+                    DoctorAppointment.objects.create()
+                handled=True
+        return
 
-#     def allot_doctor(self, user_id, customer, slot_id):
-#         try:
-#             appointment = AppointmentHeader.objects.get(customer=customer)
-#             slot = GeneralTimeSlots.objects.get(id=slot_id)
-#         except AppointmentHeader.DoesNotExist:
-#             raise Exception("Appointment not found.")
-#         except GeneralTimeSlots.DoesNotExist:
-#             raise Exception("Slot not found.")
 
-#         # Get preferred doctors
-#         preferred_doctors = UserPreferredDoctors.objects.filter(user_id=user_id).first()
-#         if not preferred_doctors:  
-#             raise Exception("Preferred doctors not found.")
-            
-#         doctor_ids = preferred_doctors.get_doctor_ids()
-#         if not doctor_ids:
-#             raise Exception("Preferred doctors not available.")
 
-#         # Find available doctor for the given slot
-#         for doctor_id in doctor_ids:
-#             print("Checking availability for doctor ID:", doctor_id)
-
-#         print("time slot:", slot.from_time, slot.to_time, slot.date.date ,slot.id)
-        
-#         available_doctor_slot = DoctorAvailableSlots.objects.filter(
-#             doctor__doctor_profile_id__in=doctor_ids,
-#             is_available=True,
-#             time_slot=slot
-#         ).select_related('doctor').first()
-
-#         if not available_doctor_slot:
-#             raise Exception("No preferred doctor available for this slot.")
-
-#         # Assign doctor to appointment and update availability
-#         appointment.doctor = available_doctor_slot.doctor
-#         appointment.appointment_status = 4
-#         appointment.appointment_slot = available_doctor_slot
-#         appointment.appointment_date = slot.date.date
-#         appointment.appointment_time = slot.from_time
-#         appointment.save()
-
-#         # Mark doctor slot as unavailable
-#         available_doctor_slot.is_available = False
-#         available_doctor_slot.save()
-
-#         # Send confirmation if needed
-#         from general.smss import appointmentbooked
-#         if appointment.confirmation_method == "SMS":
-#             appointmentbooked(appointment.appointment_id)
-            
-#         if appointment.confirmation_method == "Email":
-#             send_appointment_confirmation_email(
-#                 name=f"{customer.user.first_name} {customer.user.last_name}",
-#                 to_email=appointment.confirmation_email,
-#                 doctor_flag=appointment.doctor.doctor_flag,
-#                 doctor_name=f"{appointment.doctor.user.first_name} {appointment.doctor.user.last_name}",
-#                 date=appointment.appointment_date,
-#                 time=appointment.appointment_time,
-#                 meet_link=appointment.meeting_link
-#             )
-
-#         return appointment.appointment_id 
 
 
 

@@ -3,7 +3,6 @@ from enum import auto
 from statistics import mode
 from django.db import models
 from django.contrib.auth.models import User
-from doctor.models import DoctorAvailableSlots
 from customer.models import CustomerProfile
 # Create your models here.
 """Holds the catergory of medical issues"""
@@ -62,12 +61,9 @@ class AppointmentHeader(models.Model):
     appointment_date            = models.DateField(null=True)
     appointment_time            = models.TimeField(null=True)
     start_time                  = models.TimeField(null=True)
-    end_time                  = models.TimeField(null=True)
-    appointment_slot            = models.ForeignKey(DoctorAvailableSlots,null=True,on_delete=models.SET_NULL, related_name='appointment_header')
-    escalated_date              = models.DateField(null=True)
-    escalated_time_slot         = models.CharField(null=True,max_length=20)
+    end_time                    = models.TimeField(null=True)
+
     doctor                      = models.ForeignKey(DoctorProfiles, on_delete = models.CASCADE , null=True ,related_name='appointment_header')
-    is_free                     = models.BooleanField(default=False)
     followup_id                 = models.IntegerField(null=True)
     booked_on                   = models.DateField(auto_now=True)
     booked_on_time              = models.TimeField(auto_now=True,null=True)
@@ -98,6 +94,15 @@ class AppointmentHeader(models.Model):
 
 
 
+class Observation_Notes(models.Model):
+    note = models.TextField(null=True)
+    appointment = models.ForeignKey(AppointmentHeader , on_delete=models.CASCADE , related_name='observation_notes' , null=True)
+    date = models.DateField(auto_now=True)
+
+class Follow_Up_Notes(models.Model):
+    note = models.TextField(null=True)
+    appointment = models.ForeignKey(AppointmentHeader , on_delete=models.CASCADE , related_name='follow_up_notes' , null=True)
+    date = models.DateField(auto_now=True)
  
 
 class Referral(models.Model):
@@ -154,12 +159,28 @@ class AppointmentQuestionsAndAnswers(models.Model):
 
 
 
-class Prescriptions(models.Model):
-    remarks = models.TextField(null=True, blank=True)
-    customer = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='prescriptions', null=True, blank=True)
-    doctor = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE, related_name='prescriptions', null=True, blank=True)
-    appointment = models.ForeignKey(AppointmentHeader, on_delete=models.CASCADE, related_name='prescriptions', null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class Prescribed_Medications(models.Model):
+    customer        = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='prescribed_medications', null=True, blank=True)
+    doctor          = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE, related_name='prescribed_medications', null=True, blank=True)
+    appointment     = models.ForeignKey(AppointmentHeader, on_delete=models.CASCADE, related_name='prescribed_medications', null=True, blank=True)
+    created_at      = models.DateTimeField(auto_now_add=True)
+    updated_at      = models.DateTimeField(auto_now=True)
+    instruction     = models.TextField(null=True, blank=True)
+    duration        = models.CharField(max_length=50 , null=True)
+    frequency       = models.CharField (max_length=100 , null=True)
+    dosage          = models.CharField(max_length=100)
+    strength        = models.CharField(max_length=100)
+    medicine_name   = models.CharField(max_length=200)
+    is_active       = models.BooleanField(default=True)
 
+class Prescribed_Tests(models.Model):
+    customer        = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='prescribed_tests', null=True, blank=True)
+    doctor          = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE, related_name='prescribed_tests', null=True, blank=True)
+    appointment     = models.ForeignKey(AppointmentHeader, on_delete=models.CASCADE, related_name='prescribed_tests', null=True, blank=True)
+    test_name       = models.CharField(max_length=100)
+    instruction     = models.CharField(max_length=100)
+    created_at      = models.DateTimeField(auto_now_add=True , null=True)
+    updated_at      = models.DateTimeField(auto_now=True ,null=True)
+
+ 
 

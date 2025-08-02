@@ -113,55 +113,105 @@ def initiate_stripe_payment_link(pretransaction_id, appointment_id):
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse
 import stripe
+import json
+from analysis.views import ConfirmAppointment
+
 
 @csrf_exempt
 def verify_payment_stripe(request):
-    payload = request.body
-    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
-    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
+    if request.method != "POST":
+        print("❌ Invalid request method:", request.method)
+        return JsonResponse({"error": "Invalid request method"}, status=400)
 
+    # Validate Stripe secret key
+    endpoint_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', None)
+    if not endpoint_secret:
+        print("❌ Stripe endpoint secret not configured")
+        return JsonResponse({"error": "Server configuration error"}, status=500)
+
+    # Validate signature header
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    if not sig_header:
+        print("❌ Missing Stripe signature header")
+        return JsonResponse({"error": "Missing signature header"}, status=400)
+
+    # Validate request body
+    try:
+        payload = request.body
+        if not payload:
+            print("❌ Empty request body")
+            return JsonResponse({"error": "Empty request body"}, status=400)
+    except Exception as e:
+        print(f"❌ Error reading request body: {type(e).__name__}: {str(e)}")
+        return JsonResponse({"error": "Invalid request body"}, status=400)
+
+    # Verify Stripe webhook signature
     try:
         event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
+            payload=payload,
+            sig_header=sig_header,
+            secret=endpoint_secret
         )
-    except stripe.error.SignatureVerificationError:
+        print("✅ Stripe signature verified")
+    except stripe.error.SignatureVerificationError as e:
+        print(f"❌ SignatureVerificationError: {str(e)}")
         return JsonResponse({'status': 'failed', 'message': 'Signature verification failed'}, status=400)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        print(f"❌ Error during verification: {type(e).__name__}: {str(e)}")
+        return JsonResponse({'status': 'failed', 'message': 'Error during verification'}, status=400)
 
-    # Handle the event
-    if event['type'] == 'checkout.session.async_payment_failed':
-      session = event['data']['object']
-      print("Payment Failed:", session)
-    elif event['type'] == 'checkout.session.async_payment_succeeded':
-      session = event['data']['object']
-      print("Payment Succeeded:", session)
-    elif event['type'] == 'checkout.session.completed':
-      session = event['data']['object']
-      print("Payment Completed:", session)
-    elif event['type'] == 'checkout.session.expired':
-      session = event['data']['object']
-      print("Payment Expired:", session)
-    elif event['type'] == 'payment_intent.canceled':
-      payment_intent = event['data']['object']
-      print("Payment Canceled:", payment_intent)
-    elif event['type'] == 'payment_intent.created':
-      payment_intent = event['data']['object']
-      print("Payment Created:", payment_intent)
-    elif event['type'] == 'payment_intent.payment_failed':
-      payment_intent = event['data']['object']
-      print("Payment Failed:", payment_intent)
-    elif event['type'] == 'payment_intent.succeeded':
-      payment_intent = event['data']['object']
-      print("Payment Succeeded:", payment_intent)
-    elif event['type'] == 'payment_link.created':
-      payment_link = event['data']['object']
-      print("Payment Link Created:", payment_link)
-    elif event['type'] == 'payment_link.updated':
-      payment_link = event['data']['object']
-      print("Payment Link Updated:", payment_link)
-    # ... handle other event types
-    else:
-      print('Unhandled event type {}'.format(event['type']))
+    # Parse JSON body
+    try:
+        event_data = json.loads(payload.decode('utf-8'))
+    except json.JSONDecodeError as e:
+        print(f"❌ JSONDecodeError: {str(e)}")
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-    
+    # Handle events
+    event_type = event.get('type')
+    obj = event['data']['object']
+
+    try:
+        if event_type in ["checkout.session.completed", "payment_intent.succeeded"]:
+            metadata = obj.get('metadata', {})
+            pretransaction_id = metadata.get('pretransaction_id')
+            appointment_id = metadata.get('appointment_id')
+
+            ConfirmAppointment(pretransaction_id=pretransaction_id, appointment_id=appointment_id)
+            print(f"✅ Payment successful: {pretransaction_id}, Appointment: {appointment_id}")
+
+        elif event_type == "payment_intent.payment_failed":
+            print("❌ Payment failed:", obj)
+
+        elif event_type == "checkout.session.async_payment_failed":
+            print("❌ Async payment failed:", obj)
+
+        elif event_type == "checkout.session.async_payment_succeeded":
+            print("✅ Async payment succeeded:", obj)
+
+        elif event_type == "checkout.session.expired":
+            print("⌛ Session expired:", obj)
+
+        elif event_type == "payment_intent.canceled":
+            print("🚫 Payment canceled:", obj)
+
+        elif event_type == "payment_intent.created":
+            print("ℹ️ Payment intent created:", obj)
+
+        elif event_type == "payment_link.created":
+            print("🔗 Payment link created:", obj)
+
+        elif event_type == "payment_link.updated":
+            print("🔄 Payment link updated:", obj)
+
+        else:
+            print(f"⚠️ Unhandled event type: {event_type}")
+
+        return JsonResponse({"status": "success", "event": event_type})
+
+    except KeyError as e:
+        print(f"❌ KeyError: {str(e)}")
+        return JsonResponse({"error": f"Missing key in payload: {str(e)}"}, status=400)
+    except Exception as e:
+        print(f"❌ Unexpected error: {type(e).__name__}: {str(e)}")
+        return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)

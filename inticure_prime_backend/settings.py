@@ -116,29 +116,29 @@ SIMPLE_JWT = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'inticure',   
-#         'USER': 'root',       
-#         'PASSWORD': 'root@123',  
-#         'HOST': 'localhost',    
-#         'PORT': '3306',         
-#     }
-# }
-
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'inticure',
-        'USER': 'inticure',
-        'PASSWORD': 'Berlin@123',
-        'HOST': '/var/run/mysqld/mysqld.sock',
-        'PORT': '',
+        'NAME': 'inticure',   
+        'USER': 'root',       
+        'PASSWORD': 'root@123',  
+        'HOST': 'localhost',    
+        'PORT': '3306',         
     }
 }
+
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'inticure',
+#         'USER': 'inticure',
+#         'PASSWORD': 'Berlin@123',
+#         'HOST': '/var/run/mysqld/mysqld.sock',
+#         'PORT': '',
+#     }
+# }
 
 
 
@@ -243,6 +243,8 @@ RAZORPAY_WEBHOOK_SECRET = config('RAZORPAY_WEBHOOK_SECRET')
 
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
+
 
 
 

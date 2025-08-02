@@ -121,7 +121,7 @@ from django.db.models import Q
 from django.core.cache import cache
 from general.models import UserPreferredDoctors
 from doctor.models import DoctorProfiles
-from doctor.models import GeneralTimeSlots , DoctorPaymentRules
+from doctor.models import  DoctorPaymentRules
 from general.models import UserPreferredDoctors
 
 
@@ -206,41 +206,6 @@ def filter_doctors_based_on_preference( gender_info  , language_info ,user_id , 
     print("haiii")
 
     return preferred_doctors , preferred_doctor_ids , gender_matched, language_matched , user_preferred_doctors.id
-
-
-
-
-
-def filter_slots_based_on_preferred_doctors(preferred_doctors, base_date , preferred_date):
-
-    max_days = 14
-    current_date = base_date
-    matched_slots = None
-    matched_date = None
-    all_available_dates = []
-
-    for i in range(max_days):
-        # All doctors available on this date
-        slots_today = GeneralTimeSlots.objects.filter(
-            doctor_availability__doctor__in=preferred_doctors,
-            doctor_availability__is_available=True,
-            date__date=current_date
-        ).select_related('date').distinct()
-
-        if slots_today.exists() and matched_slots is None:
-            matched_slots = slots_today
-            matched_date = current_date
-
-        if slots_today.exists():
-            if preferred_date and current_date == preferred_date:
-                # If preferred date matches, we can add the slots of that date
-                matched_slots = slots_today
-                matched_date = current_date
-                all_available_dates.append(str(current_date))
-
-        current_date += timedelta(days=1)
-
-    return matched_slots ,  matched_date, all_available_dates
 
 
 
