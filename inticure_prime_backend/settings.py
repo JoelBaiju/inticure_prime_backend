@@ -62,6 +62,12 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
+CSRF_TRUSTED_ORIGINS = [
+    "https://dev.inticure.com",
+    "https://inticure.com",
+]
+
+
 
 ROOT_URLCONF = 'inticure_prime_backend.urls'
 

@@ -42,6 +42,7 @@ class DoctorFilterService:
         )
         if session_duration_field is None:
             return ("Session duration not defined.")
+        print(specialization.specialization)
 
         preferred_doctors, preferred_doctor_ids, gender_matched, language_matched, fallback_reason = get_preferred_doctors(
             specialization=specialization.specialization_id,
@@ -59,26 +60,27 @@ class DoctorFilterService:
                 is_accepted=True,
                 payment_assignments__country__country_name=appointment.customer.country_details.country_name,
             ).distinct()
+            result = []
+        else:
+            preferred_doctors_available_in_date = preferred_doctors.filter(
+                doctor_available_hours__start_time__date=date
+            ).distinct()
 
-        preferred_doctors_available_in_date = preferred_doctors.filter(
-            doctor_available_hours__start_time__date=date
-        ).distinct()
-
-        result = [
-            
-            {
-                "id": doctor2.doctor_profile_id,
-                "name": f"{doctor2.first_name} {doctor2.last_name}",
-                "gender": doctor2.gender,
-                "flag": doctor2.doctor_flag,
-                "specializations": [spec.specialization.specialization for spec in doctor2.doctor_specializations.all()],
-                "languages": [lang.language.language for lang in doctor2.known_languages.all()],
-                "profile_pic": doctor2.profile_pic.url if doctor2.profile_pic else None,
-            }
-            for doctor2 in preferred_doctors_available_in_date 
-            if doctor2 != doctor
-        ]
-
+            result = [
+                
+                {
+                    "id": doctor2.doctor_profile_id,
+                    "name": f"{doctor2.first_name} {doctor2.last_name}",
+                    "gender": doctor2.gender,
+                    "flag": doctor2.doctor_flag,
+                    "specializations": [spec.specialization.specialization for spec in doctor2.doctor_specializations.all()],
+                    "languages": [lang.language.language for lang in doctor2.known_languages.all()],
+                    "profile_pic": doctor2.profile_pic.url if doctor2.profile_pic else None,
+                }
+                for doctor2 in preferred_doctors_available_in_date 
+                if doctor2 != doctor
+            ]
+        print(f"Filtered doctors: {result}")
         response_data = {
             "available_doctors": result,
             "gender_matched": gender_matched,

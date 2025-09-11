@@ -11,7 +11,13 @@ from googleapiclient.discovery import build
 import httplib2
 from google_auth_httplib2 import AuthorizedHttp
 
+from decouple import config
 
+
+
+token_path = config('google_token_path', default='token.json')
+client_secret_path = config('google_client_secret_path', default='client_secret.json')
+service_account_path = config('google_service_account_path', default='inticure-382312-7368c683f41c.json')
 
 
 
@@ -44,18 +50,18 @@ def generate_google_meet(summary, description, start_time, end_time):
     try:
         print("meeting link try block")
         creds = None
-        if os.path.exists(str(os.path.join(BASE_DIR, 'gmeet/token.json'))):
-            creds = Credentials.from_authorized_user_file(str(os.path.join(BASE_DIR, 'gmeet/token.json')), SCOPES)
+        if os.path.exists(str(os.path.join(BASE_DIR, token_path))):
+            creds = Credentials.from_authorized_user_file(str(os.path.join(BASE_DIR, token_path)), SCOPES)
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    str(os.path.join(BASE_DIR, 'gmeet/client_secret.json')),
+                    str(os.path.join(BASE_DIR, client_secret_path)),
                     SCOPES
                 )
                 creds = flow.run_local_server(port=0)
-            with open(str(os.path.join(BASE_DIR, 'gmeet/token.json')), 'w') as token:
+            with open(str(os.path.join(BASE_DIR, token_path)), 'w') as token:
                 token.write(creds.to_json())
     except Exception as e:
         print("exception meeting link", e)
@@ -143,7 +149,7 @@ SCOPES2 = ['https://www.googleapis.com/auth/admin.reports.audit.readonly']
 
 # Paths
 BASE_DIR = Path(__file__).resolve().parent.parent  # Adjust if needed
-SERVICE_ACCOUNT_FILE = BASE_DIR  / 'gmeet' / 'inticure-382312-bd3b5ca5916f.json'
+SERVICE_ACCOUNT_FILE = service_account_path
 
 
 
