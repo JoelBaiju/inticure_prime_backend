@@ -127,12 +127,19 @@ def verify_payment(request):
         event = data.get("event")
 
         if event == "payment.captured" or event == "order.paid":
+            payment_entity = data['payload']['payment']['entity']
+            payment_id = payment_entity['id']  # <-- Razorpay payment_id
             notes = data['payload']['payment']['entity'].get('notes', {})
             pretransaction_id = notes.get('pretransaction_id')
             appointment_id = notes.get('appointment_id')
+            pretransation = PreTransactionData.objects.get(pretransaction_id=pretransaction_id)
+            RazorpayTransaction.objects.create(
+                pretransaction=pretransation,
+                razorpay_payment_id=payment_id,
+            )
             ConfirmAppointment(pretransaction_id=pretransaction_id, appointment_id=appointment_id)
             print(f"✅ Payment captured: {pretransaction_id}, Amount: {appointment_id}")
-
+            
         elif event == "payment.authorized":
             print("🕓 Payment authorized, awaiting capture...")
 
@@ -153,3 +160,73 @@ def verify_payment(request):
     except Exception as e:
         print(f"❌ Unexpected error: {type(e).__name__}: {str(e)}")
         return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+from general.models import PreTransactionData, RazorpayTransaction  # Example model storing Razorpay payment IDs
+from customer.models import  Refund
+
+razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
+
+def process_razorpay_refund(pretransaction_id, amount=None):
+    try:
+        transaction = PreTransactionData.objects.get(pretransaction_id=pretransaction_id)
+    except PreTransactionData.DoesNotExist:
+        return {"error": "Invalid pretransaction_id"}
+
+    try:
+        # Find stored Razorpay payment ID (must have saved it after payment success)
+        razorpay_txn = RazorpayTransaction.objects.filter(
+            pretransaction_id=pretransaction_id
+        ).first()
+
+        if not razorpay_txn or not razorpay_txn.payment_id:
+            return {"error": "No valid Razorpay transaction found"}
+
+        # Prepare refund parameters
+        refund_params = {}
+        if amount:
+            refund_params["amount"] = int(amount * 100)  # Razorpay expects amount in paise
+
+        # Create refund
+        refund = razorpay_client.payment.refund(
+            razorpay_txn.razorpay_payment_id,
+            refund_params
+        )
+
+        refund_obj = Refund.objects.filter(
+            appointment=transaction.appointment,
+
+        ).first()
+        refund_obj.refund_status = refund.get('status', 'failed')
+        refund_obj.razorpay_refund_id = refund.get('id')
+
+        print(f"✅ Refund successful for {pretransaction_id}")
+        print(f"Refund ID: {refund.get('id')}")
+        print(f"Refund Status: {refund.get('status')}")
+
+        return {
+            "status": "success",
+            "message": "Refund processed successfully"
+        }
+
+    except razorpay.errors.BadRequestError as e:
+        print(f"❌ Razorpay BadRequestError: {str(e)}")
+        return {"error": "Refund request invalid"}
+    except razorpay.errors.ServerError as e:
+        print(f"❌ Razorpay ServerError: {str(e)}")
+        return {"error": "Razorpay server error"}
+    except Exception as e:
+        print(f"❌ Unexpected error: {str(e)}")
+        return {"error": "Something went wrong while processing refund"}

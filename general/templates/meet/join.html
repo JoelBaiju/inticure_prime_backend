@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IntiMeet - Professional Virtual Meetings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6A1B78;
+            --primary-dark: #4E1261;
+            --secondary: #CD4F7F;
+            --accent: #f59e0b;
+            --light: #f3f4f6;
+            --dark: #1f2937;
+            --darker: #111827;
+            --success: #10b981;
+            --font-main: 'Inter', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-main);
+            color: var(--dark);
+            background-color: #f9fafb;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* Header */
+        header { position: fixed; width: 100%; z-index: 1000; padding: 15px 0; }
+        nav { display: flex; justify-content: space-between; align-items: center; }
+        .logo-container img { height: 50px; width: auto; }
+
+        /* Hero Section */
+        .hero {
+            padding: 150px 0 100px;
+            background: linear-gradient(135deg, #000000 0%, #8f19a3 100%);
+            position: relative;
+            overflow: hidden;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #cc1b5f5c, #ffffffc0 100%);
+            filter: blur(120px);
+            opacity: 0;
+            z-index: 1;
+        }
+
+        .hero-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-text { flex: 1; max-width: 600px; animation: fadeIn 1s ease-out; }
+        .hero-text h1 { font-size: 3.5rem; font-weight: 700; margin-bottom: 20px; color: #d7d7d7; line-height: 1.2; }
+        .hero-text p { font-size: 1.25rem; margin-bottom: 30px; color: rgba(240, 240, 240, 0.9); }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--secondary);
+            color: white;
+            box-shadow: 0 4px 20px rgba(205, 79, 127, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: #c13a74;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(205, 79, 127, 0.6);
+        }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(5px, -15px) rotate(2deg); }
+            50% { transform: translate(-5px, -25px) rotate(-2deg); }
+            75% { transform: translate(2px, -15px) rotate(1deg); }
+        }
+
+        #user-name { color: var(--secondary); }
+
+        /* Quotes */
+        .quote { position: absolute; opacity: 0; transform: scale(0.7) translateY(80px); transition: all 0.7s ease-in-out;
+            text-align: center; font-size: 1.3rem; color: #edb3ff; max-width: 500px; line-height: 1.5; }
+        .quote.active { opacity: 1; transform: scale(1) translateY(0); font-weight: 600; }
+        .quote.prev { opacity: 0.5; transform: scale(0.85) translateY(-80px); }
+        .quote.next { opacity: 0.5; transform: scale(0.85) translateY(80px); }
+
+        .quote-section { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; min-height: 250px; }
+        .quote-container { position: relative; width: 100%; max-width: 500px; height: 200px; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+
+        @media (max-width: 992px) {
+            .hero-content { flex-direction: column; text-align: center; }
+            .quote-section { margin-top: 40px; order: 2; }
+            .quote-container { height: 180px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <nav>
+                <a href="#" class="logo-container">
+                    <img src="{{backend_url}}/media/icons/inticure_logo_new.png" alt="Inticure Logo" class="logo">
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="bubbles-container"></div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Hey, Good to see you <span id="user-name">{{ username }}</span></h1>
+                    {% if is_customer %}
+                    <p>Let's start your journey from <span style="color: #c13a74;">Oh No</span> to  <span style="color: #c13a74;">Oh Yes!</span></p>
+                    {% endif %}
+                    <!-- Dynamic Join/Countdown -->
+                    <div class="hero-buttons" id="meeting-action"></div>
+                </div>
+
+                <section class="quote-section">
+                    <div class="quote-container">
+                        <div class="quote">“The best thing to hold onto in life is each other.” — Audrey Hepburn</div>
+                        <div class="quote">“Intimacy is not purely physical. It’s the act of connecting with someone so deeply, you feel like you can see into their soul.”</div>
+                        <div class="quote">“Take care of your body. It’s the only place you have to live.” — Jim Rohn</div>
+                        <div class="quote">“Affection is responsible for nine-tenths of whatever solid and durable happiness there is in our lives.” — C.S. Lewis</div>
+                        <div class="quote">“True intimacy is not about sex, it’s about truth.”</div>
+                        <div class="quote">“Health is a state of complete harmony of the body, mind, and spirit.” — B.K.S. Iyengar</div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </section>
+
+<script>
+/* Quote Rotator */
+const quotes = document.querySelectorAll('.quote');
+let currentIndex = 0;
+function showQuotes() {
+  quotes.forEach(q => q.className = 'quote');
+  let prevIndex = (currentIndex - 1 + quotes.length) % quotes.length;
+  let nextIndex = (currentIndex + 1) % quotes.length;
+  quotes[currentIndex].classList.add('active');
+  quotes[prevIndex].classList.add('prev');
+  quotes[nextIndex].classList.add('next');
+}
+function nextQuote() { currentIndex = (currentIndex + 1) % quotes.length; showQuotes(); }
+showQuotes(); setInterval(nextQuote, 4000);
+</script>
+
+<script>
+/* Meeting Countdown/Join Button */
+let remaining = time_left_to_start;
+const actionContainer = document.getElementById("meeting-action");
+
+function formatTime(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return [
+        h > 0 ? String(h).padStart(2, "0") : null,
+        String(m).padStart(2, "0"),
+        String(s).padStart(2, "0")
+    ].filter(Boolean).join(":");
+}
+function render() {
+    actionContainer.innerHTML = "";
+    if (remaining <= 0) {
+        const btn = document.createElement("a");
+        btn.href = "{{meet_link}}"+'?join=true';
+        btn.className = "btn btn-primary";
+        btn.textContent = "Meeting Started - Join Now";
+        actionContainer.appendChild(btn);
+    } else if (remaining <= 300) {
+        const btn = document.createElement("a");
+        btn.href = "{{meet_link}}"+'?join=true';
+        btn.className = "btn btn-primary";
+        btn.textContent = "Join Meeting Now";
+        actionContainer.appendChild(btn);
+    } else {
+        const timer = document.createElement("div");
+        timer.id = "countdown";
+        timer.className = "btn btn-primary";
+        timer.style.pointerEvents = "none";
+        timer.textContent = "Meeting starts in: " + formatTime(remaining);
+        actionContainer.appendChild(timer);
+    }
+}
+function tick() { if (remaining > 0) { remaining--; render(); } }
+render(); setInterval(tick, 1000);
+</script>
+
+<script>
+/* Bubble Animation */
+function createBubbles() {
+    const bubblesContainer = document.querySelector('.bubbles-container');
+    const bubblesCount = 15;
+    for (let i = 0; i < bubblesCount; i++) {
+        const bubble = document.createElement('div');
+        bubble.classList.add('bubble');
+        const size = Math.random() * 100 + 300;
+        bubble.style.width = `${size}px`;
+        bubble.style.height = `${size}px`;
+        setRandomPosition(bubble);
+        const animDuration = Math.random() * 15 + 15;
+        const animDelay = Math.random() * 5;
+        bubble.style.animation = `float ${animDuration}s infinite ease-in-out ${animDelay}s`;
+        animateBubbleOpacity(bubble, animDuration, animDelay);
+        bubblesContainer.appendChild(bubble);
+    }
+}
+function setRandomPosition(bubble) {
+    const left = Math.random() * 80 + 10;
+    const top = Math.random() * 80 + 10;
+    bubble.style.left = `${left}%`;
+    bubble.style.top = `${top}%`;
+}
+function animateBubbleOpacity(bubble, duration, delay) {
+    bubble.style.opacity = '0';
+    const animate = () => {
+        const visibleTime = Math.random() * 3000 + 2000;
+        const hiddenTime = Math.random() * 2000 + 1000;
+        bubble.style.transition = `opacity ${visibleTime/2000}s ease-in`;
+        bubble.style.opacity = '0.7';
+        setTimeout(() => {
+            bubble.style.transition = `opacity ${hiddenTime/2000}s ease-out`;
+            bubble.style.opacity = '0';
+            setTimeout(() => { setRandomPosition(bubble); animate(); }, hiddenTime);
+        }, visibleTime);
+    };
+    setTimeout(animate, delay * 1000);
+}
+window.addEventListener('load', createBubbles);
+</script>
+</body>
+</html>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Medical Prescription</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .container {
+      /* max-width: 800px; */
+      /* margin: 40px auto; */
+      background-color: white;
+      border-radius: 12px;
+      overflow: hidden;
+      /* box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); */
+    }
+
+    .logo-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 25px 40px;
+      background: #ffffff;
+      border-bottom: 1px solid #d4d4d4;
+    }
+
+    .logo {
+      height: 50px;
+      width: auto;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      color: white;
+      padding: 30px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    .header p {
+      font-size: 16px;
+      margin: 10px 0 0;
+      opacity: 0.9;
+    }
+
+    .doc-pat-info {
+      padding: 30px 40px;
+      background: #f9f3fb;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid #e8d4ee;
+    }
+
+    .doc-info, .pat-info {
+      flex: 1;
+    }
+
+    .doc-info {
+      text-align: left;
+      padding-right: 20px;
+    }
+
+    .pat-info {
+      text-align: left;
+      padding-left: 20px;
+      border-left: 2px solid #e8d4ee;
+    }
+
+    .doc-info h2, .pat-info h3 {
+      color: #6A1B78;
+      margin: 0 0 15px;
+      font-weight: 600;
+    }
+
+    .doc-info p, .pat-info p {
+      margin: 5px 0;
+      color: #555;
+      font-size: 14px;
+    }
+
+    .prescription-content {
+      padding: 30px 40px;
+    }
+
+    .section-title {
+      font-weight: 600;
+      color: #6A1B78;
+      margin: 30px 0 20px;
+      font-size: 18px;
+      border-bottom: 2px solid #e8d4ee;
+      padding-bottom: 8px;
+    }
+
+    .prescription-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 25px;
+      border: 1px solid #e8d4ee;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .prescription-table th {
+      /* background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%); */
+      color: rgb(76, 76, 76);
+      padding: 15px 12px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 14px;
+      border: 1px solid #e8d4ee;
+    }
+
+    .prescription-table td {
+      padding: 12px;
+      border: 1px solid #e8d4ee;
+      font-size: 14px;
+    }
+
+    .prescription-table tr:nth-child(even) {
+      background-color: #f9f3fb;
+    }
+
+    .no-data {
+      color: #8F619D;
+      padding: 20px;
+      background-color: #f9f3fb;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px dashed #d4d4d4;
+    }
+
+    .notes-container {
+      margin: 20px 0;
+    }
+
+    .note-item {
+      margin-bottom: 15px;
+      padding: 15px;
+      background: linear-gradient(to right, #f9f3fb 0%, #ffffff 100%);
+      border-left: 4px solid #8F619D;
+      border-radius: 4px;
+    }
+
+    .note-item strong {
+      color: #6A1B78;
+    }
+
+    .signature-area {
+      margin-top: 50px;
+      padding-top: 30px;
+      border-top: 2px solid #e8d4ee;
+      text-align: right;
+    }
+
+    .signature-area p {
+      margin: 5px 0;
+      color: #555;
+    }
+
+    .signature-line {
+      margin: 20px 0 10px;
+      border-top: 1px solid #333;
+      width: 250px;
+      display: inline-block;
+    }
+    .signature{
+        max-height: 150px;
+    }
+
+    .footer {
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      padding: 30px 40px;
+      color: white;
+      text-align: center;
+    }
+
+    .footer p {
+      margin: 0 0 15px;
+      font-size: 14px;
+    }
+
+    .disclaimer {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    @media print {
+      body {
+        margin: 0;
+      }
+      .container {
+        box-shadow: none;
+        margin: 0;
+      }
+      .prescription-table th {
+        background: #6A1B78 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Logo -->
+    <div class="logo-container">
+      <!-- <img src="{{backend_url}}/media/icons/inticure_logo_new.png" alt="Inticure Logo" class="logo"> -->
+    </div>
+
+    <!-- Header -->
+    
+    <div style="width: full; background-color: #6A1B78; height: 10px;">
+
+    </div>
+    <!-- Doctor & Patient Info -->
+    <div class="doc-pat-info">
+      <div class="doc-info">
+        <h2>{{ salutation }} {{ doctor_name }}</h2>
+        <!-- <p><strong>{% for spec in doctor_specializations %}{{ spec }}{% if not forloop.last %}, {% endif %}{% endfor %}</strong></p> -->
+        <p>Reg. No: {{ reg_no }}</p>
+        <p>Phone: +919778385292</p>
+        <p>Email: wecare@inticure.com</p>
+      </div>
+      
+      <div class="pat-info">
+        <h3>Patient Information</h3>
+        <p><strong>Name:</strong> {{ patient_first_name }} {{ patient_last_name }}</p>
+        <p><strong>Preferred Name:</strong> {{ patient_details.preferred_name }}</p>
+        <p><strong>Gender:</strong> {{ patient_details.gender }}</p>
+        <p><strong>Date of Birth:</strong> {{ patient_details.date_of_birth }}</p>
+        <p><strong>Contact:</strong> {{ patient_details.mobile_number }}</p>
+      </div>
+    </div>
+
+     <h3 class="section-title">Consultation Details</h3>
+        <div class="no-data" style="text-align: left;">
+            <p style="color: #333;">Date : {{date}}</p>
+            <p style="color: #333;">Consultation Type : {{cunsultation_type}}</p>
+            <p style="color: #333;">Consultation Status : {%if status %} Follow Up {% else %} First Consultation {% endif %}</p>    
+        </div>     
+      
+    <!-- Prescription Content -->
+    <div class="prescription-content">
+      <!-- Medications -->
+      <h3 class="section-title">Prescribed Medications</h3>
+      {% if medicines %}
+        <table class="prescription-table">
+          <thead>
+            <tr>
+              <th>S. No.</th>
+              <th>Generic Name of Drug</th>
+              <th>Strength</th>
+              <th>Dosage</th>
+              <th>Frequency</th>
+              <th>Duration</th>
+              <th>Instructions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for medicine in medicines %}
+            <tr>
+              <td>{{ forloop.counter }}.</td>
+              <td><strong>{{ medicine.medicine_name }}</strong></td>
+              <td>{{ medicine.strength|default:"-" }}</td>
+              <td>{{ medicine.dosage|default:"-" }}</td>
+              <td>{{ medicine.frequency|default:"-" }}</td>
+              <td>{{ medicine.duration|default:"-" }}</td>
+              <td>{{ medicine.instruction|default:"As directed" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="no-data">No medications prescribed</p>
+      {% endif %}
+
+      <!-- Tests -->
+      <h3 class="section-title">Investigations Advised</h3>
+      {% if tests %}
+        <table class="prescription-table">
+          <thead>
+            <tr>
+              <th>S. No.</th>
+              <th>Test Name</th>
+              <th>Instructions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for test in tests %}
+            <tr>
+              <td>{{ forloop.counter }}.</td>
+              <td><strong>{{ test.test_name }}</strong></td>
+              <td>{{ test.instruction|default:"No specific instructions" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="no-data">No tests recommended</p>
+      {% endif %}
+
+      <!-- Doctor's Notes -->
+      <h3 class="section-title">Clinical Notes</h3>
+      {% if notes %}
+        <div class="notes-container">
+          {% for note in notes %}
+            <div class="note-item">
+              {{ note.note }}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="no-data">No additional notes</p>
+      {% endif %}
+
+
+  <!-- Doctor's Notes -->
+      <h3 class="section-title">Follow Up Notes</h3>
+      {% if follow_notes %}
+        <div class="notes-container">
+          {% for note in follow_notes %}
+            <div class="note-item">
+              {{ note.note }}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="no-data">No additional notes</p>
+      {% endif %}
+
+
+      <!-- Signature -->
+      <div class="signature-area">
+        <div class="signature-line"></div>
+        <p><strong>{{ salutation }} {{ doctor_name }}</strong></p>
+        <!-- <img class="signature" src="{{backend_url}}{{doctor_signature}}" alt=""> -->
+        <p>Date: {{date}}</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="">
+      <div class="disclaimer">
+        <p><strong>Disclaimer:</strong> This prescription has been issued following a telemedicine consultation as per the guidelines issued by the MoHFW, Govt. of India.</p>
+        <p>.</p>
+      </div>
+      
+      <p><strong>Your health and privacy are our top priority</strong></p>
+      <p>Copyrights {% now "Y" %} Inticure Healthcare. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

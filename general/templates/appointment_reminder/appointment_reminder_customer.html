@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Appointment Reminder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      background-color: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      color: white;
+      padding: 40px 40px 50px;
+      text-align: center;
+      position: relative;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin: 0 0 20px;
+    }
+
+    .header-wave {
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      margin-top: 8px;
+      background-color: #6A1B78;
+    }
+
+    .logo-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 25px 40px;
+      background: #ffffff;
+      border: 1px solid #d4d4d4;
+    }
+
+    .logo {
+      height: 50px;
+      width: auto;
+    }
+
+    .email-body {
+      padding: 40px;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .email-body h4 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0 0 20px;
+      color: #6A1B78;
+    }
+
+    .email-body p {
+      font-size: 16px;
+      margin: 0 0 20px;
+      color: #555;
+    }
+
+    .appointment-details {
+      background: #f9f3fb;
+      border-left: 4px solid #8F619D;
+      padding: 20px;
+      margin: 25px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .appointment-details p {
+      margin: 5px 0;
+      font-weight: 500;
+    }
+
+    .doctor-bio {
+      margin: 30px 0;
+      padding: 25px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      border-top: 3px solid #8F619D;
+    }
+
+    .doctor-bio-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .doctor-image-small {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 20px;
+      border: 3px solid #8F619D;
+    }
+
+    .doctor-title h5 {
+      margin: 0;
+      font-size: 18px;
+      color: #6A1B78;
+    }
+
+    .doctor-title p {
+      margin: 5px 0 0;
+      color: #777;
+      font-size: 14px;
+    }
+
+    .footer {
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      padding: 40px;
+      color: white;
+      text-align: center;
+    }
+
+    .footer p {
+      margin: 0 0 15px;
+      font-size: 14px;
+    }
+
+    .social-links {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 0;
+    }
+
+    .policy-links {
+      margin: 20px 0 0;
+      font-size: 13px;
+    }
+
+    .policy-links a {
+      color: white;
+      margin: 0 10px;
+      text-decoration: none;
+    }
+
+    .policy-links a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Logo -->
+    <div class="logo-container">
+      <img src="{{backend_url}}/media/icons/inticure_logo_new.png" alt="Inticure Logo" class="logo">
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+      <h1>Appointment Reminder</h1>
+    </div>
+    <div class="header-wave"></div>
+
+    <!-- Email Body -->
+    <div class="email-body">
+      <h4>Hi {{c_name}},</h4>
+
+      <p>This is a friendly reminder for your upcoming consultation.</p>
+
+      <!-- Appointment Details -->
+      <div class="appointment-details">
+        <p><strong>Your consultation details:</strong></p>
+        <p>Date: <b>{{date}} ({{weekday}})</b></p>
+        <p>Time: <b>{{time}}</b></p>
+        <p>With: <b>{{salutation}} {{doctor_name}}</b></p>
+      </div>
+
+      <!-- Meeting Link -->
+      <p>Please click the link below at the time of your appointment to join your consultation:</p>
+      <p><a href="{{meeting_link}}" style="color:#6A1B78; font-weight:600;">{{meeting_link}}</a></p>
+
+      <p>You can also access your <a href="https://customers.inticure.online/consultations" style="color:#6A1B78; font-weight:600;">consultation dashboard</a> to view all your current and upcoming appointments.</p>
+
+      <!-- Doctor Bio -->
+      <div class="doctor-bio">
+        <div class="doctor-bio-header">
+          {% if profile_pic %}
+          <img src="{{profile_pic}}" alt="{{doctor_name}}" class="doctor-image-small">
+          {% else %}
+          <img src="{{backend_url}}/media/icons/patient_consulting_doctor_online.png" alt="{{doctor_name}}" class="doctor-image-small">
+          {% endif %}
+          <div class="doctor-title">
+            <h5>{{salutation}}{{doctor_name}}</h5>
+            <p>Your Healthcare Provider</p>
+          </div>
+        </div>
+        <p>{{doctor_bio}}</p>
+      </div>
+
+      <p>During your consultation, your doctor may review your assessment, ask additional clarifying questions, and take your medical history to better understand your issue.</p>
+
+      <p><strong>Please note:</strong> During your first consultation, your doctor cannot prescribe medication. If needed, a prescription will only be given by one of our world-class specialists after a follow-up consultation.</p>
+
+      <p>If you need to reschedule or cancel, please visit your <a href="https://customers.inticure.online/consultations" style="color:#6A1B78;">consultation dashboard</a>.</p>
+
+      <p class="signature">With care,<br><strong>Team Inticure</strong></p>
+
+          <p><b>Your safety and privacy is our number one priority. ALWAYS!</b></p>
+
+    </div>
+
+    <!-- Footer -->
+       {% include "base_footer.html" %}
+
+  </div>
+</body>
+</html>

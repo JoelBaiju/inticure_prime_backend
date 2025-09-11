@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Festival Ticket Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      width: 95%;
+      max-width: 400px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0px 4px 15px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    .input-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 0;
+      padding: 10px;
+      background: #f8f8f8;
+      border-radius: 10px;
+      font-size: 18px;
+    }
+    .input-label {
+      font-weight: bold;
+    }
+    .input-value {
+      min-width: 50px;
+      font-size: 20px;
+      color: #0078d7;
+    }
+    .keypad {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .key {
+      padding: 20px;
+      font-size: 22px;
+      border: none;
+      border-radius: 10px;
+      background: #e4e6eb;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .key:active {
+      background: #d0d3d8;
+      transform: scale(0.95);
+    }
+    .key.zero {
+      grid-column: span 2;
+    }
+    .calculate {
+      margin-top: 20px;
+      width: 100%;
+      padding: 15px;
+      font-size: 20px;
+      border: none;
+      border-radius: 10px;
+      background: #0078d7;
+      color: white;
+      cursor: pointer;
+    }
+    .calculate:active {
+      background: #005bb5;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Festival Ticket Calculator</h2>
+
+    <div class="input-box" onclick="setActive('adults')">
+      <span class="input-label">Adults (₹200):</span>
+      <span id="adults" class="input-value">0</span>
+    </div>
+
+    <div class="input-box" onclick="setActive('children')">
+      <span class="input-label">Children (₹150):</span>
+      <span id="children" class="input-value">0</span>
+    </div>
+
+    <!-- Keypad -->
+    <div class="keypad">
+      <button class="key" onclick="pressKey(1)">1</button>
+      <button class="key" onclick="pressKey(2)">2</button>
+      <button class="key" onclick="pressKey(3)">3</button>
+      <button class="key" onclick="pressKey(4)">4</button>
+      <button class="key" onclick="pressKey(5)">5</button>
+      <button class="key" onclick="pressKey(6)">6</button>
+      <button class="key" onclick="pressKey(7)">7</button>
+      <button class="key" onclick="pressKey(8)">8</button>
+      <button class="key" onclick="pressKey(9)">9</button>
+      <button class="key zero" onclick="pressKey(0)">0</button>
+      <button class="key" onclick="backspace()">⌫</button>
+    </div>
+
+    <button class="calculate" onclick="calculateTotal()">Calculate Total</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    let activeField = "adults";
+
+    function setActive(field) {
+      activeField = field;
+      document.querySelectorAll(".input-box").forEach(box => {
+        box.style.border = "none";
+      });
+      document.getElementById(field).parentElement.style.border = "2px solid #0078d7";
+    }
+
+    function pressKey(num) {
+      const field = document.getElementById(activeField);
+      let value = field.innerText;
+
+      if (value === "0") {
+        value = num.toString();
+      } else {
+        value += num.toString();
+      }
+      field.innerText = value;
+    }
+
+    function backspace() {
+      const field = document.getElementById(activeField);
+      let value = field.innerText;
+      if (value.length > 1) {
+        field.innerText = value.slice(0, -1);
+      } else {
+        field.innerText = "0";
+      }
+    }
+
+    function calculateTotal() {
+      const adults = parseInt(document.getElementById("adults").innerText) || 0;
+      const children = parseInt(document.getElementById("children").innerText) || 0;
+
+      const total = (adults * 199) + (children * 150);
+      document.getElementById("result").innerText = "Total Price: ₹" + total;
+    }
+
+    // Set default active field
+    setActive("adults");
+  </script>
+</body>
+</html>

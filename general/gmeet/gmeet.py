@@ -1,114 +1,95 @@
 from __future__ import print_function
-import datetime
 import os.path
-import uuid
 from pathlib import Path
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from .create_client_secret import create_google_credentials_file
+from datetime import datetime, timedelta
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+import httplib2
+from google_auth_httplib2 import AuthorizedHttp
 
 
 
 
-# Google Calendar API scope
+
+
+def normalize_meeting_code(meet_code: str) -> str:
+    """
+    Convert a Google Meet link-style code (e.g., 'mbq-xxhr-xxo')
+    into the Reports API format (e.g., 'MBQXXHRXXO').
+
+    Also works if the input is a full URL.
+    """
+    # If it's a URL, get only the part after the last slash
+    if meet_code.startswith("http"):
+        meet_code = meet_code.split("/")[-1]
+
+    # Remove any spaces/whitespace
+    meet_code = meet_code.strip()
+
+    # Remove dashes and make uppercase
+    return meet_code.replace("-", "").upper()
+
+
+
+# If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 BASE_DIR = Path(__file__).resolve().parent.parent
-# Generate credentials file dynamically from environment
-create_google_credentials_file(filename=os.path.join(BASE_DIR, 'gmeet/client_secret.json'))
 
-
-def generate_google_meet(summary, description, start_time, end_time, timezone='Asia/Kolkata'):
-    """
-    Generate a Google Meet link by creating a calendar event
-    
-    Args:
-        summary: Event title (string)
-        description: Event description (string)
-        start_time: Start time (datetime object or ISO format string)
-        end_time: End time (datetime object or ISO format string)
-        timezone: Timezone string (default: 'Asia/Kolkata')
-    
-    Returns:
-        Google Meet URL (string) or None if failed
-    """
-    print("Starting generate_google_meet function")
-    
-    # First handle credentials
+def generate_google_meet(summary, description, start_time, end_time):
+    print("generate meet link functtion")
     try:
+        print("meeting link try block")
         creds = None
-        token_path = os.path.join(BASE_DIR, 'gmeet/token.json')
-        client_secret_path = os.path.join(BASE_DIR, 'gmeet/client_secret.json')
-
-        # 👇 Create client_secret.json from environment variables
-        create_google_credentials_file(filename=client_secret_path)
-
-        # Load credentials if token exists
-        if os.path.exists(token_path):
-            creds = Credentials.from_authorized_user_file(token_path, SCOPES)
-
-        # If no valid credentials, go through the OAuth flow
+        if os.path.exists(str(os.path.join(BASE_DIR, 'gmeet/token.json'))):
+            creds = Credentials.from_authorized_user_file(str(os.path.join(BASE_DIR, 'gmeet/token.json')), SCOPES)
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(client_secret_path, SCOPES)
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    str(os.path.join(BASE_DIR, 'gmeet/client_secret.json')),
+                    SCOPES
+                )
                 creds = flow.run_local_server(port=0)
-            # Save credentials for future use
-            with open(token_path, 'w') as token_file:
-                token_file.write(creds.to_json())
+            with open(str(os.path.join(BASE_DIR, 'gmeet/token.json')), 'w') as token:
+                token.write(creds.to_json())
     except Exception as e:
-        print("Error during credentials setup:", e)
-        return None
+        print("exception meeting link", e)
+        return 0
 
-    # Process time inputs
     try:
-        # Convert datetime objects to ISO strings
-        if isinstance(start_time, datetime.datetime):
+        if isinstance(start_time, datetime):
             start_time = start_time.isoformat()
-        if isinstance(end_time, datetime.datetime):
+        if isinstance(end_time, datetime):
             end_time = end_time.isoformat()
 
-        # Ensure strings are in proper format
-        if isinstance(start_time, str):
-            if 'T' not in start_time:  # If just date provided
-                start_time = f"{start_time}T00:00:00"
-            if start_time.count(':') == 1:  # If missing seconds
-                start_time = start_time + ':00'
-                
-        if isinstance(end_time, str):
-            if 'T' not in end_time:
-                end_time = f"{end_time}T00:00:00"
-            if end_time.count(':') == 1:
-                end_time = end_time + ':00'
-
-        # Create the calendar service
         service = build('calendar', 'v3', credentials=creds)
-
-        event = {
+        event_body = {
             "conferenceDataVersion": 1,
             'summary': summary,
             'description': description,
             'start': {
                 'dateTime': start_time,
-                'timeZone': timezone,
+                'timeZone': 'Asia/Kolkata',
             },
             'end': {
                 'dateTime': end_time,
-                'timeZone': timezone,
+                'timeZone': 'Asia/Kolkata',
             },
-            'conferenceData': {
-                'createRequest': {
-                    'conferenceSolutionKey': {
-                        'type': 'hangoutsMeet'
+            "conferenceData": {
+                "createRequest": {
+                    "conferenceSolutionKey": {
+                        "type": "hangoutsMeet"
                     },
-                    'requestId': str(uuid.uuid4()),
+                    "requestId": "RandomString",
                 }
             },
             'visibility': 'public',
-            'anyoneCanAddSelf': True,
+            "anyoneCanAddSelf": True,
             'reminders': {
                 'useDefault': False,
                 'overrides': [
@@ -118,18 +99,124 @@ def generate_google_meet(summary, description, start_time, end_time, timezone='A
             },
         }
 
-        event_result = service.events().insert(
+        event = service.events().insert(
             calendarId='primary',
-            body=event,
-            conferenceDataVersion=1
+            conferenceDataVersion=1,
+            body=event_body
         ).execute()
 
-        print('Event created:', event_result.get('htmlLink'))
-        return event_result.get('hangoutLink')
+        meeting_link = event.get('hangoutLink')
+        meeting_code = None
+
+        # Try to extract meeting code from conferenceData
+        if 'conferenceData' in event and 'conferenceId' in event['conferenceData']:
+            meeting_code = event['conferenceData']['conferenceId']
+        elif meeting_link:
+            # Fallback: parse from URL
+            meeting_code = meeting_link.split('/')[-1]
+
+        return {
+            "meeting_link": meeting_link,
+            "meeting_code": normalize_meeting_code(meeting_code)
+        }
 
     except HttpError as error:
-        print('Google API error occurred:', error)
-        return None
-    except Exception as error:
-        print('An unexpected error occurred:', error)
-        return None
+        print('An error occurred: %s' % error)
+        return False
+
+
+
+
+
+
+
+
+
+
+
+
+# Your super admin email
+DELEGATED_ADMIN = 'nextbighealthcare@inticure.com'
+
+# Scopes for Reports API (read-only Meet logs)
+SCOPES2 = ['https://www.googleapis.com/auth/admin.reports.audit.readonly']
+
+# Paths
+BASE_DIR = Path(__file__).resolve().parent.parent  # Adjust if needed
+SERVICE_ACCOUNT_FILE = BASE_DIR  / 'gmeet' / 'inticure-382312-bd3b5ca5916f.json'
+
+
+
+
+
+
+
+
+def fetch_meet_logs():
+    credentials = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE,
+        scopes=SCOPES2
+    )
+    delegated_credentials = credentials.with_subject(DELEGATED_ADMIN)
+
+    # Create custom HTTP client with timeout
+    http = httplib2.Http(timeout=300)
+    authed_http = AuthorizedHttp(delegated_credentials, http=http)
+
+    service = build('admin', 'reports_v1', http=authed_http)
+
+    start_time = (datetime.utcnow() - timedelta(days=1)).isoformat("T") + "Z"
+
+    results = service.activities().list(
+        userKey='all',
+        applicationName='meet',
+        maxResults=10,
+        # startTime=start_time
+    ).execute()
+
+    return results.get('items', [])
+
+
+
+
+def fetch_meet_logs_with_meeting_code(meeting_code=None):
+    credentials = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE,
+        scopes=SCOPES2
+    )
+    delegated_credentials = credentials.with_subject(DELEGATED_ADMIN)
+
+    # Create HTTP client with extended timeout
+    http = httplib2.Http(timeout=300)
+    authed_http = AuthorizedHttp(delegated_credentials, http=http)
+
+    service = build('admin', 'reports_v1', http=authed_http)
+
+    start_time = (datetime.utcnow() - timedelta(days=1)).isoformat("T") + "Z"
+
+    all_items = []
+    request = service.activities().list(
+        userKey='all',
+        applicationName='meet',
+        maxResults=10,
+        # startTime=start_time
+    )
+    
+    while request is not None:
+        response = request.execute()
+        items = response.get('items', [])
+
+        # If meeting_code is provided, filter results
+        if meeting_code:
+            items = [
+                item for item in items
+                if any(
+                    param.get('name') == 'meeting_code' and param.get('value') == meeting_code
+                    for param in item.get('events', [])[0].get('parameters', [])
+                )
+            ]
+
+        all_items.extend(items)
+        request = service.activities().list_next(request, response)
+
+    return all_items

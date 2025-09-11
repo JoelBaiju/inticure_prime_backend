@@ -1,187 +1,141 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Email Template</title>
-	<style>
-		body {
-			background-color:LightGray ;
-		}
-		
-		.container {
-			max-width: 700px; /* width of an A4 size paper */
-			margin: 0 auto;
-			padding: 0;
-			box-sizing: border-box;
-			background-color: white;
-			border-radius: 8px;
-			overflow: hidden;
-			box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-		}
+  <title>Account Suspension Notice</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
 
-		/* Style for the header */
-		.header {
-			background: #8F619D;
-			color: white;
-			padding: 1px;
-			position: relative;
-			text-align: center; /* center align the h1 tag */
-			width: 100%;
-		}
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+    }
 
-		.header p {
-			display: inline-block; /* make the h1 tag take only the width it needs */
-			font-family: "DM Sans", sans-serif, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-			font-style: normal;
-			font-weight: 600;
-			font-size: 25px;
-			line-height: 35px;
-		}
-	
-		
+    .logo-container {
+      background: #ffffff;
+      border-bottom: 1px solid #ddd;
+      padding: 20px 40px;
+      text-align: left;
+    }
 
-		/* Style for the logo */
-		.logo {
-			display: block;
-			max-width: 150px;
-			height: auto;
-			margin: 0 auto;
-			margin-top: 20px;
-			margin-bottom: 20px;
-			float:left;
-			padding-left: 22px;
-			padding-top: 13px;
-			
-		}
+    .logo {
+      height: 45px;
+      width: auto;
+    }
 
-		/* Style for the image */
-		.image {
-			position: absolute;
-			top: 20px;
-			right: 20px;
-			display: inline-block;
-			max-width: 150px;
-			height: auto;
-			vertical-align: middle;
-		}
+    .header {
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
 
-		.header-image {
-			position: absolute;
-			top: 20px;
-			right: 20px;
-			display: inline-block;
-			max-width: 150px;
-			height: auto;
-			vertical-align: middle;
-			text-align: right; /* Align the image to the right */
-		  }
-		  
-		/* Style for the email body */
-		.email-body {
-			margin-top: 40px;
-			text-align: left;
-			min-height: 500px;
-			width: 100%;
-			padding: 0 40px;
-			box-sizing: border-box;
-			background-color: white;
-		}
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
 
-		/* Style for the footer */
-		.footer {
-  			background: #8F619D;
-  			
- 			padding: 60px;
-  			position: relative;
-  			width: 100%;
-			}
-		
-		h5 {
-			font-size: 16px;
-  			}
-	    .pale-white-bg{
-			background-color: LightGray;
-		}
-		.top-header{
-			background-color: white;
-			float: left;
-			width: 100%;
-			height:90px;
+    .email-body {
+      padding: 40px;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #444;
+    }
 
+    .email-body h4 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #6A1B78;
+      margin-bottom: 20px;
+    }
 
-		}
+    .email-body p {
+      margin-bottom: 18px;
+    }
 
-		.blank-header{
-			background-color: LightGray;
-			width: 100%;
-			height:86px;
+    .footer {
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      padding: 40px 20px;
+      text-align: center;
+      color: white;
+    }
 
-		}
-		.blank-footer{
-			background-color: LightGray;
-			width: 100%;
-			height:86px;
-		}
-		.email-body p{
-			font-family: "DM Sans", sans-serif, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-			font-style: normal;
-			font-weight: 400;
-			font-size: 18px;
-			line-height: 25px;
-		}
-		.social_logos {
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			padding-left: 196px;
-		  }
-		  
-		  .social_logos img {
-			margin: 0 10px;
-			width: 25px; /* or any other desired width */
-			height: 25px; /* or any other desired height */
-		  }
+    .footer p {
+      margin: 0 0 12px;
+      font-size: 14px;
+    }
 
-	</style>
+    .social-links {
+      margin: 20px 0;
+    }
+
+    .social-links a {
+      display: inline-block;
+      margin: 0 8px;
+    }
+
+    .social-links img {
+      width: 28px;
+      height: 28px;
+    }
+
+    .copyright {
+      font-size: 12px;
+      margin-top: 15px;
+      opacity: 0.9;
+    }
+  </style>
 </head>
 <body>
-	<div class="pale-white-bg">
+  <div class="container">
+    <!-- Logo -->
+    <div class="logo-container">
+      <img src="{{backend_url}}/media/icons/inticure_logo_new.png" alt="Inticure Logo" class="logo">
+    </div>
 
-	<div class="container">
-		<div class="blank-header">
-			
-		</div>
-		<!-- Logo -->
-		<div class="top-header">
-			<img src="https://api.inticure.online/media/inticure_logo.jpeg" alt="Logo" class="logo">
-		</div>
-		<!-- Header -->
-		<div class="header">
-			<p>Account Banned</p>
-		</div>
+    <!-- Header -->
+    <div class="header">
+      <h1>Account Suspension Notice</h1>
+    </div>
 
-		<!-- Email Body -->
-		<div class="email-body">
-			<p>Hi {{email}},</p>
-			<p>Due to your constant bad behaviour to the doctors, they have reported your name to the admin,</p>
-			<p>as a voluntory action your account has been suspended or disabled</p>
-			<p>We are sorry to inform you that you could not book any appointments after this.</p>
-		</div>
-		
-		<!-- Footer -->
-		<div class="footer">
-			<div style="padding-left: 48px;color: white;">
-				<p>We're here if you have any questions, drop us a line at wecare@inticure.com anytime.</p>
-                <p class="email-note">This is an automatically generated email please do not reply to this email. </p>
-			</div>
-			
-			
-		</div>
-		<div class="blank-footer">
-			
-		</div>
-		  
-		  
-	</div>
-</div>
+    <!-- Body -->
+    <div class="email-body">
+      <h4>Hi {{email}},</h4>
+      <p>
+        We regret to inform you that your Inticure account has been suspended due to repeated violations of our community guidelines and code of conduct.
+      </p>
+      <p>
+        As a result, you will no longer be able to book or attend consultations through our platform. 
+      </p>
+      <p>
+        If you believe this action has been taken in error, or if you would like to appeal the suspension, please contact our support team at 
+        <a href="mailto:wecare@inticure.com">wecare@inticure.com</a>.
+      </p>
+      <p>
+        Thank you for your understanding and cooperation.
+      </p>
+      <p style="margin-top: 30px;">Sincerely,<br><strong>Team Inticure</strong></p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>We're here if you have any questions. Reach us at <b>wecare@inticure.com</b></p>
+      <p class="email-note" style="font-size: small;">This is an automated message, please do not reply directly to this email.</p>
+    
+      <p class="copyright">© {{year}} Next Big HealthCare Pvt. Ltd. All rights reserved.</p>
+    </div>
+  </div>
 </body>
 </html>

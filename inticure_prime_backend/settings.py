@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'daphne',
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
@@ -44,7 +45,9 @@ INSTALLED_APPS = [
     'customer',
     'administrator',
     'doctor',
-    'general'
+    'general',
+    'chat',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -56,8 +59,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-
 ]
+
 CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'inticure_prime_backend.urls'
@@ -80,12 +83,15 @@ TEMPLATES = [
 WSGI_APPLICATION = 'inticure_prime_backend.wsgi.application'
 
 
-
-
-
-
-
-
+ASGI_APPLICATION = 'inticure_prime_backend.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
@@ -96,8 +102,6 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
 
     ),
-   
-
 }
 
 SIMPLE_JWT = {
@@ -116,29 +120,29 @@ SIMPLE_JWT = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'inticure',   
-#         'USER': 'root',       
-#         'PASSWORD': 'root@123',  
-#         'HOST': 'localhost',    
-#         'PORT': '3306',         
-#     }
-# }
-
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'inticure',
-        'USER': 'inticure',
-        'PASSWORD': 'Berlin@123',
-        'HOST': '/var/run/mysqld/mysqld.sock',
-        'PORT': '',
+        'NAME': 'inticure',   
+        'USER': 'root',       
+        'PASSWORD': 'root@123',  
+        'HOST': 'localhost',    
+        'PORT': '3306',         
     }
 }
+
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'inticure',
+#         'USER': 'inticure',
+#         'PASSWORD': 'Berlin@123',
+#         'HOST': '/var/run/mysqld/mysqld.sock',
+#         'PORT': '',
+#     }
+# }
 
 
 
@@ -166,7 +170,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Asia/Kolkata'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
@@ -197,12 +201,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'wecare@inticure.com'  # Your Gmail account
-EMAIL_HOST_PASSWORD = 'kfqk vezg lylg nbuu'  # App Password or Gmail password
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'wecare@inticure.com'  # Your Gmail account
+# EMAIL_HOST_PASSWORD = 'kfqk vezg lylg nbuu'  # App Password or Gmail password
 DEFAULT_FROM_EMAIL = 'wecare@inticure.com'  # Default from email (can be your Gmail or another verified email)
 
 
@@ -224,7 +228,7 @@ from decouple import config
 # EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')  # App Password or Gmail password
 # DEFAULT_FROM_EMAIL = 'wecare@inticure.com'  # Default from email (can be your Gmail or another verified email)
 
-
+SENDGRID_API_KEY = config('EMAIL_HOST_PASSWORD')  # Your SendGrid API key
 
 TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN")
@@ -245,8 +249,8 @@ STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
 
-
-
+WHATSAPP_ACCESS_TOKEN = config('WHATSAPP_ACCESS_TOKEN')
+WHATSAPP_PHONE_NUMBER_ID = config('WHATSAPP_PHONE_NUMBER_ID')
 
 
 
@@ -259,3 +263,6 @@ CELERY_TASK_SERIALIZER = 'json'
 
 FRONT_END_SUCCESS_URL= config('FRONT_END_SUCCESS_URL')
 FRONT_END_FAILIURE_URL = config('FRONT_END_FAILIURE_URL')
+ENV = config('ENV')
+
+BACKEND_URL = config('BACKEND_URL')

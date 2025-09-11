@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Appointment Notification</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      background-color: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      color: white;
+      padding: 40px 40px 50px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin: 0 0 20px;
+      line-height: 1.3;
+    }
+
+    .header-wave {
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      margin-top: 8px;
+      background-color: #6A1B78;
+    }
+
+    .logo-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 25px 40px;
+      background: #ffffff;
+      border: 1px solid #d4d4d4;
+    }
+
+    .logo {
+      height: 50px;
+      width: auto;
+    }
+
+    .email-body {
+      padding: 40px;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .email-body h4 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0 0 20px;
+      color: #6A1B78;
+    }
+
+    .email-body p {
+      font-size: 16px;
+      margin: 0 0 20px;
+      color: #555;
+    }
+
+    .email-body a {
+      color: #8F619D;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .email-body a:hover {
+      color: #6A1B78;
+      text-decoration: underline;
+    }
+
+    .notification-box {
+      background: #f9f3fb;
+      border-left: 4px solid #8F619D;
+      padding: 20px;
+      margin: 25px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .btn-container {
+      text-align: center;
+      margin: 30px 0;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      color: white;
+      padding: 12px 30px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      box-shadow: 0 4px 15px rgba(106, 27, 120, 0.3);
+    }
+
+    .footer {
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      padding: 40px;
+      color: white;
+      text-align: center;
+    }
+
+    .footer p {
+      margin: 0 0 15px;
+      font-size: 14px;
+    }
+
+    .footer b {
+      font-weight: 600;
+    }
+
+    .social-links {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 0;
+    }
+
+    .signature {
+      margin: 30px 0 0;
+      font-style: italic;
+    }
+
+    .policy-links {
+      margin: 20px 0 0;
+      font-size: 13px;
+    }
+
+    .policy-links a {
+      color: white;
+      margin: 0 10px;
+      text-decoration: none;
+    }
+
+    .policy-links a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Logo -->
+    <div class="logo-container">
+      <img src="{{backend_url}}/media/icons/inticure_logo_new.png" alt="Inticure Logo" class="logo">
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-content">
+        <h1>Appointment Missed</h1>
+      </div>
+    </div>
+
+    <div class="header-wave"></div>
+
+    <!-- Email Body -->
+    <div class="email-body">
+      <h4>Hi {{patient_name}},</h4>
+      
+      <div class="notification-box">
+        <p><strong>We sincerely apologize that the doctor was unable to attend your scheduled appointment.</strong></p>
+        <p>We understand this may have disrupted your schedule. You can easily reschedule your appointment for a more convenient time by logging into your account. We'll ensure priority booking for your next consultation.</p>
+      </div>
+
+      <div class="btn-container">
+        <a href="https://customers.inticure.online/consultations" class="btn-primary" style="color: white;">Reschedule Your Appointment</a>
+      </div>
+
+      <p>Thank you for using Inticure. We're here to help if you have any questions - please contact us at <a href="mailto:wecare@inticure.com">wecare@inticure.com</a>.</p>
+
+    
+      <p class="signature">With best regards,<br><strong>Team Inticure</strong></p>
+      <p><b>Your safety and privacy is our number one priority. ALWAYS!</b></p>
+
+     
+    </div>
+
+    <!-- Footer -->
+   {% include "base_footer.html" %}
+  </div>
+</body>
+</html>

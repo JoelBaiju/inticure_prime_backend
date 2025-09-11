@@ -1,163 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Account Confirmation</title>
-    <style>
-        body {
-            background-color: LightGray;
-            font-family: "DM Sans", sans-serif, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        
-        .container {
-            max-width: 700px; /* width of an A4 size paper */
-            margin: 0 auto;
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Confirmation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f4f4;
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
 
-        /* Header styles */
-        .header {
-            background: #8F619D;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            position: relative;
-        }
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+    }
 
-        .header p {
-            font-size: 25px;
-            font-weight: 600;
-            line-height: 35px;
-        }
+    .logo-container {
+      background: #ffffff;
+      border-bottom: 1px solid #eee;
+      padding: 20px 40px;
+      text-align: left;
+    }
 
-        .logo {
-            display: block;
-            max-width: 150px;
-            margin: 20px auto;
-        }
+    .logo {
+      height: 45px;
+      width: auto;
+    }
 
-        .header-image {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            max-width: 150px;
-            height: auto;
-        }
+    .header {
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      color: #fff;
+      padding: 40px 20px;
+      text-align: center;
+      position: relative;
+    }
 
-        /* Email body styles */
-        .email-body {
-            padding: 40px;
-            text-align: left;
-        }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
 
-        .email-body p {
-            font-size: 18px;
-            line-height: 25px;
-            margin-bottom: 15px;
-        }
+    .header img {
+      position: absolute;
+      right: 30px;
+      top: 30px;
+      max-height: 80px;
+    }
 
-        .email-btn {
-            background-color: #8F619D;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            display: inline-block;
-        }
+    .email-body {
+      padding: 40px;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #444;
+    }
 
-        .link-block {
-            color: #8F619D;
-            text-decoration: none;
-            display: block;
-            margin-top: 10px;
-        }
+    .email-body h4 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #6A1B78;
+      margin-bottom: 20px;
+    }
 
-        h4.email-heading-s2 {
-            font-size: 20px;
-            font-weight: 600;
-        }
+    .email-body p {
+      margin-bottom: 18px;
+    }
 
-        .footer {
-            background: #8F619D;
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
-        }
+    .btn {
+      display: inline-block;
+      margin: 20px 0;
+      padding: 12px 30px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 500;
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      color: #fff !important;
+    }
 
-        .social_logos img {
-            margin: 0 10px;
-            width: 25px;
-            height: 25px;
-        }
+    .policy-links {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f9f3fb;
+      border-left: 4px solid #8F619D;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
 
-        .social_logos {
-            text-align: center;
-            margin-top: 20px;
-        }
+    .policy-links a {
+      color: #6A1B78;
+      font-weight: 500;
+      text-decoration: none;
+    }
 
-        .blank-header, .blank-footer {
-            background-color: LightGray;
-            width: 100%;
-            height: 86px;
-        }
-    </style>
+    .footer {
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      color: #fff;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    .footer p {
+      margin: 0 0 12px;
+      font-size: 14px;
+    }
+
+    .social-links {
+      margin: 20px 0;
+    }
+
+    .social-links a {
+      display: inline-block;
+      margin: 0 8px;
+    }
+
+    .social-links img {
+      width: 28px;
+      height: 28px;
+    }
+
+    .copyright {
+      font-size: 12px;
+      margin-top: 15px;
+      opacity: 0.9;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Logo -->
-        <div class="top-header">
-            <img src="https://api.inticure.online/media/inticure_logo.jpeg" alt="Logo" class="logo">
-        </div>
-
-        <!-- Header -->
-        <div class="header">
-            <p>Confirm Your Account</p>
-            <img src="https://api.inticure.online/media/doctor_img.png" alt="Image" class="header-image">
-        </div>
-
-        <!-- Email Body -->
-        <div class="email-body">
-            <p>Hi {{email}},</p>
-            <p>Welcome to Inticure! You are receiving this email because you have registered on our site.</p>
-            <p>This is an automatically generated email, please do not reply to this email. If you face any issues, please contact us at help@dashlite.com</p>
-
-		<br>
-		<br>
-        <br>
-		<p>Please refer our Terms and Conditions <a href="https://inticure.online/faq/">click</a></p>
-		<p>Please refer our Privacy Policy <a href="https://inticure.online/faq/">click</a></p>
-		<p>Please refer our Cancellation and Refund Policy <a href="https://inticure.online/faq/">click</a></p>
-		<br>
-        </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            <p><strong>Your safety and privacy is our number one priority. ALWAYS!</strong></p>
-            <p><strong>Follow Us</strong></p>
-            <div class="social_logos">
-                <a href="https://www.facebook.com/profile.php?id=100086973277320">
-                    <img src="http://api.inticure.com/media/facebook_x3t0h7Z.png" alt="Facebook">
-                </a>
-                <a href="https://www.youtube.com/channel/UCmFHPhjy7R6E_Lfv9_4nr-Q">
-                    <img src="http://api.inticure.com/media/Youtube.png" alt="YouTube">
-                </a>
-                <a href="https://www.instagram.com/get_inticured/">
-                    <img src="http://api.inticure.com/media/instagram.png" alt="Instagram">
-                </a>
-                <a href="https://www.linkedin.com/company/inticure/?viewAsMember=true">
-                    <img src="http://api.inticure.com/media/linkedin.png" alt="LinkedIn">
-                </a>
-            </div>
-            <p><strong>Privacy Policy © 2022 NextBig HealthCare Pvt. Ltd</strong></p>
-        </div>
-
-        <div class="blank-footer"></div>
+  <div class="container">
+    <!-- Logo -->
+    <div class="logo-container">
+      <img src="{{backend_url}}/media/icons/inticure_logo_new.png" alt="Inticure Logo" class="logo">
     </div>
+
+    <!-- Header -->
+    <div class="header">
+      <h1>Confirm Your Account</h1>
+    </div>
+
+    <!-- Body -->
+    <div class="email-body">
+      <h4>Hi {{email}},</h4>
+      <p>Welcome to <strong>Inticure</strong> 🎉</p>
+      <p>Thank you for registering with us. To complete your setup and start booking consultations, please complete your account using the button below:</p>
+      
+      <a href="{{confirmation_link}}" class="btn">Complete My Account</a>
+
+      <p>If you face any issues, reach us anytime at <a href="mailto:wecare@inticure.com">wecare@inticure.com</a>. This is an automated message, please do not reply directly.</p>
+
+     
+
+    <!-- Footer -->
+     {% include "base_footer.html" %}
+
+  </div>
 </body>
 </html>

@@ -23,13 +23,14 @@ from doctor.models import (
     DoctorSpecializations,
     DoctorPaymentRules
 )
+from general.emal_service import send_doctor_status_email
 from .models import (
     Specializations,
     Countries,
     GeneralPaymentRules,
     LanguagesKnown
 )
-from analysis.models import Options, Questionnaire, Category
+from analysis.models import AppointmentHeader, Options, Questionnaire, Category
 
 # Local serializers
 from .serializers import (
@@ -48,6 +49,12 @@ from analysis.models import Options , Questionnaire , Category
 from analysis.serializers import QuestionnaireSerializerWithOptions ,OptionsSerializer , CategorySerializer
 
 
+
+
+
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from .serializers import DoctorProfileSerializer_update
 
 
 
@@ -95,8 +102,8 @@ class Doctor_Details(APIView):
         pending_applications = DoctorProfiles.objects.filter(is_accepted=False,rejected=False).count()
         rejected_applications = DoctorProfiles.objects.filter(rejected=True).count()
 
-        senior_doctors = DoctorProfiles.objects.filter(doctor_flag='2005').count()
-        junior_doctors = DoctorProfiles.objects.filter(doctor_flag='2005').count()
+        senior_doctors = DoctorProfiles.objects.filter(doctor_flag='senior',is_accepted = True).count()
+        junior_doctors = DoctorProfiles.objects.filter(doctor_flag='junior',is_accepted = True).count()
 
         return Response({
             'total_approved_doctors': total_approved,
@@ -196,10 +203,14 @@ class DoctorAcceptAPIView(APIView):
         doctor.rejection_reason = None
         doctor.accepted_date = timezone.now()
         doctor.save()
+        send_doctor_status_email(
+           doctor_id=doctor.doctor_profile_id
+        )
 
         return Response({'status': 'Doctor accepted'}, status=status.HTTP_200_OK)
     
 
+from general.tasks import send_doctor_status_email_task
 class DoctorRejectAPIView(APIView):
     permission_classes = [IsAuthenticated,IsAdminUser]
 
@@ -213,6 +224,9 @@ class DoctorRejectAPIView(APIView):
         doctor.is_accepted = False
         doctor.rejection_reason = reason
         doctor.save()
+        send_doctor_status_email_task.delay(
+            doctor_id = doctor.id,
+        )
         return Response({'status': 'Doctor rejected', 'reason': reason}, status=status.HTTP_200_OK)
 
 
@@ -695,3 +709,59 @@ def doctor_payment_assignment_list_create(request):
             "status": "success",
             "added_assignments": DoctorPaymentRuleSerializer(added, many=True).data
         }, status=status.HTTP_201_CREATED)
+    
+
+
+
+
+
+
+
+
+
+
+class DoctorProfileUpdateView(generics.UpdateAPIView):
+    queryset = DoctorProfiles.objects.all()
+    serializer_class = DoctorProfileSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'doctor_profile_id'
+
+
+from customer.models import CustomerProfile
+from .serializers import CustomerProfileSerializer,AppointmentSerializer
+from django.db.models import Q
+
+class Patient_List_View(APIView):
+    # permission_classes = [IsAuthenticated]
+    def get(self, request):
+        search_query = request.GET.get('search', '')
+        
+        patients = CustomerProfile.objects.all()
+        
+        if search_query:
+            patients = patients.filter(
+                Q(user__username__icontains=search_query) |
+                Q(user__first_name__icontains=search_query) |
+                Q(user__last_name__icontains=search_query)
+            )
+            serializer = CustomerProfileSerializer(patients, many=True)
+            return Response(serializer.data)
+        else:
+            serializer = CustomerProfileSerializer(patients, many=True)
+            return Response(serializer.data)
+
+
+
+class Customer_Appointments_View(APIView):
+    # permission_classes = [IsAuthenticated]
+    def get(self, request):
+        cid = request.GET.get('cid')
+        try:
+            appointments = AppointmentHeader.objects.filter(customer=CustomerProfile.objects.get(id=cid))
+        except CustomerProfile.DoesNotExist:
+            return Response("Customer not found",status=404)
+        except AppointmentHeader.DoesNotExist:
+            return Response("No appointments found",status=404)
+        serializer = AppointmentSerializer(appointments, many=True)
+        return Response(serializer.data)    
+    

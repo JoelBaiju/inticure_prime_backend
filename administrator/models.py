@@ -19,6 +19,8 @@ class Countries(models.Model):
     currency=models.CharField(max_length=10)
     currency_symbol = models.CharField(max_length=5 , null=True)
     country_code=models.CharField(max_length=10,null=True)
+    time_zone=models.CharField(max_length=50,null=True)
+
 
     def __str__(self):
         return self.country_name + " (" + self.representation + ") - " + self.currency + " (" + self.country_code + ")"
@@ -68,6 +70,9 @@ class Specializations(models.Model):
     description = models.CharField(null=True,max_length=200)
     single_session_duration = models.DurationField(null=True, blank=True)
     double_session_duration = models.DurationField(null=True, blank=True)
+    is_prescription_allowed        = models.BooleanField(default=False)
+
+
 
     def __str__(self):
         return str(self.specialization_id)+ " " + self.specialization
@@ -83,19 +88,6 @@ class CouponRedeemLog(models.Model):
 
 
 
-
-
-
-
-
-
-class Transactions(models.Model):
-    transaction_id=models.BigAutoField(primary_key=True)
-    invoice_id=models.IntegerField(null=True)
-    transaction_amount=models.IntegerField(null=True)
-    transaction_date=models.DateField(auto_now=True)
-    transaction_time=models.TimeField(auto_now=True)
-    payment_status=models.CharField(default="pending", max_length=20)
 
 
 
@@ -172,7 +164,7 @@ class PaymentEntries(models.Model):
     payment_id = models.BigAutoField(primary_key=True)
 
     transaction = models.ForeignKey(
-        Transactions, on_delete=models.CASCADE,
+        "general.Transactions", on_delete=models.CASCADE,
         related_name='payment_entries', null=True, blank=True
     )
     

@@ -5,36 +5,44 @@ from administrator.models import PaymentEntries
 from doctor.models import DoctorPaymentRules
 from analysis.models import AppointmentHeader
 
-def first_consultation_cost_calculator(appointment_id):
-    obj = first_consultation_cost_calculator_2(appointment_id)
+def first_consultation_cost_calculator(appointment_id=None,country=None):
+    obj = first_consultation_cost_calculator_2(appointment_id,country)
     return {
         'doctor_fee': obj.doctor_share,
         'platform_fee': obj.inticure_share,
         'total_cost': obj.total_amount
     }
 
-def first_consultation_cost_calculator_2(appointment_id):
+def first_consultation_cost_calculator_2(appointment_id=None,country=None):
     appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
 
     doctor = appointment.doctor
-    country = appointment.customer.country_details
+    if country:
+        country = country
+    else:
+        country = appointment.customer.country_details
     specialization = appointment.specialization
-    session_count = 1  # assuming always 1 for first consultation
-    appointment_type = appointment.type_booking or "single"
-    print(doctor , country , specialization , session_count , appointment_type)
+    session_count = 1  
+    print(country)
+    
+    print(doctor , country , specialization , session_count )
+
     try:
-        payment_rule = DoctorPaymentRules.objects.get(
-            doctor=doctor,
-            country=country,
-            specialization=specialization,
-            session_count=session_count
-        )
+        if appointment.package_included:
+            payment_rule = appointment.payment_rule
+        else:
+            payment_rule = DoctorPaymentRules.objects.filter(
+                doctor=doctor,
+                country=country,
+                specialization=specialization,
+                session_count=session_count
+            ).first()
     except DoctorPaymentRules.DoesNotExist:
         raise Exception(f"No payment rule found for doctor {doctor.first_name}, country {country.country_name}, specialization {specialization if specialization else 'None'}, session count {session_count}")
 
     payment_data = payment_rule.get_effective_payment()
 
-    if appointment_type == "couple":
+    if appointment.is_couple:
         doctor_fee = Decimal(payment_data["custom_doctor_fee_couple"])
         user_total = Decimal(payment_data["custom_user_total_fee_couple"])
     else:

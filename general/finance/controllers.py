@@ -1,3 +1,4 @@
+from administrator.models import Countries
 from analysis.models import AppointmentHeader
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -18,26 +19,36 @@ def initiate_payment_controller(request):
     based on the country and currency of the user.
     uses razorpay for indian users and stripe for international users.
     """
-    appointment_id = request.query_params.get('appointment_id')     
+    appointment_id = request.query_params.get('appointment_id')
+         
     if not appointment_id:
         return Response({"error": "Appointment ID is required"}, status=400)
     appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
     if not appointment:
-        return Response({"error": "Appointment not found"}, status=404)
-    
+        return Response({"error": "Appointment not f                        ound"}, status=404)
+    if appointment.is_couple:
+        if not appointment.customer.partner:
+            return Response({"error": "Partner details are required for couple appointments"}, status=400)
     country = appointment.customer.country_details 
-    cost_obj    = first_consultation_cost_calculator(appointment_id)   
+    
+    if appointment.doctor.is_prescription_allowed:
+        print("yeah got into doctor presatioprtion allowed")
+        country = Countries.objects.filter(country_name = 'India').first()
+        cost_obj    = first_consultation_cost_calculator(appointment_id,country)   
+    else:
+        cost_obj    = first_consultation_cost_calculator(appointment_id)   
 
+    
 
-    if country.representation == "IN" :
-        temp_trans_obj = PreTransactionData.objects.create(
-            customer=appointment.customer,
-            appointment=appointment,
-            total_amount=cost_obj['total_cost'],
-            vendor_fee=cost_obj['platform_fee'],
-            tax=0,
-            currency=country.currency,
-            gateway="razorpay",
+    if country.representation == "IN" and appointment.customer.country_details.representation=="IN":
+        temp_trans_obj  =   PreTransactionData.objects.create(
+            customer    =   appointment.customer,
+            appointment =   appointment,
+            total_amount=   cost_obj['total_cost'],
+            vendor_fee  =   cost_obj['platform_fee'],
+            tax         =   0,
+            currency    =   country.currency,
+            gateway     =   "razorpay",
         )
         payment_obj = initiate_razorpay_payment(pretransaction_id=temp_trans_obj.pretransaction_id , appointment_id=appointment_id)
         if 'error' in payment_obj:
@@ -50,7 +61,7 @@ def initiate_payment_controller(request):
             total_amount=cost_obj['total_cost'],
             vendor_fee=cost_obj['platform_fee'],
             tax=0,
-            currency=appointment.customer.country_details.currency,
+            currency=country.currency,
             gateway="stripe",
         )
         payment_obj = initiate_stripe_payment_link(pretransaction_id=temp_trans_obj.pretransaction_id , appointment_id=appointment_id)
@@ -65,9 +76,29 @@ def initiate_payment_controller(request):
     
 
 
+from general.finance.stripe import process_stripe_refund
+from general.finance.razorpay import process_razorpay_refund
 
+def refund_controller(pretransaction_id):
+    """
+    Controller to handle refund requests.
+    It processes the refund based on the pretransaction_id and amount.
+    """
 
-
+    if not pretransaction_id:
+        return {"error": "Pretransaction ID is required"}
+    try:
+        transaction = PreTransactionData.objects.get(pretransaction_id=pretransaction_id)
+        if transaction.gateway == "razor_pay":
+            result = process_razorpay_refund(pretransaction_id, transaction.total_amount)
+        elif transaction.gateway == "stripe":
+            result = process_stripe_refund(pretransaction_id, transaction.total_amount)
+        else:
+            return {"error": "Unsupported payment gateway"}
+        return result
+    except PreTransactionData.DoesNotExist:
+        return {"error": "Pretransaction not found"}
+    
 
 
 

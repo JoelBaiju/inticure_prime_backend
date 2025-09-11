@@ -80,10 +80,10 @@ class ReferralSerializer(serializers.ModelSerializer):
 
 class doctorSpecializationSerializer(serializers.ModelSerializer):
     specialization = serializers.CharField(source='specialization.specialization', read_only=True)
-
+    
     class Meta:
         model = DoctorSpecializations
-        fields = ['specialization']
+        fields = ['specialization','specialization_id']
         read_only_fields = ['specialization']  # Ensure this field is read-only
 
 
@@ -123,12 +123,19 @@ class ExtraQuestionAnswerSerializer(serializers.ModelSerializer):
 
 
 class ReferralSerializer(serializers.ModelSerializer):
-    referred_by = serializers.CharField(source="doctor.user.username", default=None)
-    referred_to = serializers.CharField(source="referred_doctor.user.username", default=None)
+    referred_by = serializers.CharField(source="doctor.user.username", default=None,read_only=True)
+    referred_to = serializers.CharField(source="referred_doctor.user.username", default=None,read_only=True )
 
     class Meta:
         model = Referral
         fields = ['referred_by', 'referred_to', 'referred_date', 'referral_notes']
+
+
+class ReferralSerializerCreate(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Referral
+        fields = "__all__"
 
 
 class SuggestedPlanSerializer(serializers.ModelSerializer):
@@ -147,25 +154,35 @@ class PatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerProfile
         fields = [
-            'username', 'first_name', 'last_name', 'preferred_name', 'gender', 'age',
+            'username', 'first_name', 'last_name', 'preferred_name', 'gender','id',
             'weight', 'height','height_unit','weight_unit', 'mobile_number', 'address', 'profile_pic', 'date_of_birth'
         ]
 
 
+from general.utils import convert_utc_to_local_return_dt
 class AppointmentDetailSerializer(serializers.ModelSerializer):
     doctor_name = serializers.CharField(source='doctor.user.first_name', default=None)
     specialization = serializers.CharField(source='specialization.specialization', default=None)
     category = serializers.CharField(source='category.title', default=None)
-
+    start_time = serializers.SerializerMethodField()
+    end_time = serializers.SerializerMethodField()
+    appointment_date = serializers.SerializerMethodField()
     class Meta:
         model = AppointmentHeader
         fields = [
-            'appointment_id', 'appointment_date', 'appointment_time', 'start_time',
-            'end_time', 'appointment_status', 'doctor_name', 'specialization', 'category',
+            'appointment_id', 'appointment_status', 'doctor_name', 'specialization', 'category',
             'language_pref', 'gender_pref', 'meeting_link', 'payment_done', 
-            'prescription', 'appointment_notes','language_pref','gender_pref'
+            'language_pref','gender_pref','start_time', 'end_time' , 'appointment_date',
+            
         ]
 
+    def get_start_time(self, obj):
+        return convert_utc_to_local_return_dt(obj.start_time, obj.doctor.time_zone)
+    def get_end_time(self, obj):
+        return convert_utc_to_local_return_dt(obj.end_time, obj.doctor.time_zone)
+    def get_appointment_date(self, obj):
+        return convert_utc_to_local_return_dt(obj.start_time, obj.doctor.time_zone).date()
+    
 
 
 
@@ -176,7 +193,7 @@ class ExtraQuestionsSerializer(serializers.ModelSerializer):
         fields = ['id', 'question']
 
 
-class Observation_notes_serializer(serializers.ModelSerializer):
+class ObservationNotesSerializer(serializers.ModelSerializer):
     doctor = serializers.SerializerMethodField()
 
     class Meta:
@@ -189,17 +206,103 @@ class Observation_notes_serializer(serializers.ModelSerializer):
         return f"{first} {last}".strip()
     
 
+class Followup_notes_serializer(serializers.ModelSerializer):
+    doctor = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Follow_Up_Notes
+        fields = ['id' , 'note' , 'doctor' , 'date' ]
+    
+    def get_doctor(self, obj):
+        first = obj.appointment.doctor.first_name
+        last = obj.appointment.doctor.last_name
+        return f"{first} {last}".strip()
+    
+
 
 
 class PrescribedMedicationsSerializer(serializers.ModelSerializer):
+    doctor = serializers.SerializerMethodField()
+
     class Meta:
         model = Prescribed_Medications
         fields = '__all__'
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at' , 'doctor']
+    def get_doctor(self, obj):
+        first = obj.doctor.first_name
+        last = obj.doctor.last_name
+        return f"{first} {last}".strip()
 
 
-class PrescribedTestsSerializer(serializers.ModelSerializer):
+
+class PrescribedMedicationsCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Prescribed_Medications
+        fields = '__all__'
+ 
+
+class PrescribedTestsCreateSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Prescribed_Tests
         fields = '__all__'
-        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class PrescribedTestsSerializer(serializers.ModelSerializer):
+    doctor = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Prescribed_Tests
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at' , 'doctor']
+
+    def get_doctor(self, obj):
+        first = obj.doctor.first_name
+        last = obj.doctor.last_name
+        return f"{first} {last}".strip()
+
+
+
+class NotesForPatientSerializer(serializers.ModelSerializer):
+    doctor = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notes_for_patient
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at' , 'doctor']
+    def get_doctor(self, obj):
+        first = obj.doctor.first_name
+        last = obj.doctor.last_name
+        return f"{first} {last}".strip()
+
+
+class PayoutsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payouts
+        fields = '__all__'
+
+
+class DoctorBankAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Doctor_Bank_Account
+        fields = '__all__'
+
+
+
+
+class DoctorPaymentRulesSerializer(serializers.ModelSerializer):
+    pricing = serializers.SerializerMethodField()
+    country = serializers.CharField(source='country.country_name', default=None)
+    specialization = serializers.CharField(source='specialization.specialization', default=None)
+    class Meta:
+        model = DoctorPaymentRules
+        fields = ['id','pricing','session_count','country','specialization']
+
+    def get_pricing(self, obj):
+        pricing = obj.get_effective_payment()
+        # return {
+        #     'single':pricing['custom_user_total_fee_single'],
+        #     'couple':pricing['custom_user_total_fee_couple']
+        # }
+        return pricing

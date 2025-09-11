@@ -2,6 +2,9 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.shortcuts import render
+from django.utils.timezone import now
+from uritemplate import api
+from urllib3 import response
 from administrator.models import PaymentEntries
 from analysis.models import AppointmentHeader
 
@@ -29,3 +32,494 @@ def consultation_cost_details_view(request):
  
 
     return render(request, 'price_calculator.html')
+
+
+
+
+
+
+
+
+
+
+
+# views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.shortcuts import redirect
+from django.http import HttpResponse
+from datetime import datetime, timedelta
+from .gmeet.gmeet import generate_google_meet
+from .serializers import GoogleMeetEventSerializer
+
+class GoogleMeetBackendView(APIView):
+    def post(self, request):
+        serializer = GoogleMeetEventSerializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.validated_data
+            link = generate_google_meet(
+                data['summary'],
+                data['description'],
+                # data['attendees'],      # ✅ fix: pass attendees
+                data['start_time'],     # ✅ correct position
+                data['end_time']        # ✅ correct position
+            )
+            return Response({"meet_link": link})
+        return Response(serializer.errors, status=400)
+
+
+from .gmeet.gmeet import fetch_meet_logs,fetch_meet_logs_with_meeting_code
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from collections import defaultdict
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+
+class Get_logs(APIView):
+    def get(self, request):
+        logs = []
+        print('started log fetching')
+        q_meeting_code = request.GET.get('meeting_code')
+        for item in fetch_meet_logs():
+            actor_email = item.get('actor', {}).get('email')
+            event = item.get('events', [])[0]
+            event_name = event.get('name')
+            parameters = event.get('parameters', [])
+
+            display_name = None
+            identifier = actor_email
+            start_timestamp = None
+            duration_seconds = None
+            meeting_code = None
+            for param in parameters:
+                name = param.get('name')
+                if name == 'display_name':
+                    display_name = param.get('value')
+                elif name == 'identifier':
+                    identifier = param.get('value')
+                elif name == 'meeting_code':
+                    meeting_code = param.get('value')
+                elif name == 'start_timestamp_seconds':
+                    start_timestamp = int(param.get('intValue'))
+                elif name == 'duration_seconds':
+                    duration_seconds = int(param.get('intValue'))
+            if q_meeting_code:
+                if q_meeting_code != meeting_code:
+                    continue
+
+            # Calculate joined and left time
+            joined_at = None
+            left_at = None
+            if start_timestamp:
+                # Already in UTC as utcfromtimestamp returns UTC time
+                joined_at = datetime.utcfromtimestamp(start_timestamp).isoformat()
+            if start_timestamp and duration_seconds:
+                # Already in UTC as utcfromtimestamp returns UTC time
+                left_at = datetime.utcfromtimestamp(start_timestamp + duration_seconds).isoformat()
+
+            logs.append({
+                'display_name': display_name,
+                'identifier': identifier,
+                'joined_at': joined_at,
+                'left_at': left_at,
+                'meeting_code':meeting_code
+            })
+
+        return Response( logs)
+
+
+
+
+
+# from rest_framework.response import Response
+# from rest_framework.views import APIView
+
+# class Get_logs(APIView):
+
+#     def get(self, request):
+#         logs_data = []
+
+#         for item in fetch_meet_logs():
+#             event = item.get('events', [{}])[0]
+#             event_name = event.get('name')
+#             user = item.get('actor', {}).get('email')
+#             parameters = event.get('parameters', [])
+
+#             logs_data.append({
+#                 'user': user,
+#                 'event': event_name,
+#                 'parameters': parameters
+#             })
+
+#         return Response({'logs': logs_data})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from analysis.models import Meeting_Tracker
+from .utils import seconds_until_in_timezone
+from django.utils import timezone
+
+# class Map_Meetings(APIView):
+#     def get(self, request,attendee_meeting_id):
+#         print(attendee_meeting_id)
+#         print("4a6f5241-529d-4e84-bd6d-cdd601f51b3a" == attendee_meeting_id)
+#         context = False 
+#         meeting_tracker = Meeting_Tracker.objects.filter(
+#             customer_1_meeting_id = "4a6f5241-529d-4e84-bd6d-cdd601f51b3a"
+#         ).first()
+#         join = request.GET.get('join')
+        
+#         if meeting_tracker:
+#             if join:
+#                 if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
+#                     meeting_tracker.customer_1_joined = True
+#                     meeting_tracker.save()
+#                     return redirect(meeting_tracker.meeting_link)
+#             context = {
+#                 'username': meeting_tracker.customer_1.user.first_name,
+#                 'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.customer_1.time_zone),  # 10 minutes in seconds - change this to test different scenarios
+#                 'meet_link':  meeting_tracker.customer_1_meeting_link ,
+#                 'is_customer': True
+#             }
+
+#         meeting_tracker = Meeting_Tracker.objects.filter(
+#             customer_2_meeting_id = attendee_meeting_id
+#         ).first()
+#         if meeting_tracker:
+#             if join:
+#                 if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
+#                     meeting_tracker.customer_2_joined = True
+#                     meeting_tracker.save()
+#                     return redirect(meeting_tracker.meeting_link)
+
+#             context = {
+#                 'username': meeting_tracker.customer_2.user.first_name,
+#                 'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.customer_1.time_zone),  # 10 minutes in seconds - change this to test different scenarios
+#                 'meet_link': meeting_tracker.customer_2_meeting_link,
+#                 'is_customer': True
+#             }
+
+
+#         meeting_tracker = Meeting_Tracker.objects.filter(
+#             doctor_meeting_id = attendee_meeting_id
+#         ).first()
+#         if meeting_tracker:
+#             if join:
+#                 if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
+#                     meeting_tracker.doctor_joined = True
+#                     meeting_tracker.save()
+#                     return redirect(meeting_tracker.meeting_link)
+
+#             context = {
+#                 'username': meeting_tracker.appointment.doctor.first_name,
+#                 'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.appointment.doctor.time_zone),  # 10 minutes in seconds - change this to test different scenarios
+#                 'meet_link': meeting_tracker.doctor_meeting_link,  
+#             }
+
+#         if context:
+
+#             return render(request, 'meet/join.html', context)
+
+
+
+
+#         return Response({
+#             'message': 'Meeting not found'
+#         })
+    
+
+class Map_Meetings(APIView):
+    def get(self, request,attendee_meeting_id):
+        print(attendee_meeting_id)
+        print("4a6f5241-529d-4e84-bd6d-cdd601f51b3a" == attendee_meeting_id)
+        context = False 
+        meeting_tracker = Meeting_Tracker.objects.filter(
+            customer_1_meeting_id = attendee_meeting_id
+        ).first()
+        join = request.GET.get('join')
+        
+        if meeting_tracker:
+            if join:
+                if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
+                    meeting_tracker.customer_1_joined = True
+                    meeting_tracker.save()
+                    return redirect(meeting_tracker.meeting_link)
+            context = {
+                'salutation':meeting_tracker.appointment.doctor.salutation,
+                'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.dotor.last_name}",
+                "start_time":meeting_tracker.appointment.start_time,
+                'specialization':meeting_tracker.appointment.specialization.specialization,
+                'username': meeting_tracker.customer_1.user.first_name,
+                'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.customer_1.time_zone),  # 10 minutes in seconds - change this to test different scenarios
+                'meet_link':  meeting_tracker.customer_1_meeting_link ,
+                'is_customer': True
+            }
+
+        meeting_tracker = Meeting_Tracker.objects.filter(
+            customer_2_meeting_id = attendee_meeting_id
+        ).first()
+        if meeting_tracker:
+            if join:
+                if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
+                    meeting_tracker.customer_2_joined = True
+                    meeting_tracker.save()
+                    return redirect(meeting_tracker.meeting_link)
+
+            context = {
+                'salutation':meeting_tracker.appointment.doctor.salutation,
+                'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.dotor.last_name}",
+                "start_time":meeting_tracker.appointment.start_time,
+                'specialization':meeting_tracker.appointment.specialization.specialization,
+                'username': meeting_tracker.customer_2.user.first_name,
+                'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.customer_1.time_zone),  # 10 minutes in seconds - change this to test different scenarios
+                'meet_link': meeting_tracker.customer_2_meeting_link,
+                'is_customer': True
+            }
+
+
+        meeting_tracker = Meeting_Tracker.objects.filter(
+            doctor_meeting_id = attendee_meeting_id
+        ).first()
+        if meeting_tracker:
+            if join:
+                if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
+                    meeting_tracker.doctor_joined = True
+                    meeting_tracker.save()
+                    return redirect(meeting_tracker.meeting_link)
+
+            context = {
+                'username': meeting_tracker.appointment.doctor.first_name,
+                'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.appointment.doctor.time_zone),  # 10 minutes in seconds - change this to test different scenarios
+                'meet_link': meeting_tracker.doctor_meeting_link,  
+                'salutation':meeting_tracker.appointment.doctor.salutation,
+                'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.dotor.last_name}",
+                "start_time":meeting_tracker.appointment.start_time,
+                'specialization':meeting_tracker.appointment.specialization.specialization,
+            }
+
+        if context:
+
+            return redirect(f'inticure.com/meet/?doctor_name={context["doctor_name"]}&salutation={context["salutation"]}&start_time={context["start_time"]}&specialization={context["specialization"]}&username={context["username"]}&time_left_to_start={context["time_left_to_start"]}&meet_link={context["meet_link"]}&is_customer={context.get("is_customer", False)}')
+
+
+
+
+        return Response({
+            'message': 'Meeting not found'
+        })
+    
+
+from django.shortcuts import render
+from django.http import HttpResponse
+import datetime
+
+def meeting_waiting_room(request):
+  
+    context = {
+        'username': 'John Doe',  # Example username
+        'time_left_to_start': 600,  # 10 minutes in seconds - change this to test different scenarios
+        'meet_link': 'https://meet.example.com/room-123',  # Example meeting link
+    }
+    
+    # For testing different scenarios, you could add URL parameters:
+    # Example: /waiting-room?time_left=300
+    time_left_param = request.GET.get('time_left')
+    if time_left_param and time_left_param.isdigit():
+        context['time_left_to_start'] = int(time_left_param)
+    
+    return render(request, 'meet/join.html', context)
+
+
+
+
+
+        
+from .emal_service import *
+
+class Email_tester(APIView):
+    def get(self, request):
+       
+        # context = {
+        # "email": 'user',
+        # "year": datetime.now().year,
+        # 'backend_url':BACKEND_URL,  
+        # }
+
+        return render(request, 'meet/new.html')
+
+        
+    
+
+        return Response('sfoih')
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import requests
+import json
+
+def send_whatsapp_template_message(phone_number, template_name, language_code="en_US"):
+    """
+    Send a WhatsApp template message using Facebook Graph API
+    
+    Args:
+        phone_number (str): Recipient phone number in international format (e.g., "917034761676")
+        template_name (str): Approved WhatsApp template name (e.g., "hello_world")
+        language_code (str): Language code (default: "en_US")
+    
+    Returns:
+        dict: API response
+    """
+    # Configuration - store these securely in environment variables
+    ACCESS_TOKEN = "EAA8QKgUG4Y0BPIyBHrPorBZCVDzCe0y6mlnSceSGEqkeNQEn3DgTgAECJy8fxCpy50l8TeBZAGQZAfO7nxHQCLtgLy4XwKL0Jodzqu568d4C58CQC69o7iVQnfP3dTQ7P9vnE5HjHfYqh5x2zqhxGfUffvmgMdpudZCNhXEK5BIsoYQPuQslkWDnJ5mbAPSn9fV886dlvbrF0dGjNBvpZClrHGNs4vPW4JXDi4RfdnAZDZD"  # Replace with your actual token
+    PHONE_ID = "721283257740059"  # Replace with your phone number ID
+    
+    url = f"https://graph.facebook.com/v22.0/{PHONE_ID}/messages"
+    
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": phone_number,
+        "type": "template",
+        "template": {
+            "name": template_name,
+            "language": {
+                "code": language_code
+            }
+        }
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error sending message: {e}")
+        return {"error": str(e)}
+
+
+@api_view(["GET"])
+def whatsapp_view(request):    
+    result = send_whatsapp_template_message(
+        phone_number="918078109108",
+        template_name="hello_world",
+        language_code='en_US'
+    )
+    print(result)
+    return Response('ghgs')
+
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+import json
+
+# Your verify token (should match the one in Facebook Developer settings)
+WHATSAPP_VERIFY_TOKEN = "KSS4SQMQuCmh9Z9BU9GWv8Cjlm7FTt0SKOKKDlSXFjUdW2qgOQImHZ1xRJ0LOwovjMKa49tuxPbUdWGf0v9dHk5WuKpVWBevLruXJm2iCQsrz6s4BldoiQveQPuwEBuBw9muxl0eGo5byfM5LBvUg"  # Replace with your actual token
+
+@api_view(['GET', 'POST'])
+def whatsapp_callback(request):
+    # Handle verification request (GET)
+    if request.method == 'GET':
+        # Extract verification parameters
+        hub_mode = request.GET.get('hub.mode')
+        hub_token = request.GET.get('hub.verify_token')
+        hub_challenge = request.GET.get('hub.challenge')
+        
+        # Verify the token
+        if hub_mode == 'subscribe' and hub_token == WHATSAPP_VERIFY_TOKEN:
+            print("Webhook verified successfully")
+            return Response(int(hub_challenge), status=status.HTTP_200_OK)
+        else:
+            print("Webhook verification failed")
+            return Response("Verification failed", status=status.HTTP_403_FORBIDDEN)
+    
+    # Handle incoming messages (POST)
+    elif request.method == 'POST':
+        try:
+            data = request.data
+            print("Received webhook data:", json.dumps(data, indent=2))
+            
+            # Process different types of updates
+            if 'object' in data and data['object'] == 'whatsapp_business_account':
+                for entry in data.get('entry', []):
+                    for change in entry.get('changes', []):
+                        field = change.get('field')
+                        value = change.get('value')
+                        
+                        # Handle messages
+                        if field == 'messages':
+                            print("New message received:", value)
+                            # Add your message processing logic here
+                        
+                        # Handle message status updates
+                        elif field == 'message_status':
+                            print("Message status update:", value)
+                            # Add your status handling logic here
+            
+            return Response(status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print("Error processing webhook:", str(e))
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+
+from .whatsapp.api import send_whatsapp_template_message as swtm
+
+@api_view(["GET"])
+def swtm_view(request):
+    result = swtm()
+    print(result)
+    return Response('ghgs')

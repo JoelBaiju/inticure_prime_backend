@@ -14,4 +14,6 @@ urlpatterns = [
     path('get_available_slots/', analysis_views.SlotsBooking.as_view(), name='get_available_slots'),
     path("doctor_details/", analysis_views.get_multiple_doctor_profiles),
     path('final_data_submit/', analysis_views.FinalSubmit.as_view(), name='submit_profile'),
+    
+
 ]

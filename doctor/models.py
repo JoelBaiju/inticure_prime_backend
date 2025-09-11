@@ -1,7 +1,11 @@
+from turtle import mode
 from django.db import models
 from django.contrib.auth.models import User
 from administrator.models import *
 # Create your models here.
+
+
+# Calendar model removed - using direct date fields instead
 
 
 
@@ -11,8 +15,12 @@ class DoctorProfiles(models.Model):
     last_name               = models.CharField(max_length=50 , null=True)
     user                    = models.ForeignKey(User, on_delete=models.CASCADE, related_name='doctor_profile',null=True)
     country                 = models.ForeignKey(Countries , on_delete=models.CASCADE ,related_name='doctor_profile' , null = True)
+    time_zone               = models.CharField(max_length=50, null=True, blank=True)
     doctor_flag             = models.CharField(max_length=10,null=True)
     mobile_number           = models.CharField(max_length=12 ,null= True , unique=True)
+    whatsapp_number        = models.CharField(max_length=15 ,null= True , blank=True)
+    whatsapp_country_code   = models.CharField(max_length=5 ,null= True , blank=True)
+    mobile_country_code     = models.CharField(max_length=5 ,null= True)
     email_id                = models.CharField(max_length=50 , null=True , unique=True)
     gender                  = models.CharField(max_length=10,null=True)
     qualification           = models.TextField(null=True)
@@ -23,16 +31,19 @@ class DoctorProfiles(models.Model):
 
     sign_file_name          = models.FileField(upload_to='signatures/', null=True, blank=True)
     profile_pic             = models.FileField(upload_to='profile_pics/', null=True, blank=True)
-   
+    
+    salutation              = models.CharField(max_length=10,null=True)
     doctor_bio              = models.CharField(null=True,max_length=10000)
     registration_year       = models.CharField(max_length=10,null=True)
+    registration_number     = models.CharField(max_length=100,null=True)
     is_accepted             = models.BooleanField(default=False)
     rejected                = models.BooleanField(default=False)
     rejection_reason        = models.CharField(null=True, max_length=500)
-    joined_date             = models.DateField(auto_now_add=True,null= True)
+    joined_date             = models.DateTimeField(auto_now_add=True,null= True)
     accepted_date           = models.DateField(null=True, blank=True)
     experience              = models.CharField(max_length=10 , null=True)
     dob                     = models.DateField(null=True)
+    is_prescription_allowed        = models.BooleanField(default=False)
     def __str__(self):
         return f"{self.first_name}  {self.last_name} -{self.gender} - {self.doctor_flag}"
     
@@ -138,23 +149,13 @@ class AppointmentCancellationLog(models.Model):
 
 
 
-class Calendar(models.Model):   # This model is used to store the calendar dates and days
-    date = models.DateField()
-    day = models.CharField(max_length=30)
-
-    def __str__(self):
-        return f"{self.date} - {self.day} "
-
-    class Meta:
-        verbose_name_plural = "Calendar"
-        ordering = ['date']
 
 
 class DoctorAvailableHours(models.Model):
     doctor      = models.ForeignKey(DoctorProfiles , on_delete=models.CASCADE , related_name='doctor_available_hours')
-    start_time  = models.TimeField()
-    end_time    = models.TimeField()
-    date        = models.ForeignKey(Calendar , on_delete=models.CASCADE ,related_name='doctor_available_hours')
+    start_time  = models.DateTimeField()
+    end_time    = models.DateTimeField()
+    # date        = models.DateTimeField
 
 
 
@@ -162,11 +163,10 @@ class DoctorAvailableHours(models.Model):
 
 
 class DoctorAppointment(models.Model):
-    doctor = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE , null=True , related_name='doctor_appointment')
     specialization = models.ForeignKey("administrator.Specializations", on_delete=models.SET_NULL, null=True , related_name='doctor_appointment')
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-    date = models.ForeignKey(Calendar , on_delete=models.CASCADE ,related_name='doctor_appointment' , null=True)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
     appointment = models.ForeignKey('analysis.AppointmentHeader', on_delete=models.CASCADE, related_name='doctor_appointment', null=True, blank=True)
     confirmed = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)
@@ -234,3 +234,33 @@ class DoctorPaymentRules(models.Model):
             "actual_price_couple": get_value("actual_price_couple", "actual_price_couple"),
             "session_count": int(get_value("session_count", "session_count")),
         }
+
+
+
+
+class Payouts(models.Model):
+    doctor = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE, related_name='payouts')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=6 , null=True)
+    currency_symbol = models.CharField(max_length=6 , null=True)
+    initiated_at = models.DateTimeField(null=True)
+    completed_at = models.DateTimeField(null=True)
+    status = models.CharField(max_length=20)
+
+
+
+class Doctor_Bank_Account(models.Model):
+    doctor              = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE, related_name='bank_account')
+    bank_name           = models.CharField(max_length=100)
+    account_number      = models.CharField(max_length=100)
+    ifsc_code           = models.CharField(max_length=100)
+    account_holder_name = models.CharField(max_length=100)
+
+
+
+
+
+
+
+
+

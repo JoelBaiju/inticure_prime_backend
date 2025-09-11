@@ -2,6 +2,8 @@ from rest_framework import serializers
 
 from analysis.models import Category,Questionnaire,Options,AnswerType,AppointmentHeader
 from general.models import Invoices
+from general.utils import convert_utc_to_local_return_dt
+
 class CategorySerializer(serializers.ModelSerializer):
     image = serializers.ImageField(allow_null=True,required=False)
     class Meta:
@@ -39,43 +41,51 @@ class AnswerTypeSerializer(serializers.ModelSerializer):
         
 class AppointmentHeaderSerializer(serializers.ModelSerializer):
     customer_name = serializers.SerializerMethodField()
-    customer_age = serializers.SerializerMethodField()
     customer_dob = serializers.SerializerMethodField()
     customer_confirmation_contact_detail = serializers.SerializerMethodField()
     doctor_name = serializers.SerializerMethodField()
     doctor_language = serializers.SerializerMethodField()
     doctor_gender = serializers.SerializerMethodField()
     specialization = serializers.CharField(source='.specialization_name', read_only=True)
+    appointment_time = serializers.SerializerMethodField()
+    appointment_date = serializers.SerializerMethodField()
     class Meta:
         model = AppointmentHeader
-        fields = [  "appointment_id","customer_name" , "customer_message" , "customer_age" ,
+        fields = [  "appointment_id","customer_name" , "customer_message"  ,
                     "customer_dob" , "customer_confirmation_contact_detail" ,
-                    "appointment_id", "appointment_date", "appointment_time",
-                    "doctor_name","doctor_language","doctor_gender","meeting_link",'specialization'
+                    "appointment_id", "start_time", "end_time", "appointment_time",
+                    "doctor_name","doctor_language","doctor_gender","meeting_link",'specialization',
+                    "appointment_date"
                 ]
+
+    def get_appointment_date(self, obj):
+        if obj.start_time:
+            return convert_utc_to_local_return_dt( obj.start_time , obj.customer.time_zone).date()
+        return "Date not specified"
 
     def get_customer_name(self, obj):
         if obj.customer:
             return f"{obj.customer.user.first_name} {obj.customer.user.last_name}"
         return "Unknown Customer"
-    def get_customer_age(self, obj):
-        if obj.customer :
-            return obj.customer.age
-        return None
+    def get_appointment_time(self, obj):
+        if obj.start_time :
+            return convert_utc_to_local_return_dt(obj.start_time , obj.customer.time_zone).time()
+        return "Time not specified"
+    
     def get_customer_dob(self, obj):
-        if obj.customer:
+        if obj.customer:    
             return obj.customer.date_of_birth
         return None
     
     def get_customer_confirmation_contact_detail(self, obj):
-        if obj.confirmation_phone_number:
-            return obj.confirmation_phone_number
-        elif obj.confirmation_email:
-            return obj.confirmation_email
+        if obj.customer.confirmation_method == 'whatsapp':
+            return obj.customer.whatsapp_number 
+        elif obj.customer.confirmation_method == 'email':
+            return obj.customer.email
         return None
     def get_doctor_name(self, obj):
         if obj.doctor:
-            return f"{obj.doctor.user.first_name} {obj.doctor.user.last_name}"
+            return f"{obj.doctor.first_name} {obj.doctor.last_name}"
         return "Unknown Doctor"
     def get_doctor_language(self, obj):
         if obj.doctor and obj.doctor.known_languages.exists():
@@ -117,7 +127,7 @@ class DoctorProfilePublicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DoctorProfiles
-        fields = ['doctor_profile_id','name', 'doctor_bio', 'profile_pic', 'languages', 'specializations','qualification']
+        fields = ['doctor_profile_id','name', 'doctor_bio', 'profile_pic', 'languages', 'specializations','qualification','is_prescription_allowed']
 
     def get_name(self, obj):
         return f"{obj.first_name} {obj.last_name}"

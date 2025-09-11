@@ -1,12 +1,6 @@
 from django.contrib import admin
 from .models import *
 
-
-class CalendarAdmin(admin.ModelAdmin):
-    list_display = [ 'date', 'day']
-
-admin.site.register(Calendar, CalendarAdmin)
-
 class DoctorProfilesAdmin(admin.ModelAdmin):
     list_display = ['doctor_profile_id','user' , 'is_accepted' , 'doctor_flag','gender', 'qualification']
 
@@ -23,7 +17,7 @@ class DoctorSpecializationAdmin(admin.ModelAdmin):
 admin.site.register(DoctorSpecializations , DoctorSpecializationAdmin)
 
 class DoctorAvailableHoursAdmin(admin.ModelAdmin):
-    list_display = [ 'doctor','doctor__doctor_profile_id' , 'start_time' , 'end_time' ,'date']
+    list_display = [ 'doctor','doctor__doctor_profile_id' , 'start_time' , 'end_time' ]
 
 admin.site.register(DoctorAvailableHours,DoctorAvailableHoursAdmin)
 
@@ -40,4 +34,8 @@ class DoctorPaymentRulesAdmin(admin.ModelAdmin):
 admin.site.register(DoctorPaymentRules,DoctorPaymentRulesAdmin)
 
 
+class DoctorPayoutsAdmin(admin.ModelAdmin):
+    list_display = [ 'id'  ,'doctor'  , 'status' , 'amount' ,'initiated_at' , 'completed_at']
+
+admin.site.register(Payouts,DoctorPayoutsAdmin)
 

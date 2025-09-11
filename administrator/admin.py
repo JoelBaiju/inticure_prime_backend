@@ -26,3 +26,8 @@ class GeneralPaymentRulesAdmin(admin.ModelAdmin):
     list_display = ['country' , 'specialization', 'experience' ,'session_count']
 
 admin.site.register(GeneralPaymentRules , GeneralPaymentRulesAdmin)
+
+class PaymentEntriesAdmin(admin.ModelAdmin):
+    list_display = ('payment_id', 'transaction', 'appointment', 'total_amount' , 'doctor_share' , 'inticure_share')
+
+admin.site.register(PaymentEntries, PaymentEntriesAdmin)

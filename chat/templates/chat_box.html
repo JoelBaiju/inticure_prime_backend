@@ -1,0 +1,489 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data:; font-src 'self' https: data:;">
+    <title>Secure Chat - Session #{{ session.id }}</title>
+    <style>
+        /* INTICURE BRAND STYLES WITH SECURITY CONSIDERATIONS */
+        :root {
+            --inticure-blue: #8F619D;
+            --inticure-dark: #6A1B78;
+            --inticure-light: #e6f0fa;
+            --inticure-accent: #CE5281;
+            --inticure-text: #333333;
+            --inticure-gray: #f5f5f5;
+        }
+        
+        body {
+            font-family: 'Poppins', 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--inticure-light);
+            color: var(--inticure-text);
+            line-height: 1.6;
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        .chat-container {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(86, 136, 186, 0.1);
+            background: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            background: white;
+            color: rgb(34, 34, 34);
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0; 
+            z-index: 100;
+        }
+        
+        .chat-header h2 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.4rem;
+        }
+        
+        .chat-header .logo {
+            height: 40px;
+            width: auto;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: var(--inticure-gray);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s ease-out;
+            word-wrap: break-word;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message-sent {
+            align-self: flex-end;
+            background: var(--inticure-blue);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message-received {
+            align-self: flex-start;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            margin-top: 8px;
+            opacity: 0.8;
+        }
+        
+        .chat-input-container {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            position: sticky;
+            bottom: 0;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            resize: none;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border 0.3s;
+            min-height: 50px;
+            max-height: 150px;
+            box-sizing: border-box;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--inticure-blue);
+        }
+        
+        .send-button {
+            padding: 12px 24px;
+            background: var(--inticure-accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+            align-self: flex-end;
+        }
+        
+        .send-button:hover {
+            background: #e45c90;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        
+        .status-open {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-closed {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .typing-indicator {
+            font-style: italic;
+            color: #6c757d;
+            padding: 5px 15px;
+            font-size: 0.85rem;
+            display: none;
+        }
+        
+        .security-notice {
+            font-size: 0.7rem;
+            color: #666;
+            text-align: center;
+            padding: 5px;
+            background: #f8f9fa;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <img src="https://dev.inticure.com/media/icons/inticure_logo_new.png" alt="Inticure Logo" class="logo" style="height: 60px;">
+            <div>
+                <h4>Secure Inticure Support</h4>
+                <p>
+                    {% if customer %}
+                        Welcome: {{ customer }} 
+                    {% endif %}
+                    {% if doctor %}
+                        Welcome: {{ doctor }} 
+                    {% endif %}
+                    {% if admin %}
+                        Welcome: {{ admin }} 
+                    {% endif %}
+                    <span class="status-badge {% if session.is_open %}status-open{% else %}status-closed{% endif %}">
+                        {{ session.get_status_display }}
+                    </span>
+                </p>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="message-container">
+            {% for message in messages %}
+            <div class="message {% if message.sender == session_user.user %}message-sent{% else %}message-received{% endif %}">
+                <div class="message-content">{{ message.content|escape }}</div>
+                <div class="message-info">
+                    <span>{% if message.sender == session_user.user %}you{% else %}{{ message.sender.first_name|escape }}{% endif %}</span>
+                    <span>{{ message.timestamp|date:"h:i A" }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align: center; color: #6c757d; margin: auto;">
+                <p>No messages yet. Start your conversation!</p>
+            </div>
+            {% endfor %}
+            <div id="typing-indicator" class="typing-indicator"></div>
+        </div>
+        
+        {% if session.is_open %}
+        <div class="chat-input-container">
+            <textarea id="message-input" class="chat-input" placeholder="Type your message here..." rows="1" maxlength="2000"></textarea>
+            <button id="send-button" class="send-button">Send →</button>
+        </div>
+        <div class="security-notice">
+            Messages are encrypted in transit. Do not share sensitive information.
+        </div>
+        {% else %}
+        <div class="chat-input-container" style="justify-content: center; background: #f8f9fa;">
+            <p>This chat session is closed. No new messages can be sent.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Secure WebSocket implementation with:
+        // - Token validation
+        // - Error handling
+        // - Flood protection
+        // - Secure connection
+        
+        // Configuration with CSRF token
+        const config = {
+            sessionId: "{{ session.id }}",
+            token: "{{ token }}",
+            userId: "{{ session_user.user.id }}",
+            senderName: "{{ session_user.user.first_name|escapejs }}",
+            isSessionOpen: "{{ session.is_open }}" === "True",
+            csrfToken: "{{ csrf_token }}",
+            wsProtocol: window.location.protocol === 'https:' ? 'wss://' : 'ws://'
+        };
+
+        // DOM Elements
+        const messageContainer = document.getElementById('message-container');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const typingIndicator = document.getElementById('typing-indicator');
+        let chatSocket;
+        let lastMessageTime = 0;
+        const MESSAGE_RATE_LIMIT = 1000; // 1 second between messages
+
+        // Initialize WebSocket Connection
+        function initWebSocket() {
+            // const wsUrl = `${config.wsProtocol}${window.location.host}/ws/support/${config.sessionId}/?token=${encodeURIComponent(config.token)}`;
+            
+            // chatSocket = new WebSocket(wsUrl);
+            const queryString = `?token=${encodeURIComponent(config.token)}`;
+            const wsUrl = `${config.wsProtocol}${window.location.host}/ws/support/${config.sessionId}/${queryString}`;
+            chatSocket = new WebSocket(wsUrl);
+            chatSocket.onopen = function(e) {
+                console.log('Secure WebSocket connection established');
+            };
+
+            chatSocket.onmessage = function(e) {
+                try {
+                    const data = JSON.parse(e.data);
+                    handleSocketMessage(data);
+                } catch (error) {
+                    console.error('Error parsing WebSocket message:', error);
+                }
+            };
+
+            chatSocket.onclose = function(e) {
+                if (e.code === 4003) {
+                    showError('Session expired or invalid. Please refresh the page.');
+                } else if (e.code === 4005) {
+                    showError('Message rate limit exceeded. Please wait before sending more messages.');
+                } else if (!e.wasClean) {
+                    console.log('Connection error, attempting to reconnect...');
+                    setTimeout(initWebSocket, 3000);
+                }
+            };
+
+            chatSocket.onerror = function(error) {
+                console.error('WebSocket Error:', error);
+                showError('Connection error. Please check your network.');
+            };
+        }
+
+        // Handle incoming WebSocket messages
+        function handleSocketMessage(data) {
+            switch(data.type) {
+                case 'message':
+                    addMessageToChat({
+                        content: data.content,
+                        sender_id: data.sender_id,
+                        sender_name: data.sender_name,
+                        timestamp: data.timestamp,
+                        isCurrentUser: data.sender_id == config.userId
+                    });
+                    break;
+                    
+                case 'typing':
+                    updateTypingIndicator({
+                        user_id: data.user_id,
+                        sender_name: data.sender_name,
+                        is_typing: data.is_typing
+                    });
+                    break;
+                    
+                case 'error':
+                    showError(data.message);
+                    break;
+            }
+        }
+
+        // Add message to chat UI with sanitization
+        function addMessageToChat(message) {
+            const messageElement = document.createElement('div');
+            const displayName = message.isCurrentUser ? 'you' : escapeHtml(message.sender_name);
+            const content = escapeHtml(message.content);
+            
+            messageElement.className = `message ${message.isCurrentUser ? 'message-sent' : 'message-received'}`;
+            messageElement.innerHTML = `
+                <div class="message-content">${content}</div>
+                <div class="message-info">
+                    <span>${displayName}</span>
+                    <span>${formatTime(message.timestamp)}</span>
+                </div>
+            `;
+            
+            messageContainer.insertBefore(messageElement, typingIndicator);
+            scrollToBottom();
+        }
+
+        // Update typing indicator
+        function updateTypingIndicator(data) {
+            if (data.user_id != config.userId) {
+                typingIndicator.textContent = `${escapeHtml(data.sender_name)} is typing...`;
+                typingIndicator.style.display = data.is_typing ? 'block' : 'none';
+                scrollToBottom();
+            }
+        }
+
+        // Send message via WebSocket with rate limiting
+        function sendMessage() {
+            const now = Date.now();
+            if (now - lastMessageTime < MESSAGE_RATE_LIMIT) {
+                showError('Please wait before sending another message');
+                return;
+            }
+            
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                chatSocket.send(JSON.stringify({
+                    type: 'message',
+                    message: message,
+                    csrfmiddlewaretoken: config.csrfToken
+                }));
+                
+                lastMessageTime = now;
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                sendTypingIndicator(false);
+            } else {
+                showError('Connection not ready. Please wait...');
+            }
+        }
+
+        // Send typing indicator with debouncing
+        let typingTimeout;
+        function sendTypingIndicator(isTyping) {
+            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                chatSocket.send(JSON.stringify({
+                    type: 'typing',
+                    is_typing: isTyping,
+                    csrfmiddlewaretoken: config.csrfToken
+                }));
+
+                clearTimeout(typingTimeout);
+                if (isTyping) {
+                    typingTimeout = setTimeout(() => {
+                        sendTypingIndicator(false);
+                    }, 2000);
+                }
+            }
+        }
+
+        // Utility functions
+        function scrollToBottom() {
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        }
+
+        function adjustTextareaHeight() {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = `${Math.min(messageInput.scrollHeight, 150)}px`;
+        }
+
+        function formatTime(timestamp) {
+            try {
+                const date = new Date(timestamp);
+                return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            } catch {
+                return '';
+            }
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function showError(message) {
+            const errorElement = document.createElement('div');
+            errorElement.className = 'message message-received';
+            errorElement.innerHTML = `
+                <div class="message-content" style="color: #dc3545;">${escapeHtml(message)}</div>
+            `;
+            messageContainer.appendChild(errorElement);
+            scrollToBottom();
+        }
+
+        // Event Listeners
+        if (config.isSessionOpen) {
+            // Input events
+            messageInput.addEventListener('input', function() {
+                adjustTextareaHeight();
+                sendTypingIndicator(this.value.length > 0);
+            });
+
+            // Send button click
+            sendButton.addEventListener('click', sendMessage);
+
+            // Enter key to send (Shift+Enter for new line)
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            scrollToBottom();
+            initWebSocket();
+            
+            // Set up periodic connection check
+            setInterval(() => {
+                if (!chatSocket || chatSocket.readyState === WebSocket.CLOSED) {
+                    initWebSocket();
+                }
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
+
+
+
