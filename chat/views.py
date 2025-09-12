@@ -259,67 +259,71 @@ def initiate_chat_doctor_patient(request):
 
     try :
         appointment_id = request.GET.get('appointment_id')
-        customer_id = request.GET.get('customer_id')
-
+        print("\n\nappointment_id", appointment_id)
         if not appointment_id:
             return JsonResponse({'error': 'Appointment ID is required'}, status=400)
-        if not customer_id:
-            return JsonResponse({'error': 'Customer ID is required'}, status=400)
+   
 
         appointment = get_object_or_404(AppointmentHeader, appointment_id=appointment_id)        
         doctor = appointment.doctor
         
         current_user = request.user
         if  current_user.is_staff:
+            print("\n\ninside staff")
             doctor_user = current_user
-            customer_user = CustomerProfile.objects.get(id =customer_id).user
+            customer_users = [customer.customer.user for customer in appointment.appointment_customers.all()]
         else:
-            customer_user = current_user
+            print("\n\ninside doctor")
+            customer_users = [current_user]
             doctor_user = doctor.user
         
      
         if appointment.appointment_status not in ['confirmed', 'completed']:
             return JsonResponse({'error': 'Appointment not confirmed'}, status=400)
-        customer_user = get_object_or_404(CustomerProfile , id = customer_id).user
        
         if appointment.doctor.user != doctor_user:
             return JsonResponse({'error': 'Not authorized for this appointment'}, status=403)
         
         try:
+            print("\n\ndoctor_user", doctor_user)
             existing_session = (
             ChatSession.objects.filter(
                 expires_at__gt=timezone.now(),  
-                session_users__user=doctor_user
+                session_users__user=doctor_user,
+                is_open=True,
             )
-            .filter(session_users__user=customer_user)
+            .filter(session_users__user__in=customer_users)
             .distinct()
             .first()
             )
+            if existing_session:
+                return JsonResponse({'message': 'Chat session already exists', 'session_id': existing_session.id}, status=200)  
 
         except ChatSession.DoesNotExist:
             existing_session = None
 
-        chat_session = ChatSession.objects.create(
-            created_by='doctor',
-            description=f"Doctor chat with patient for appointment id: {appointment_id}",
-            expires_at=timezone.now() + timedelta(hours=24)  # Session expires in 7 days
-        )
-        session_user = SessionUser.objects.create(
-            session=chat_session,
-            user=doctor_user,
-            token=uuid.uuid4(),
-            expires_at=timezone.now() + timedelta(hours=24)
-        )
-        session_user_patient = SessionUser.objects.create(
-            session=chat_session,
-            user=customer_user,
-            token=uuid.uuid4(),
-            expires_at=timezone.now() + timedelta(hours=24))
+        for customer_user in customer_users:
+            chat_session = ChatSession.objects.create(
+                created_by='doctor',
+                description=f"Doctor chat with patient for appointment id: {appointment_id}",
+                expires_at=timezone.now() + timedelta(hours=24)  # Session expires in 7 days
+            )
+            session_user = SessionUser.objects.create(
+                session=chat_session,
+                user=doctor_user,
+                token=uuid.uuid4(),
+                expires_at=timezone.now() + timedelta(hours=24)
+            )
+            session_user_patient = SessionUser.objects.create(
+                session=chat_session,
+                user=customer_user,
+                token=uuid.uuid4(),
+                expires_at=timezone.now() + timedelta(hours=24))
 
-        Message.objects.create(
-            session=chat_session,
-            sender=doctor_user,
-            content=f"Doctor chat with patient for appointment id: {appointment_id}")
+            Message.objects.create(
+                session=chat_session,
+                sender=doctor_user,
+                content=f"Doctor chat with patient for appointment id: {appointment_id}")
 
         return Response("successfully initiated chat")
 
@@ -536,19 +540,32 @@ def get_active_chat_sessions(request):
         session_query &= Q(
             Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
         )
+        print("\n\nappointment_id", appointment_id)
         if appointment_id:
+            print("\n\ninside appointment id")
             try:
                 appointment = AppointmentHeader.objects.get(appointment_id = appointment_id)
-                appointment_users = [customer.user for customer in  appointment.appointment_customers.all() ]
-                session_query &= Q(session_users__user__in=appointment_users)
+                appointment_users = [customer.customer.user for customer in  appointment.appointment_customers.all() ]
+                print("\n\nappointment_users", appointment_users)
+                session_query_users = Q(session_users__user__in=appointment_users)
             except:
                 pass
 
-        sessions = ChatSession.objects.filter(session_query).distinct().annotate(
-            last_message_time=Max('messages__timestamp')
-        ).order_by('-last_message_time', '-created_at')[:limit]
+        # sessions = ChatSession.objects.filter(session_query).distinct().annotate(
+        #     last_message_time=Max('messages__timestamp')
+        # ).order_by('-last_message_time', '-created_at')[:limit]
 
-        
+
+        # print("\n\nsessions", sessions)
+                
+        sessions = (
+            ChatSession.objects.filter(session_query)
+            .filter(session_users__user__in=appointment_users)  # filter first
+            .distinct()
+            .annotate(last_message_time=Max('messages__timestamp'))
+            .order_by('-last_message_time', '-created_at')[:limit]  # then limit
+        )
+        print("\n\nsessions after filter", sessions)
         sessions_data = []
         for session in sessions:
             # Get all participants in this session
