@@ -160,23 +160,3 @@ def edit_available_hours_view(request):
         return Response({"error": str(e)}, status=400)
     
 
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def upload_file_view(request):
-    if request.method == 'POST' and request.FILES.get('file'):
-        uploaded_file = request.FILES['file']
-        if uploaded_file.size > 10 * 1024 * 1024:  # 10 MB limit
-            return Response({'error': 'File size exceeds 10 MB limit'}, status=status.HTTP_400_BAD_REQUEST)
-        if not uploaded_file.name.lower().endswith(('.pdf', '.jpg', '.jpeg', '.png')):
-            return Response({'error': 'Invalid file type. Only PDF and image files are allowed.'}, status=status.HTTP_400_BAD_REQUEST)
-        if not request.POST.get('appointment_id') or not request.POST.get('file_name'):
-            return Response({'error': 'appointment_id and file_name are required.'}, status=status.HTTP_400_BAD_REQUEST)
-        file_instance = CommonFileUploader.objects.create(
-            appointment_id=request.POST.get('appointment_id'),
-            common_file=uploaded_file,
-            file_name=request.POST.get('file_name'),
-        )
-
-        return Response({'message': 'File uploaded successfully', 'file_id': file_instance.id}, status=status.HTTP_201_CREATED)
-    return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)

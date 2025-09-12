@@ -17,5 +17,6 @@ urlpatterns = [
     path('email/', Email_tester.as_view()),
     path('whatsapp_callback/',whatsapp_callback),
     path('me/',meeting_waiting_room),
-    path('swtm/',swtm_view)
+    path('swtm/',swtm_view),
+    path('file_upload/', upload_file_view, name='file_upload'),
 ]

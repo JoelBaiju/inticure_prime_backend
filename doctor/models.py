@@ -92,13 +92,6 @@ class AnalysisInfo(models.Model):
     file_name=models.TextField(null=True)
     file_size=models.CharField(null=True,max_length=20)
 
-class CommonFileUploader(models.Model):
-    appointment=models.ForeignKey('analysis.AppointmentHeader', on_delete=models.CASCADE, related_name='common_files', null=True)
-    uploaded_on = models.DateTimeField(auto_now_add=True , null=True)
-    common_file=models.FileField(null=True,upload_to='tests&common_files/')
-    file_name=models.CharField(max_length=100,null=True)
-
-
 
 
 
