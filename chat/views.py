@@ -280,7 +280,7 @@ def initiate_chat_doctor_patient(request):
      
         if appointment.appointment_status not in ['confirmed', 'completed']:
             return JsonResponse({'error': 'Appointment not confirmed'}, status=400)
-        customer_user = get_object_or_404(CustomerProfile , id = customer_id)
+        customer_user = get_object_or_404(CustomerProfile , id = customer_id).user
        
         if appointment.doctor.user != doctor_user:
             return JsonResponse({'error': 'Not authorized for this appointment'}, status=403)
@@ -312,7 +312,7 @@ def initiate_chat_doctor_patient(request):
         )
         session_user_patient = SessionUser.objects.create(
             session=chat_session,
-            user=customer_user.user,
+            user=customer_user,
             token=uuid.uuid4(),
             expires_at=timezone.now() + timedelta(hours=24))
 
