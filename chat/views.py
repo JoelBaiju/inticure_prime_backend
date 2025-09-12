@@ -306,9 +306,8 @@ def initiate_chat_doctor_patient(request):
             sender=doctor_user,
             content=f"Doctor chat with patient for appointment id: {appointment_id}")
 
-        login(request, doctor_user)
+        return Response("successfully initiated chat")
 
-        return redirect(f'/chat/join/?session_id={chat_session.id}&token={session_user.token}')
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
