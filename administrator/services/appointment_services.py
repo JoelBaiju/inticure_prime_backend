@@ -177,6 +177,8 @@ def create_new_appointment_service(data):
         customer = CustomerProfile.objects.get(id=customer_id)
         Appointment_customers.objects.create(appointment=appointment, customer=customer)
 
+    if customers == []:
+        Appointment_customers.objects.create(appointment=appointment, customer=customer)
     # Update referral if used
     if referal_id:
         Referral.objects.filter(id=referal_id).update(converted_to_appointment=True)

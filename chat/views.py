@@ -284,6 +284,21 @@ def initiate_chat_doctor_patient(request):
        
         if appointment.doctor.user != doctor_user:
             return JsonResponse({'error': 'Not authorized for this appointment'}, status=403)
+        
+        try:
+            existing_session = (
+            ChatSession.objects.filter(
+                expires_at__gt=timezone.now(),  
+                session_users__user=doctor_user
+            )
+            .filter(session_users__user=customer_user)
+            .distinct()
+            .first()
+            )
+
+        except ChatSession.DoesNotExist:
+            existing_session = None
+
         chat_session = ChatSession.objects.create(
             created_by='doctor',
             description=f"Doctor chat with patient for appointment id: {appointment_id}",
@@ -510,9 +525,10 @@ def get_active_chat_sessions(request):
     try:
       
         include_closed = request.data.get('include_closed')
-        limit = 20
+        limit = 200
         user = request.user
         session_query = Q(session_users__user=user)
+        appointment_id = request.data.get('appointment_id')
         
         if not include_closed:
             session_query &= Q(is_open=True)
@@ -520,10 +536,18 @@ def get_active_chat_sessions(request):
         session_query &= Q(
             Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
         )
-        
+        if appointment_id:
+            try:
+                appointment = AppointmentHeader.objects.get(appointment_id = appointment_id)
+                appointment_users = [customer.user for customer in  appointment.appointment_customers.all() ]
+                session_query &= Q(session_users__user__in=appointment_users)
+            except:
+                pass
+
         sessions = ChatSession.objects.filter(session_query).distinct().annotate(
             last_message_time=Max('messages__timestamp')
         ).order_by('-last_message_time', '-created_at')[:limit]
+
         
         sessions_data = []
         for session in sessions:

@@ -485,15 +485,18 @@ def get_multiple_doctor_profiles(request):
         else:
             specialization = Specializations.objects.get(specialization_id =specialization_id)
         print(specialization)
-        print("fsafasf",customer_id,"fsfsaas")
+        print("\n\nfsafasf",customer_id,"fsfsaas")
+        print("\n\ncountry",country)
         if customer_id:
             try:
                 country = CustomerProfile.objects.get(id = customer_id).country_details.country_name
                 print(country)
             except:
                 pass
-        country_available = DoctorPaymentRules.objects.filter(country__country_name = country , specialization__specialization =specialization).exists()
+        country_available = DoctorPaymentRules.objects.filter(country__country_name = country , specialization__specialization =specialization.specialization).exists()
+        print("\n\ncountry_available",country , specialization ,country_available)
         if not country_available:
+            print("\n\ninside payment  in country not available")
             country = "United States"
         
     except Specializations.DoesNotExist:
@@ -515,19 +518,20 @@ def get_multiple_doctor_profiles(request):
     response_data = serialized.data  # list
     a_country=country
     for doc in response_data:
-        print(doc["is_prescription_allowed"])
-        if doc['is_prescription_allowed']:
+        print(f"\n\nis prescription allowed for doc {doc['name']}",doc["is_prescription_allowed"])
+        if doc['is_prescription_allowed'] :
             a_country = "India"  
-            print("inside condition changed to india")
+            print("\n\ninside condition changed to india" , country)
         else:
+            print("\n\ninside condition no prescription " , country)
             a_country=country
         rule = DoctorPaymentRules.objects.filter(
             doctor__doctor_profile_id=doc['doctor_profile_id'],
             country__country_name=a_country,
             specialization = specialization
         ).first()
-        print(rule.country)
-        print(rule,country,specialization,doc['doctor_profile_id'])
+        print("\n\n rule . country",rule.country)
+        print("\n\n rule country spec doc" ,rule,country,specialization,doc['doctor_profile_id'])
         if rule:
             if is_couple:
                 doc['final_price'] = rule.get_effective_payment()['custom_user_total_fee_couple'] if rule else None
