@@ -345,7 +345,7 @@ def initiate_chat_doctor_admin(request):
             doctor_user = DoctorProfiles.objects.get(doctor_profile_id = request.GET.get('doctor_id')).user
         else:
             doctor_user = current_user
-            admin_user = User.objects.get(username = '7483963192')
+            admin_user = User.objects.get(email = 'inticure2112004@inticure.com')
 
         chat_session = ChatSession.objects.create(
             created_by='doctor',
@@ -386,7 +386,7 @@ def initiate_chat_patient_admin(request):
             patient_user = CustomerProfile.objects.get(id = request.GET.get('customer_id')).user
         else:
             patient_user = current_user
-            admin_user = User.objects.get(username = '7483963192')
+            admin_user = User.objects.get(email = 'inticure2112004@inticure.com')
         
         chat_session = ChatSession.objects.create(
             created_by='patient',
@@ -551,20 +551,22 @@ def get_active_chat_sessions(request):
             except:
                 pass
 
-        # sessions = ChatSession.objects.filter(session_query).distinct().annotate(
-        #     last_message_time=Max('messages__timestamp')
-        # ).order_by('-last_message_time', '-created_at')[:limit]
-
+     
 
         # print("\n\nsessions", sessions)
-                
-        sessions = (
-            ChatSession.objects.filter(session_query)
-            .filter(session_users__user__in=appointment_users)  # filter first
-            .distinct()
-            .annotate(last_message_time=Max('messages__timestamp'))
-            .order_by('-last_message_time', '-created_at')[:limit]  # then limit
-        )
+        if appointment_id:
+            sessions = (
+                ChatSession.objects.filter(session_query)
+                .filter(session_users__user__in=appointment_users)  # filter first
+                .distinct()
+                .annotate(last_message_time=Max('messages__timestamp'))
+                .order_by('-last_message_time', '-created_at')[:limit]  # then limit
+            )
+        else:
+            sessions = ChatSession.objects.filter(session_query).distinct().annotate(
+                last_message_time=Max('messages__timestamp')
+                ).order_by('-last_message_time', '-created_at')[:limit]
+
         print("\n\nsessions after filter", sessions)
         sessions_data = []
         for session in sessions:
@@ -631,10 +633,13 @@ def get_active_chat_sessions(request):
             ).first()
 
             
-            
+            print("\n\n doctor_name" , doctor_name)
+            print("\n\n user.is_staff" , user.is_staff)
+            print("\n\n customer_name" , customer_name)
+
             session_data = {
                 'session_id': session.id,
-                'description': customer_name if user.is_staff else doctor_name,
+                'description': customer_name if user.is_staff and len(customer_name)>2 else  doctor_name  if user.is_superuser or not user.is_staff else "Inticure Support",
                 'created_at': session.created_at.isoformat(),
                 'closed_at': session.closed_at.isoformat() if session.closed_at else None,
                 'is_open': session.is_open,
