@@ -541,7 +541,8 @@ def get_active_chat_sessions(request):
             Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
         )
 
-        session_query &= Q(session_users__user__email = "inticure2112004@inticure.com")
+       
+
         print("\n\nappointment_id", appointment_id)
         if appointment_id:
             print("\n\ninside appointment id")
@@ -570,7 +571,17 @@ def get_active_chat_sessions(request):
                 ).order_by('-last_message_time', '-created_at')[:limit]
 
         print("\n\nsessions after filter", sessions)
+
         sessions_data = []
+
+        admin_session = ChatSession.objects.filter(
+            session_users__user__is_superuser=True,
+            is_open=True
+        ).distinct()
+        admin_session_with_user = admin_session.filter(session_users__user=user)
+        if admin_session_with_user.exists() and admin_session_with_user.first() not in sessions:
+            sessions = [admin_session_with_user.first()] + list(sessions)
+        
         for session in sessions:
             # Get all participants in this session
             participants = []
