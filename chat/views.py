@@ -541,7 +541,7 @@ def get_active_chat_sessions(request):
             Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
         )
 
-        session_query &= Q(session_users__user__email = user.email)
+        session_query &= Q(session_users__user__email = "inticure2112004@inticure.com")
         print("\n\nappointment_id", appointment_id)
         if appointment_id:
             print("\n\ninside appointment id")
