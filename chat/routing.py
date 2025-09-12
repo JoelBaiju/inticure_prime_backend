@@ -9,9 +9,18 @@
 
 
 
+# from django.urls import re_path
+# from . import consumers
+
+# websocket_urlpatterns = [
+#     re_path(r'ws/support/(?P<session_id>\w+)/$', consumers.SecureSupportConsumer.as_asgi()),
+# ]
+
+
+
 from django.urls import re_path
 from . import consumers
 
 websocket_urlpatterns = [
-    re_path(r'ws/support/(?P<session_id>\w+)/$', consumers.SecureSupportConsumer.as_asgi()),
+    re_path(r'^ws/support/(?P<session_id>[\w-]+)/$', consumers.SecureSupportConsumer.as_asgi()),
 ]

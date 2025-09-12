@@ -41,12 +41,18 @@ def get_earnings(doctor):
         "earnings_change": earnings_change
     }
 
+from general.utils import get_today_start_end_for_doctor_tz
 
 def get_today_appointments(doctor):
     """Return today’s appointments summary (total, completed, pending)."""
+
+    start , end = get_today_start_end_for_doctor_tz(doctor.time_zone)
+
     appointments_today_qs = DoctorAppointment.objects.filter(
         doctor=doctor,
-        confirmed=True
+        confirmed=True,
+        start_time__gte=start,
+        start_time__lte=end
     )
 
     total = appointments_today_qs.count()

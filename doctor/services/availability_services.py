@@ -1,6 +1,6 @@
 from datetime import datetime, time, date as dt_date
 import pytz
-from doctor.models import DoctorAvailableHours
+from doctor.models import DoctorAvailableHours , DoctorAppointment
 from general.utils import (
     convert_utc_to_local_return_dt,
     convert_doctor_request_datetime_to_utc
@@ -34,6 +34,7 @@ def get_available_hours(doctor_profile, date_str=None):
     return [
         {
             "date": convert_utc_to_local_return_dt(entry.start_time, doctor_profile.time_zone).date(),
+            "start_date_time": convert_utc_to_local_return_dt(entry.start_time, doctor_profile.time_zone),
             "start_time": convert_utc_to_local_return_dt(entry.start_time, doctor_profile.time_zone).time(),
             "end_time": convert_utc_to_local_return_dt(entry.end_time, doctor_profile.time_zone).time(),
         }
@@ -169,3 +170,49 @@ def fallback_to_next_available_date(doctor_id, timezone_str, results, preferred_
     # If still nothing, return same results with current_date
     # results["current_date"] = str(preferred_dt_start.date())
     return results
+
+
+
+
+
+
+
+
+
+
+
+def edit_availability_block(data):
+
+    start_time_str = data.get("start_time")
+    end_time_str = data.get("end_time")
+    old_start_time_str = data.get("old_start_time")
+    doctor_id = data.get("doctor_id")
+    date = data.get("date")
+    doctor_profile = DoctorProfiles.objects.get(doctor_profile_id=doctor_id)
+
+    start_time_utc = convert_doctor_request_datetime_to_utc(date, start_time_str, doctor_profile)
+    end_time_utc = convert_doctor_request_datetime_to_utc(date , end_time_str, doctor_profile)
+    old_start_time_utc = convert_local_dt_to_utc(old_start_time_str, doctor_profile.time_zone)
+
+    if DoctorAppointment.objects.filter(
+        doctor=doctor_profile,
+        appointment__appointment_status__in=["confirmed"],
+        start_time__gte=old_start_time_utc
+    ).exists():
+        raise Exception("Cannot edit block with confirmed appointments")
+    
+    try:
+        block = DoctorAvailableHours.objects.get(
+            doctor=doctor_profile,
+            start_time=old_start_time_utc
+        )
+    except DoctorAvailableHours.DoesNotExist:
+        raise Exception("Availability block not found")
+    
+    if block:
+        block.start_time = start_time_utc
+        block.end_time = end_time_utc
+        block.save()
+
+    return {
+        "message": "Availability block updated successfully.",}

@@ -1,17 +1,20 @@
 import requests
-import json
 import requests
-import json
-import os
 from django.http import JsonResponse
 from django.conf import settings
 
-def send_whatsapp_template_message():
-    # Use environment variables for security
+
+
+def whatsapp_api_handler(
+   to_phone , template_name , parameters
+):
+    """
+    Send WhatsApp template message using Meta's Graph API.
+    """
     ACCESS_TOKEN = settings.WHATSAPP_ACCESS_TOKEN
     PHONE_NUMBER_ID = settings.WHATSAPP_PHONE_NUMBER_ID
     
-    url = f"https://graph.facebook.com/v22.0/{PHONE_NUMBER_ID}/messages"
+    url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
     
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}",
@@ -20,32 +23,41 @@ def send_whatsapp_template_message():
 
     payload = {
         "messaging_product": "whatsapp",
-        "to": "+917034761676",  # ✅ FIXED: Added + prefix
+        "to": to_phone if to_phone.startswith("+") else f"+{to_phone}",
         "type": "template",
         "template": {
-            "name": "patient_requested_cancellation",
-            "language": {"code": "en_US"},
+            "name": template_name,
+            "language": {"code": "en_US"},  # ✅ Use en_US for safety
             "components": [
                 {
                     "type": "body",
-                    "parameters": [
-                        {"type": "text", "text": "Alex"},                # {{1}}
-                        {"type": "text", "text": "Dr."},                 # {{2}}
-                        {"type": "text", "text": "Smith"},               # {{3}}
-                        {"type": "text", "text": "10 Sep 2025, 3:00 PM"} # {{4}}
-                    ]
-                }
-            ]
-        }
+                    "parameters": parameters
+                },
+
+                # {
+                #     "type": "button",
+                #     "sub_type": "url",
+                #     "index": 0,
+                #     "parameters": [
+                #     {
+                #         "type": "text",
+                #         "text": "https://yourdomain.com/verify?code=123456"
+                #     }
+                #         ]
+                # }
+            ]}
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload)  # ✅ Use json= instead of data=
-        response.raise_for_status()  # Raise exception for bad status codes
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        return {"error": str(e), "response_text": response.text if response else "No response"}
+        return {
+            "error": str(e),
+            "response_text": getattr(response, "text", "No response")
+        }
 
-def test_send_whatsapp(request):
-    result = send_whatsapp_template_message()
-    return JsonResponse(result)
+
+
+

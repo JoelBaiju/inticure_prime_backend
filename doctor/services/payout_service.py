@@ -30,6 +30,8 @@ def create_payout(doctor, amount):
         doctor=doctor,
         amount=float(amount),
         initiated_at=timezone.now(),
-        status='processing',
+        status='pending',
+        currency=doctor.country.currency,
+        currency_symbol=doctor.country.currency_symbol,
     )
     return payout

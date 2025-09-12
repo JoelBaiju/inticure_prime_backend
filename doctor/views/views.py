@@ -392,3 +392,8 @@ class Suggest_package(APIView):
             suggested_by = doctor,
         )
         return Response({'message':'Package suggested successfully'}, status=status.HTTP_200_OK)
+    
+
+
+
+

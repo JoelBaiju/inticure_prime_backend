@@ -404,6 +404,8 @@ def convert_doctor_request_datetime_to_utc(date_str, time_str, doctor):
     - A timezone-aware datetime object in UTC
     """
     from datetime import datetime
+    if time_str is None or time_str == "00:00":
+        time_str = "00:01"
     if ':' in time_str and len(time_str.split(':')) > 2:
         dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M:%S")
     else:
@@ -454,6 +456,27 @@ def get_current_time_in_utc_from_tz(tz_str):
     print('\n end converted to utc' , end_in_utc)
     return now_in_utc, end_in_utc
 
+
+
+def get_today_start_end_for_doctor_tz(tz_str):
+    """
+    Given a timezone string, gets the current time in that timezone
+    and returns it converted to UTC.
+    """
+
+    target_tz = ZoneInfo(tz_str)
+    print(tz_str)
+    # Get current time in the target timezone
+    now_in_target_tz = dj_timezone.now().astimezone(target_tz)
+    current_date_in_target_tz = now_in_target_tz.date()
+    print('\n now in target tz' ,now_in_target_tz)
+    start_of_day_in_target_tz = datetime.combine(current_date_in_target_tz, time(0, 0), tzinfo=target_tz)
+    end_of_day_in_target_tz = datetime.combine(current_date_in_target_tz, time(23, 59, 59, 999999), tzinfo=target_tz)
+    print('\n start of day in target tz' , start_of_day_in_target_tz)
+    start_of_day_in_utc = start_of_day_in_target_tz.astimezone(timezone.utc)
+    end_of_day_in_utc = end_of_day_in_target_tz.astimezone(timezone.utc)
+    print('\n start of day converted to utc' , start_of_day_in_utc)
+    return start_of_day_in_utc, end_of_day_in_utc
 
 
 

@@ -282,10 +282,12 @@ def update_appointment_status(appointment_id: str, completed: bool, reason: str 
 
     if appointment.end_time < timezone.now():
         return Response("Cannot update past appointments", status=status.HTTP_400_BAD_REQUEST)
-
+    if not Observation_Notes.objects.filter(appointment=appointment).exists() :
+        return Response("Cannot update appointment without adding observation notes", status=status.HTTP_400_BAD_REQUEST)
     mt = Meeting_Tracker.objects.filter(appointment=appointment).first()
     if not mt:
         return Response("Meeting Tracker not found", status=status.HTTP_400_BAD_REQUEST)
+
 
     # If marked completed
     if completed:
@@ -365,3 +367,8 @@ def get_customer_prescriptions(customer_id: int):
     ]
 
     return data, None
+
+
+
+
+

@@ -252,23 +252,32 @@ def initiate_chat_patient_doctor(request):
 
 
 
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 @api_view(['GET'])
 @rate_limit(rate='5/m')
 def initiate_chat_doctor_patient(request):
 
     try :
-        # doctor_user = request.user
-        doctor_user = User.objects.get(username = request.GET.get('username'))
         appointment_id = request.GET.get('appointment_id')
-        customer_id = request.GET.get('customer')
+        customer_id = request.GET.get('customer_id')
 
         if not appointment_id:
             return JsonResponse({'error': 'Appointment ID is required'}, status=400)
         if not customer_id:
             return JsonResponse({'error': 'Customer ID is required'}, status=400)
 
-        appointment = get_object_or_404(AppointmentHeader, appointment_id=appointment_id)
+        appointment = get_object_or_404(AppointmentHeader, appointment_id=appointment_id)        
+        doctor = appointment.doctor
+        
+        current_user = request.user
+        if  current_user.is_staff:
+            doctor_user = current_user
+            customer_user = CustomerProfile.objects.get(id =customer_id).user
+        else:
+            customer_user = current_user
+            doctor_user = doctor.user
+        
+     
         if appointment.appointment_status not in ['confirmed', 'completed']:
             return JsonResponse({'error': 'Appointment not confirmed'}, status=400)
         customer_user = get_object_or_404(CustomerProfile , id = customer_id)

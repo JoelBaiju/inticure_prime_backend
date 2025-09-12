@@ -6,7 +6,7 @@ urlpatterns = [
     path('join/', views.join_chat, name='join_session'),
     # path('join_d/', views.join_chat_doctor, name='join_session_doctor'),
     path('initiate_chat_patient_admin/', views.initiate_chat_patient_admin, name='initiate_chat_patient_admin'),
-    path('initiate_chat_doctor_patient',views.initiate_chat_doctor_patient , name='initiate_chat_doctor_patient'),
+    path('initiate_chat_doctor_patient/',views.initiate_chat_doctor_patient , name='initiate_chat_doctor_patient'),
     path('initiate_chat_doctor_admin/', views.initiate_chat_doctor_admin, name='initiate_chat_doctor_admin'),
 
     path('active_sessions/', views.get_active_chat_sessions, name='get_active_chat_sessions'),

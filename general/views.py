@@ -394,64 +394,6 @@ class Email_tester(APIView):
 
 
 
-import requests
-import json
-
-def send_whatsapp_template_message(phone_number, template_name, language_code="en_US"):
-    """
-    Send a WhatsApp template message using Facebook Graph API
-    
-    Args:
-        phone_number (str): Recipient phone number in international format (e.g., "917034761676")
-        template_name (str): Approved WhatsApp template name (e.g., "hello_world")
-        language_code (str): Language code (default: "en_US")
-    
-    Returns:
-        dict: API response
-    """
-    # Configuration - store these securely in environment variables
-    ACCESS_TOKEN = "EAA8QKgUG4Y0BPIyBHrPorBZCVDzCe0y6mlnSceSGEqkeNQEn3DgTgAECJy8fxCpy50l8TeBZAGQZAfO7nxHQCLtgLy4XwKL0Jodzqu568d4C58CQC69o7iVQnfP3dTQ7P9vnE5HjHfYqh5x2zqhxGfUffvmgMdpudZCNhXEK5BIsoYQPuQslkWDnJ5mbAPSn9fV886dlvbrF0dGjNBvpZClrHGNs4vPW4JXDi4RfdnAZDZD"  # Replace with your actual token
-    PHONE_ID = "721283257740059"  # Replace with your phone number ID
-    
-    url = f"https://graph.facebook.com/v22.0/{PHONE_ID}/messages"
-    
-    headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    
-    payload = {
-        "messaging_product": "whatsapp",
-        "to": phone_number,
-        "type": "template",
-        "template": {
-            "name": template_name,
-            "language": {
-                "code": language_code
-            }
-        }
-    }
-    
-    try:
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
-        response.raise_for_status()  # Raises an HTTPError for bad responses
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error sending message: {e}")
-        return {"error": str(e)}
-
-
-@api_view(["GET"])
-def whatsapp_view(request):    
-    result = send_whatsapp_template_message(
-        phone_number="918078109108",
-        template_name="hello_world",
-        language_code='en_US'
-    )
-    print(result)
-    return Response('ghgs')
-
-
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -516,10 +458,18 @@ def whatsapp_callback(request):
 
 
 
-from .whatsapp.api import send_whatsapp_template_message as swtm
+from .whatsapp.whatsapp_messages import send_wa_auth_code , send_wa_appointment_confirmation
 
 @api_view(["GET"])
 def swtm_view(request):
-    result = swtm()
-    print(result)
-    return Response('ghgs')
+    # result = send_wa_appointment_confirmation(
+    #     to_phone="917034761676",
+    #     patient_name="John Doe",
+    #     salutation="Dr.",
+    #     specialist_name="Smith",
+    #     date_time="2024-10-01 10:00 AM",
+    #     meet_link="https://meet.example.com/appointment123"
+    # )
+
+    result = send_wa_auth_code(to_phone="917034761676", auth_code="123456")
+    return Response(result) 

@@ -19,6 +19,8 @@ urlpatterns = [
     path("available_hours/", DoctorAvailableHoursView.as_view(), name="available-hours"),
     path('available_dates/',Available_dates.as_view()),
 
+    path('edit_available_hours/', edit_available_hours_view, name='add-available-hours'),
+
     path("dashboard/", DoctorDashboardView.as_view(), name="available-slots"),
 
     path("available_slots/", SlotsBooking.as_view(), name="available-slots"),
@@ -51,9 +53,4 @@ urlpatterns = [
     path('bank_account/',DoctorBankAccountView.as_view()),
     path('available_packages/',Available_packages.as_view()),
     path('suggest_package/',Suggest_package.as_view()),
-
-
-
-
-
 ]
