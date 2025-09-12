@@ -540,6 +540,8 @@ def get_active_chat_sessions(request):
         session_query &= Q(
             Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
         )
+
+        session_query &= Q(session_users__user__email = user.email)
         print("\n\nappointment_id", appointment_id)
         if appointment_id:
             print("\n\ninside appointment id")
@@ -810,3 +812,107 @@ def get_chat_session_detail(request, session_id):
         return JsonResponse({
             'error': f'Internal server error: {str(e)}'
         }, status=500)
+    
+
+
+
+
+
+@api_view(['GET'])
+@rate_limit(rate='5/m')
+@permission_classes([IsAuthenticated])
+def get_active_chat_sessions_with_admin(request):
+    try :
+        current_user = request.user
+        if  current_user.is_superuser:
+            admin_user = current_user
+        else:
+            admin_user = User.objects.get(email = 'inticure2112004@inticure.com')
+        sessions = ChatSession.objects.filter(
+            Q(session_users__user=current_user) | Q(session_users__user=admin_user),
+            is_open=True
+        ).distinct().annotate(last_message_time=Max('messages__timestamp')).order_by('-last_message_time', '-created_at')
+    
+        sessions_data = []
+        for session in sessions:
+            participants = []
+            session_users = SessionUser.objects.filter(session=session).select_related('user')
+            for session_user in session_users:
+                participant_user = session_user.user
+                participant_info = {
+                    'user_id': participant_user.id,
+                    'username': participant_user.username,
+                    'is_current_user': participant_user.id == current_user.id,
+                    'is_active': session_user.is_active,
+                    'joined_at': session_user.joined_at.isoformat() if session_user.joined_at else None
+                }
+                if participant_user.is_superuser:
+                    participant_info['role'] = 'admin'
+                    participant_info['display_name'] = 'Inticure Support'
+                elif  DoctorProfiles.objects.filter(user=participant_user).exists():
+                    doctor_profile = DoctorProfiles.objects.get(user=participant_user)
+                    participant_info['role'] = 'doctor'
+                    participant_info['display_name'] = doctor_profile.first_name or participant_user.username
+                    participant_info['doctor_id'] = doctor_profile.doctor_profile_id
+                elif CustomerProfile.objects.filter(user=participant_user).exists():
+                    customer_profile = CustomerProfile.objects.get(user=participant_user)
+                    participant_info['role'] = 'patient'
+                    participant_info['display_name'] = participant_user.first_name or participant_user.username
+                    participant_info['customer_id'] = customer_profile.id
+                else:
+                    participant_info['role'] = 'user'
+                    participant_info['display_name'] = participant_user.get_full_name() or participant_user.username
+                
+                participants.append(participant_info)
+            
+            last_message = session.messages.order_by('-timestamp').first()
+            last_message_data = None
+            if last_message:
+                sender_display_name ="you" if last_message.sender == current_user else get_user_display_name(last_message.sender)
+                last_message_data = {
+                    'id': last_message.id,
+                    'content': last_message.content[:100] + ('...' if len(last_message.content) > 100 else ''),  # Truncate for preview
+                    'sender_id': last_message.sender.id,
+                    'sender_name': sender_display_name,
+                    'timestamp': last_message.timestamp.isoformat(),
+                    'is_from_current_user': last_message.sender.id == current_user.id
+                }
+            
+            unread_count = Message.objects.filter(
+                session=session,
+                is_read=False
+            ).exclude(sender=current_user).count()
+            
+            current_user_session = SessionUser.objects.filter(
+                session=session, 
+                user=current_user   
+            ).first()
+            session_data = {
+                'session_id': session.id,
+                'description': session.description,
+                'created_at': session.created_at.isoformat(),
+                'closed_at': session.closed_at.isoformat() if session.closed_at else None,
+                'is_open': session.is_open,
+                'created_by': session.created_by,
+                'expires_at': session.expires_at.isoformat() if session.expires_at else None,
+                'participants': participants,
+                'participant_count': len(participants),
+                'last_message': last_message_data,
+                'unread_count': unread_count,
+                'user_token': str(current_user_session.token) if current_user_session else None,
+                'can_join': current_user_session and current_user_session.is_active and (
+                    not current_user_session.expires_at or current_user_session.expires_at > timezone.now()
+                ),
+                'chat_url': f'/chat/join/?session_id={session.id}&token={current_user_session.token}' if current_user_session else None
+            }
+            sessions_data.append(session_data)
+        response_data = {
+            'success': True,
+            'user_id': current_user.id,
+            'username': current_user.username,
+            'total_sessions': len(sessions_data),
+            'sessions': sessions_data
+        }
+        return JsonResponse(response_data, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
