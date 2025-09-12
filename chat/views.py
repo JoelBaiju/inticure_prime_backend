@@ -347,6 +347,25 @@ def initiate_chat_doctor_admin(request):
             doctor_user = current_user
             admin_user = User.objects.get(email = 'inticure2112004@inticure.com')
 
+        try:
+            print("\n\ndoctor_user", doctor_user)
+            existing_session = (
+            ChatSession.objects.filter(
+                expires_at__gt=timezone.now(),  
+                session_users__user=admin_user,
+                is_open=True,
+            )
+            .filter(session_users__user=doctor_user)
+            .distinct()
+            .first()
+            )
+            if existing_session:
+                return JsonResponse({'message': 'Chat session already exists', 'session_id': existing_session.id}, status=200)  
+
+        except ChatSession.DoesNotExist:
+            existing_session = None
+
+
         chat_session = ChatSession.objects.create(
             created_by='doctor',
             description=f"Doctor chat with admin",
@@ -388,6 +407,29 @@ def initiate_chat_patient_admin(request):
             patient_user = current_user
             admin_user = User.objects.get(email = 'inticure2112004@inticure.com')
         
+
+        try:
+            print("\n\ndoctor_user", patient_user)
+            existing_session = (
+            ChatSession.objects.filter(
+                expires_at__gt=timezone.now(),  
+                session_users__user=admin_user,
+                is_open=True,
+            )
+            .filter(session_users__user=patient_user)
+            .distinct()
+            .first()
+            )
+            if existing_session:
+                return JsonResponse({'message': 'Chat session already exists', 'session_id': existing_session.id}, status=200)  
+
+        except ChatSession.DoesNotExist:
+            existing_session = None
+
+
+
+
+
         chat_session = ChatSession.objects.create(
             created_by='patient',
             description=f"Patient chat with admin",
