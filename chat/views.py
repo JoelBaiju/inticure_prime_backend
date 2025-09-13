@@ -877,17 +877,18 @@ def get_chat_session_detail(request, session_id):
 def get_active_chat_sessions_with_admin(request):
     try :
         current_user = request.user
-        if  current_user.is_superuser:
-            admin_user = current_user
-        else:
-            admin_user = User.objects.get(email = 'inticure2112004@inticure.com')
+      
+        admin_user = User.objects.get(email = 'inticure2112004@inticure.com')
         sessions = ChatSession.objects.filter(
-            Q(session_users__user=current_user) | Q(session_users__user=admin_user),
+            session_users__user=current_user ,
+        
             is_open=True
         ).distinct().annotate(last_message_time=Max('messages__timestamp')).order_by('-last_message_time', '-created_at')
-    
+        sessions = sessions.filter(session_users__user=admin_user) 
+        
         sessions_data = []
         for session in sessions:
+            # Get all participants in this session
             participants = []
             session_users = SessionUser.objects.filter(session=session).select_related('user')
             for session_user in session_users:
@@ -910,7 +911,7 @@ def get_active_chat_sessions_with_admin(request):
                 elif CustomerProfile.objects.filter(user=participant_user).exists():
                     customer_profile = CustomerProfile.objects.get(user=participant_user)
                     participant_info['role'] = 'patient'
-                    participant_info['display_name'] = participant_user.first_name or participant_user.username
+                    participant_info['display_name'] = customer_profile.user.first_name or participant_user.username
                     participant_info['customer_id'] = customer_profile.id
                 else:
                     participant_info['role'] = 'user'
@@ -918,6 +919,7 @@ def get_active_chat_sessions_with_admin(request):
                 
                 participants.append(participant_info)
             
+            # Get last message
             last_message = session.messages.order_by('-timestamp').first()
             last_message_data = None
             if last_message:
@@ -931,14 +933,16 @@ def get_active_chat_sessions_with_admin(request):
                     'is_from_current_user': last_message.sender.id == current_user.id
                 }
             
+            # Get unread message count for current user
             unread_count = Message.objects.filter(
                 session=session,
                 is_read=False
             ).exclude(sender=current_user).count()
-            
+
+            # Get current user's session token
             current_user_session = SessionUser.objects.filter(
                 session=session, 
-                user=current_user   
+                user=current_user
             ).first()
             session_data = {
                 'session_id': session.id,
@@ -958,7 +962,7 @@ def get_active_chat_sessions_with_admin(request):
                 ),
                 'chat_url': f'/chat/join/?session_id={session.id}&token={current_user_session.token}' if current_user_session else None
             }
-            sessions_data.append(session_data)
+            sessions_data.append(session_data)           
         response_data = {
             'success': True,
             'user_id': current_user.id,

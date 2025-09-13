@@ -172,3 +172,9 @@ def relieve_package(request):
         return Response({'message': 'Appointment not found'}, status=status.HTTP_404_NOT_FOUND)
     except ValueError as e:
         return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+
+
+

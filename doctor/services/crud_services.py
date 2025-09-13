@@ -43,7 +43,10 @@ from ..serializers import (
     Followup_notes_serializer,
     PatientSerializer,
     GroupedQuestionAnswerSerializer,
+    CommonFilesSerializer
 )
+
+from general.models import CommonFileUploader
 
 # Tasks & Utils
 from general.tasks import schedule_reminder_to_book_appointment, send_payment_pending_email_task, send_prescription_email_task
@@ -339,6 +342,8 @@ def get_customer_prescriptions(customer_id: int):
     patient_notes = Notes_for_patient.objects.filter(customer=customer)
     observation_notes = Observation_Notes.objects.filter(customer=customer)
     followup_advices = Follow_Up_Notes.objects.filter(customer=customer)
+    files = CommonFileUploader.objects.filter(customer=customer)
+
 
     # Serialize them (return empty [] if none)
     data = {
@@ -347,6 +352,7 @@ def get_customer_prescriptions(customer_id: int):
         "patient_notes": NotesForPatientSerializer(patient_notes, many=True).data if patient_notes else [],
         "observation_notes": ObservationNotesSerializer(observation_notes, many=True).data if observation_notes else [],
         "followup_advices": Followup_notes_serializer(followup_advices, many=True).data if followup_advices else [],
+        "files": CommonFilesSerializer(files, many=True).data if files else [],
         "patient_details": PatientSerializer(customer).data,
         "patient_first_name": customer.user.first_name,
         "patient_last_name": customer.user.last_name,

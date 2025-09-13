@@ -120,6 +120,7 @@ class Reminder_Sent_History(models.Model):
 
 
 class CommonFileUploader(models.Model):
+    customer=models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='common_files', null=True)
     appointment=models.ForeignKey('analysis.AppointmentHeader', on_delete=models.CASCADE, related_name='common_files', null=True)
     uploaded_on = models.DateTimeField(auto_now_add=True , null=True)
     common_file=models.FileField(null=True,upload_to='tests&common_files/')

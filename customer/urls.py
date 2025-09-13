@@ -8,6 +8,7 @@ from .views.prescription_view import *
 from .views.profile_view import *
 urlpatterns = [
     path('dashboard/', CustomerDashboardView.as_view(), name='customer_dashboard'),
+    path('previous_appointments/', get_previous_appointments, name='customer_previous_appointments'),
     path('doctors_slots/', DoctorAvailabilityView.as_view()),
     path('contact_details/',ContactDetailsView.as_view()),
     path('reschedule/',AppointmentRescheduleView.as_view()),

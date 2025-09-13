@@ -37,6 +37,67 @@ from django.db.models import Q
 from django.utils import timezone
 from rest_framework import serializers
 
+
+class CustomerPreviousAppointmentsSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+    previous_appointments = serializers.SerializerMethodField()
+    country = serializers.CharField(source='country_details.country_name', read_only=True)
+    partner_first_name = serializers.CharField(source='partner.user.first_name', read_only=True, default=None)
+    partner_last_name = serializers.CharField(source='partner.user.last_name', read_only=True, default=None)
+    partner_email = serializers.EmailField(source='partner.email', read_only=True, default=None)
+    partner_mobile_number = serializers.CharField(source='partner.whatsapp_number', read_only=True, default=None)
+
+    class Meta:
+        model = CustomerProfile
+        fields = [
+            'user', 'id', 'gender', 'previous_appointments',
+            'first_name', 'last_name', 'email', 'whatsapp_number', 'country_code',
+            'completed_first_analysis',  'country',
+            'preferred_name',
+            'partner_first_name', 'partner_last_name', 'date_of_birth',
+            'partner_email', 'partner_mobile_number'
+        ]
+
+
+    def get_previous_appointments(self, obj):
+        now = timezone.now()
+        appointments = (
+            AppointmentHeader.objects.filter(
+                Q(appointment_customers__customer=obj) | Q(customer=obj),
+                Q(appointment_status__in=['completed', 'cancelled'])| Q(start_time__lt=now),
+            )
+            .select_related("doctor", "specialization")
+            .order_by("-start_time")
+            .distinct()
+        )
+        result = []
+        for appt in appointments:
+            local_dt = convert_utc_to_local_return_dt(appt.start_time, obj.time_zone)
+            result.append({
+                "appointment_id": appt.appointment_id,
+                "appointment_date": local_dt.date(),
+                "appointment_time": local_dt.time(),
+                "doctor_name": f" {appt.doctor.first_name} {appt.doctor.last_name}".strip()
+                                if appt.doctor else "N/A",
+                "status": appt.appointment_status,
+                "specialization": appt.specialization.specialization if appt.specialization else "N/A",
+                "type_booking": "Couples" if appt.is_couple else "Individual",
+                "booked_by": appt.booked_by,
+                "doctor_id": appt.doctor.doctor_profile_id if appt.doctor else None,
+                "specialization_id": appt.specialization.specialization_id if appt.specialization else None,
+                "salutation": appt.doctor.salutation if appt.doctor else None,
+            })
+        return result
+
+
+
+
+
+
+
+
+
 class CustomerDashboardSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)

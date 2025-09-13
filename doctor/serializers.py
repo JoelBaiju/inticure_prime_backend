@@ -42,8 +42,11 @@ class AppointmentsSerializer_For_Doctor_Dashboard(serializers.ModelSerializer):
         fields =[""]
     
 
-
-
+from general.models import CommonFileUploader
+class CommonFilesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommonFileUploader
+        fields = ['id', 'common_file', 'file_name' ,'uploaded_on' ,'appointment']
 
 class DoctorAvailableHoursSerializer(serializers.Serializer):
     date = serializers.DateField()

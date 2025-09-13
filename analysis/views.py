@@ -1045,8 +1045,12 @@ def ConfirmAppointment(appointment_id =None, pretransaction_id =None, is_admin =
 
         # Step 5: Link customers
         Appointment_customers.objects.get_or_create(customer=customer, appointment=appointment)
+        customer.completed_first_analysis = True
+        customer.save()
         if appointment.is_couple and customer.partner:
             Appointment_customers.objects.get_or_create(customer=customer.partner, appointment=appointment)
+            customer.partner.completed_first_analysis = True
+            customer.partner.save()
 
         # Step 6: Generate meet link
         aware_from = appointment.start_time if timezone.is_aware(appointment.start_time) else timezone.make_aware(appointment.start_time)
