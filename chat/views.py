@@ -580,7 +580,7 @@ def get_active_chat_sessions(request):
             session_query &= Q(is_open=True)
         
         session_query &= Q(
-            Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
+            Q(expires_at__gt=timezone.now())
         )
         print("\n\n time" , timezone.now())
        

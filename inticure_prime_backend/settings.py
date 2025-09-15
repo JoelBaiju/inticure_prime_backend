@@ -125,30 +125,31 @@ SIMPLE_JWT = {
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+ENV = config('ENV')
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'inticure',   
-#         'USER': 'root',       
-#         'PASSWORD': 'root@123',  
-#         'HOST': 'localhost',    
-#         'PORT': '3306',         
-#     }
-# }
-
-
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'inticure',
-        'USER': 'inticure',
-        'PASSWORD': 'Berlin@123',
-        'HOST': '/var/run/mysqld/mysqld.sock',
-        'PORT': '',
+if ENV == "dev":
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'inticure',   
+            'USER': 'root',       
+            'PASSWORD': 'root@123',  
+            'HOST': 'localhost',    
+            'PORT': '3306',         
+        }
     }
-}
+
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'inticure',
+            'USER': 'inticure',
+            'PASSWORD': 'Berlin@123',
+            'HOST': '/var/run/mysqld/mysqld.sock',
+            'PORT': '',
+        }
+    }
 
 
 
