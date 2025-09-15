@@ -122,6 +122,12 @@ SIMPLE_JWT = {
 
 
 
+
+from decouple import config
+
+
+
+
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
@@ -217,12 +223,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DEFAULT_FROM_EMAIL = 'wecare@inticure.com'  # Default from email (can be your Gmail or another verified email)
 
 
-
-
-
-
-
-from decouple import config
 
 
 
