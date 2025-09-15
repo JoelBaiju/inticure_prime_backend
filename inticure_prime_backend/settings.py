@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    "django_celery_beat",
     'daphne',
     'django.contrib.staticfiles',
     'corsheaders',
@@ -157,6 +158,16 @@ else:
         }
     }
 
+
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    "close-expired-chat-sessions": {
+        "task": "chat.tasks.close_expired_chat_sessions",  # replace with your app name
+        "schedule": 120.0,  # every 120 seconds (2 minutes)
+    },
+}
 
 
 # Password validation
