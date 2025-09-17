@@ -458,7 +458,7 @@ def whatsapp_callback(request):
 
 
 
-from .whatsapp.whatsapp_messages import send_wa_auth_code , send_wa_appointment_confirmation , send_wa_consultation_reminder_1_hour_before , send_wa_consultation_reminder_24_hours_before
+from .whatsapp.whatsapp_messages import *
 
 @api_view(["GET"])
 def swtm_view(request):
@@ -480,15 +480,22 @@ def swtm_view(request):
     # )
 
 
-    result = send_wa_consultation_reminder_1_hour_before(
+    # result = send_wa_consultation_reminder_1_hour_before(
+    #     to_phone="917034761676",
+    #     patient_name="John Doe",
+    #     salutation="Dr.",
+    #     specialist_name="Smith",
+    #     date_time="2024-10-01 10:00 AM",
+    #     meet_code="123654789"
+    # )
+
+    result = send_wa_patient_requested_cancellation(
         to_phone="917034761676",
         patient_name="John Doe",
-        salutation="Dr.",
-        specialist_name="Smith",
+        salutation="Dr",
+        specialist_name="Neha",
         date_time="2024-10-01 10:00 AM",
-        meet_code="123654789"
     )
-
 
 
     # result = send_wa_auth_code(to_phone="917034761676", auth_code="123456")

@@ -67,6 +67,11 @@ def get_all_specializations(request):
         print(f"Error fetching specializations: {e}")
         return Response({"error": f"An error occurred while fetching specializations.{e}"}, status=500)
 
+@api_view(['GET'])
+def get_all_specializations_without_availability(request):
+    specializations = Specializations.objects.all()
+    serializer = SpecializationsSerializer(specializations, many=True)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 def dotor_details_from_id(request):

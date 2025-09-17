@@ -11,6 +11,95 @@ from django.utils import timezone
 
 
 
+
+
+
+
+
+def send_appointment_cancellation_email(appointment_id):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_customers = appointment.appointment_customers.all()
+        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
+    except AppointmentHeader.DoesNotExist:
+        print('Sending appointment email failed appointment id invalid')
+        return False
+    except Meeting_Tracker.DoesNotExist:
+        print('Sending appointment email failed meeting tracker not found')
+        return False
+
+    subject = "Appointment Cancellation Confirmation - Inticure"
+    doctor_salutation = appointment.doctor.salutation
+
+    context = {
+        "date":appointment.start_time.date(),
+        "time":appointment.start_time.time(),    
+        'specialization':appointment.specialization.specialization,
+        'doctor_name':appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
+        "profile_pic":appointment.doctor.profile_pic.url,
+        "doctor_bio":appointment.doctor.doctor_bio,
+        'year':timezone.now().year,
+        'backend_url':BACKEND_URL,  
+        'salutation':doctor_salutation,
+    }
+    for app_customer in appointment_customers:
+        context['username'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
+        html_content = render_to_string("appointment_cancelled/appointment_cancellation.html", context)
+        send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
+    return True
+
+
+
+
+
+
+def send_appointment_cancellation_email_to_specialist(appointment_id):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_customers = appointment.appointment_customers.all()
+        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
+    except AppointmentHeader.DoesNotExist:
+        print('Sending appointment email failed appointment id invalid')
+        return False
+    except Meeting_Tracker.DoesNotExist:
+        print('Sending appointment email failed meeting tracker not found')
+        return False
+
+    subject = "Appointment Cancellation Confirmation - Inticure"
+    doctor_salutation = appointment.doctor.salutation
+
+    context = {
+        "date":appointment.start_time.date(),
+        "time":appointment.start_time.time(),    
+        'specialization':appointment.specialization.specialization,
+        'doctor_name':appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
+        "profile_pic":appointment.doctor.profile_pic.url,
+        "doctor_bio":appointment.doctor.doctor_bio,
+        'year':timezone.now().year,
+        'backend_url':BACKEND_URL,  
+        'salutation':doctor_salutation,
+    }
+    for app_customer in appointment_customers:
+        context['username'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
+        html_content = render_to_string("appointment_cancelled/appointment_cancelled_to_specialist.html", context)
+        send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
+    return True
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def send_appointment_confirmation_customer_email(
     appointment_id,
 ):
@@ -291,43 +380,6 @@ def send_followup_referal_reminder_email(to_email, name, specialization,doctor_n
     html_content = render_to_string("appointment_reminder/followup_reminder.html", context)
 
     return send_email_via_sendgrid(subject, html_content, to_email)
-
-
-
-
-
-def send_appointment_cancellation_email(appointment_id):
-    try:
-        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
-        appointment_customers = appointment.appointment_customers.all()
-        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
-    except AppointmentHeader.DoesNotExist:
-        print('Sending appointment email failed appointment id invalid')
-        return False
-    except Meeting_Tracker.DoesNotExist:
-        print('Sending appointment email failed meeting tracker not found')
-        return False
-
-    subject = "Appointment Cancellation Confirmation - Inticure"
-    doctor_salutation = appointment.doctor.salutation
-
-    context = {
-        "date":appointment.start_time.date(),
-        "time":appointment.start_time.time(),    
-        'specialization':appointment.specialization.specialization,
-        'doctor_name':appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
-        "profile_pic":appointment.doctor.profile_pic.url,
-        "doctor_bio":appointment.doctor.doctor_bio,
-        'year':timezone.now().year,
-        'backend_url':BACKEND_URL,  
-        'salutation':doctor_salutation,
-    }
-    for app_customer in appointment_customers:
-        context['username'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
-        html_content = render_to_string("appointment_cancellation.html", context)
-        send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
-    return True
-
 
 
 

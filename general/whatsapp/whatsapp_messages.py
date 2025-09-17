@@ -2,6 +2,42 @@ from .api import whatsapp_api_handler
 
 
 
+def send_wa_consultation_canceled_by_patient_to_specialist(to_phone, patient_name, specialist_name, date_time):
+    parameters = [
+        {"type": "text", "parameter_name": "patient_name", "text": patient_name},
+        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
+        {"type": "text", "parameter_name": "datetime", "text": date_time},
+    ]
+
+        
+    return whatsapp_api_handler(to_phone, "consultation_canceled_by_patient_to_specialist", parameters)
+
+
+
+def send_wa_patient_requested_cancellation (to_phone, patient_name,salutation, specialist_name, date_time):
+    
+    parameters = [
+        {"type": "text", "parameter_name": "patient_name", "text": patient_name},
+        {"type": "text", "parameter_name": "salutation", "text": salutation},
+        {"type": "text", "parameter_name": "doctor_name", "text": specialist_name},
+        {"type": "text", "parameter_name": "date_time", "text": date_time},
+    ]
+
+    
+    return whatsapp_api_handler(to_phone, "patient_requested_cancellation", parameters)
+
+
+
+
+
+
+
+
+
+
+
+
+
 def send_wa_appointment_confirmation(patient_name, salutation, specialist_name, date_time, meet_link, to_phone):
     parameters = [
         {"type": "text", "parameter_name": "patient_name", "text": patient_name},
@@ -28,18 +64,6 @@ def send_wa_auth_code(to_phone, auth_code):
     ]
     
     return whatsapp_api_handler(to_phone, "auth_otp", body_parameters, button_parameters , "en_US")
-
-
-def send_wa_patient_requested_cancellation (to_phone, patient_name,salutation, specialist_name, date_time):
-    parameters = [
-        {"type": "text", "parameter_name": "patient_name", "text": patient_name},
-        {"type": "text", "parameter_name": "salutation", "text": salutation},
-        {"type": "text", "parameter_name": "doctor_name", "text": specialist_name},
-        {"type": "text", "parameter_name": "date_time", "text": date_time},
-    ]
-
-    
-    return whatsapp_api_handler(to_phone, "patient_requested_cancellation", parameters)
 
 
 
@@ -312,13 +336,3 @@ def send_wa_consultation_rescheduled_by_patient_to_specialist(to_phone, patient_
 
         
     return whatsapp_api_handler(to_phone, "consultation_rescheduled_by_patient_to_specialist", parameters)
-
-def send_wa_consultation_canceled_by_patient_to_specialist(to_phone, patient_name, specialist_name, date_time):
-    parameters = [
-        {"type": "text", "parameter_name": "patient_name", "text": patient_name},
-        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
-        {"type": "text", "parameter_name": "datetime", "text": date_time},
-    ]
-
-        
-    return whatsapp_api_handler(to_phone, "consultation_canceled_by_patient_to_specialist", parameters)

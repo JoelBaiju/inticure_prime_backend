@@ -12,6 +12,7 @@ urlpatterns = [
     path('languages/', get_all_languages, name='get_all_languages'),
     path('countries/', get_all_countries, name='get_all_countries'),
     path('specializations/', get_all_specializations, name='get_all_specializations'),
+    path('specializations_no_availability/', get_all_specializations_without_availability, name='get_all_specializations_without_availability'),
     path('details_with_id/', dotor_details_from_id, name='doctor_details_from_id'),
     path('doctor-profiles/create/', create_doctor_profile, name='create_doctor_profile'),
     path('login/', LoginView.as_view(), name='doctor_login'),
