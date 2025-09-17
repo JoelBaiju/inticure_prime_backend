@@ -691,7 +691,7 @@ def get_active_chat_sessions(request):
             print("\n\n doctor_name" , doctor_name)
             print("\n\n user.is_staff" , user.is_staff)
             print("\n\n customer_name" , customer_name)
-            description = [parti['name'] for parti in participants if not parti['iscurrent_user']][0]
+            description = [parti['name'] for parti in participants if not parti['is_current_user']][0]
 
             session_data = {
                 'session_id': session.id,
