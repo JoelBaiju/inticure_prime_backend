@@ -125,4 +125,5 @@ class CommonFileUploader(models.Model):
     uploaded_on = models.DateTimeField(auto_now_add=True , null=True)
     common_file=models.FileField(null=True,upload_to='tests&common_files/')
     file_name=models.CharField(max_length=100,null=True)
+    uploaded_by_doctor = models.BooleanField(default=False)
 

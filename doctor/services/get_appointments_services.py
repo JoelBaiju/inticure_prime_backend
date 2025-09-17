@@ -28,8 +28,12 @@ from analysis.models import (
     Appointment_customers,
     Referral_customer,
     Meeting_Tracker,
-    AppointmentHeader
+    AppointmentHeader,
+    Questionnaire,
+    Options
 )
+
+from analysis.serializers import QuestionnaireSerializer, OptionsSerializer
 
 from ..serializers import (
     AppointmentDetailSerializer,
@@ -190,6 +194,23 @@ def get_appointment_full_details_service(appointment_id):
     added_ob_notes = Observation_Notes.objects.filter(appointment=appointment).exists()
     added_fup_notes = Follow_Up_Notes.objects.filter(appointment=appointment).exists()
 
+    questionnaire = Questionnaire.objects.all()
+    print("Questionnaire:", questionnaire)
+    questionnaire_serialized = QuestionnaireSerializer(questionnaire, many=True).data
+
+    for question in questionnaire_serialized:
+        
+        question['options']= OptionsSerializer(
+            Options.objects.filter(question=question['id']),
+            many=True
+        ).data
+        for opt in question['options']:
+            opt['is_selected']= True if AppointmentQuestionsAndAnswers.objects.filter(
+                question_id=question['id'],
+                answer_id=opt['id'],
+                customer=customer
+            ).exists() else False
+
     return {
         "booked_customer":appointment.customer.id,
         "appointment": appointment_data,
@@ -208,5 +229,6 @@ def get_appointment_full_details_service(appointment_id):
         "added_fup_notes": added_fup_notes,
         "doctor_id": appointment.doctor.doctor_profile_id,
         "is_prescription_allowed": appointment.doctor.is_prescription_allowed,
-        'is_couple':appointment.is_couple
+        'is_couple':appointment.is_couple,
+        "habitual_questions":questionnaire_serialized
     }

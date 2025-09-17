@@ -45,6 +45,7 @@ urlpatterns = [
     path('reschedule/' , AppointmentRescheduleView_Doctor.as_view() , name='appointment reschedule'),
     path('status_update/',Appointment_status_update.as_view()),
     path('doctor_specializations/',get_doctor_specializations),
+    path('add_prescription_validity/',add_prescription_validity),
     path('prescriptions/',Get_Prescriptions.as_view()),
     path('deactivate_medicine/',deactivate_medicine),
     path('earnings/',doctor_earnings),
@@ -53,4 +54,6 @@ urlpatterns = [
     path('bank_account/',DoctorBankAccountView.as_view()),
     path('available_packages/',Available_packages.as_view()),
     path('suggest_package/',Suggest_package.as_view()),
+
+    path("patient_files/", Get_Doctor_uploaded_files.as_view(), name="common-files"),
 ]

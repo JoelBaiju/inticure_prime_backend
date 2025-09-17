@@ -160,3 +160,27 @@ def edit_available_hours_view(request):
         return Response({"error": str(e)}, status=400)
     
 
+
+
+
+from django.utils import timezone
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_prescription_validity(request):
+    try:
+        appointment_id = request.data.get('appointment_id')
+        valid_till_days = request.data.get('valid_till_days')
+        valid_till = timezone.now().date() + timezone.timedelta(days=valid_till_days)
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+
+        validity = Prescrption_validity.objects.create(
+            valid_till=valid_till,
+            active=True,
+            customer = appointment.customer,
+            doctor = appointment.doctor 
+        )
+        return Response({"message": "Prescription validity added successfully"}, status=201)
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+    

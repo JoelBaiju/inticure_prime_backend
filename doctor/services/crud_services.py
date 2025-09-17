@@ -23,7 +23,7 @@ from analysis.models import (
     Follow_Up_Notes,
     AppointmentQuestionsAndAnswers,
     Appointment_customers,
-
+    Prescrption_validity
 )
 from administrator.models import *
 from ..models import (
@@ -87,6 +87,15 @@ def update_customer_details(data: dict):
             Extra_questions_answers.objects.create(
                 question_id=question.get("question_id"),
                 answer=question.get("answer"),
+                customer=customer
+            )
+        message_parts.append("Extra questions")
+
+    if data.get("habitual_questions"):
+        for question in data.get("habitual_questions"):
+            AppointmentQuestionsAndAnswers.objects.create(
+                question_id=question.get("question"),
+                answer_id=question.get("option"),
                 customer=customer
             )
         message_parts.append("Extra questions")
@@ -327,7 +336,7 @@ def update_appointment_status(appointment_id: str, completed: bool, reason: str 
 
 
 
-def get_customer_prescriptions(customer_id: int):
+def get_customer_prescriptions(customer_id: int , doctor: DoctorProfiles):
     """
     Returns all prescriptions, notes, and questionnaire answers for a given customer.
     """
@@ -344,6 +353,7 @@ def get_customer_prescriptions(customer_id: int):
     followup_advices = Follow_Up_Notes.objects.filter(customer=customer)
     files = CommonFileUploader.objects.filter(customer=customer)
 
+    prescription_validity_added = Prescrption_validity.objects.filter(customer=customer ,doctor = doctor, active = True).exists()
 
     # Serialize them (return empty [] if none)
     data = {
@@ -356,6 +366,7 @@ def get_customer_prescriptions(customer_id: int):
         "patient_details": PatientSerializer(customer).data,
         "patient_first_name": customer.user.first_name,
         "patient_last_name": customer.user.last_name,
+        "prescription_validity_added": prescription_validity_added
     }
 
     # Questionnaire answers

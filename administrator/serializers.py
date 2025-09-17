@@ -20,19 +20,18 @@ class LanguagesKnownSerializer(serializers.ModelSerializer):
         fields = ['id', 'language']
 
 
-
-
 class SpecializationsSerializer(serializers.ModelSerializer):
     is_couple = serializers.SerializerMethodField()
     class Meta:
         model = Specializations
-        fields = ['specialization_id', 'specialization' , 'is_couple']
+        fields = ['specialization_id', 'specialization' , 'is_couple' ]
 
     def get_is_couple(self, obj):
         if  obj.double_session_duration and obj.double_session_duration >timedelta(seconds=0):
             return True
         else:
             return False
+        
 
 class SpecializationsSerializerFull(serializers.ModelSerializer):
     double_session_duration = serializers.SerializerMethodField()

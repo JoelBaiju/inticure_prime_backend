@@ -34,20 +34,38 @@ def get_all_countries(request):
     return Response(serializer.data)
 
 
+
+
+from customer.services.doctor_availability_services import is_doctor_available_in_specialization
+from inticure_prime_backend.settings import MAX_DOCTOR_AVAILABLITY_SEARCH_DAYS
+
+
 @api_view(['GET'])
 def get_all_specializations(request):
     session_type = request.GET.get('is_couple')
-    print(f"Session type received: {session_type}")
-    if session_type and session_type.lower() == 'true':
-        print(f"Fetching specializations with double session duration {session_type}")
-        specializations = Specializations.objects.filter(
-            double_session_duration__isnull=False,
-            double_session_duration__gt=timedelta(seconds=0)
-        )
-    else:
-        specializations = Specializations.objects.all()
-    serializer = SpecializationsSerializer(specializations, many=True)
-    return Response(serializer.data)
+    appointment_id = request.GET.get('appointment_id')
+    try:
+        country = AppointmentHeader.objects.get(appointment_id=appointment_id).customer.country_details.country_name
+        print(f"Session type received: {session_type}")
+        if session_type and session_type.lower() == 'true':
+            print(f"Fetching specializations with double session duration {session_type}")
+            specializations = Specializations.objects.filter(
+                double_session_duration__isnull=False,
+                double_session_duration__gt=timedelta(seconds=0)
+            )
+        else:
+            specializations = Specializations.objects.all()
+        serializer = SpecializationsSerializer(specializations, many=True)
+        for specialization in serializer.data:
+            specialization['is_doctor_available'] = is_doctor_available_in_specialization(
+                specialization['specialization_id'], 
+                MAX_DOCTOR_AVAILABLITY_SEARCH_DAYS, 
+                country
+            )
+        return Response(serializer.data)
+    except Exception as e:
+        print(f"Error fetching specializations: {e}")
+        return Response({"error": f"An error occurred while fetching specializations.{e}"}, status=500)
 
 
 @api_view(['GET'])
@@ -151,9 +169,35 @@ class Get_Prescriptions(APIView):
         customer_id = request.GET.get("customer")
         if not customer_id:
             return Response("customer id is required", status=status.HTTP_400_BAD_REQUEST)
+        try:
+            doctor = DoctorProfiles.objects.get(user=request.user)
+        except DoctorProfiles.DoesNotExist:
+            return Response({"error": "Doctor not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        data, error = get_customer_prescriptions(customer_id)
+        data, error = get_customer_prescriptions(customer_id , doctor)
         if error:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+
+
+class Get_Doctor_uploaded_files(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        appointment_id = request.GET.get("appointment_id")
+        if not appointment_id:
+            return Response("appointment_id is required", status=status.HTTP_400_BAD_REQUEST)
+        try:
+            files = CommonFileUploader.objects.filter(appointment__appointment_id=appointment_id , 
+                                                      uploaded_by_doctor = True,
+                                                      appointment__doctor__user = request.user)
+            return Response(CommonFilesSerializer(files, many=True).data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({f"error":" {e}"}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+

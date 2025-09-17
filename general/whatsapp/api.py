@@ -5,9 +5,85 @@ from django.conf import settings
 
 
 
-def whatsapp_api_handler(
-   to_phone , template_name , parameters
-):
+# def whatsapp_api_handler(
+#    to_phone , template_name , parameters
+# ):
+#     """
+#     Send WhatsApp template message using Meta's Graph API.
+#     """
+#     ACCESS_TOKEN = settings.WHATSAPP_ACCESS_TOKEN
+#     PHONE_NUMBER_ID = settings.WHATSAPP_PHONE_NUMBER_ID
+    
+#     url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
+    
+#     headers = {
+#         "Authorization": f"Bearer {ACCESS_TOKEN}",
+#         "Content-Type": "application/json"
+#     }
+
+#     payload = {
+#         "messaging_product": "whatsapp",
+#         "to": to_phone if to_phone.startswith("+") else f"+{to_phone}",
+#         "type": "template",
+#         "template": {
+#             "name": template_name,
+#             "language": {"code": "en_US"},  # ✅ Use en_US for safety
+#             "components": [
+#                 {
+#                     "type": "body",
+#                     "parameters": parameters
+#                 },
+
+#                 # {
+#                 #     "type": "button",
+#                 #     "sub_type": "url",
+#                 #     "index": 0,
+#                 #     "parameters": [
+#                 #     {
+#                 #         "type": "text",
+#                 #         "text": "https://yourdomain.com/verify?code=123456"
+#                 #     }
+#                 #         ]
+#                 # }
+#             ]}
+#     }
+
+#     try:
+#         response = requests.post(url, headers=headers, json=payload)
+#         response.raise_for_status()
+#         return response.json()
+#     except requests.exceptions.RequestException as e:
+#         return {
+#             "error": str(e),
+#             "response_text": getattr(response, "text", "No response")
+#         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def whatsapp_api_handler(to_phone, template_name, body_parameters, button_parameters=None , language_code="en"):
     """
     Send WhatsApp template message using Meta's Graph API.
     """
@@ -21,31 +97,30 @@ def whatsapp_api_handler(
         "Content-Type": "application/json"
     }
 
+    components = [
+        {
+            "type": "body",
+            "parameters": body_parameters
+        }
+    ]
+    
+    if button_parameters:
+        components.append({
+            "type": "button",
+            "sub_type": "url",
+            "index": "0",  
+            "parameters": button_parameters
+        })
+
     payload = {
         "messaging_product": "whatsapp",
         "to": to_phone if to_phone.startswith("+") else f"+{to_phone}",
         "type": "template",
         "template": {
             "name": template_name,
-            "language": {"code": "en_US"},  # ✅ Use en_US for safety
-            "components": [
-                {
-                    "type": "body",
-                    "parameters": parameters
-                },
-
-                # {
-                #     "type": "button",
-                #     "sub_type": "url",
-                #     "index": 0,
-                #     "parameters": [
-                #     {
-                #         "type": "text",
-                #         "text": "https://yourdomain.com/verify?code=123456"
-                #     }
-                #         ]
-                # }
-            ]}
+            "language": {"code": language_code},  # Use specified language code
+            "components": components
+        }
     }
 
     try:
@@ -55,9 +130,5 @@ def whatsapp_api_handler(
     except requests.exceptions.RequestException as e:
         return {
             "error": str(e),
-            "response_text": getattr(response, "text", "No response")
+            "response_text": getattr(response, "text", "No response") if 'response' in locals() else "No response"
         }
-
-
-
-

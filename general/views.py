@@ -458,7 +458,7 @@ def whatsapp_callback(request):
 
 
 
-from .whatsapp.whatsapp_messages import send_wa_auth_code , send_wa_appointment_confirmation
+from .whatsapp.whatsapp_messages import send_wa_auth_code , send_wa_appointment_confirmation , send_wa_consultation_reminder_1_hour_before , send_wa_consultation_reminder_24_hours_before
 
 @api_view(["GET"])
 def swtm_view(request):
@@ -469,9 +469,29 @@ def swtm_view(request):
     #     specialist_name="Smith",
     #     date_time="2024-10-01 10:00 AM",
     #     meet_link="https://meet.example.com/appointment123"
+    # )    
+    # result = send_wa_consultation_reminder_24_hours_before(
+    #     to_phone="917034761676",
+    #     patient_name="John Doe",
+    #     salutation="Dr.",
+    #     specialist_name="Smith",
+    #     date_time="2024-10-01 10:00 AM",
+    #     meet_code="123654789"
     # )
 
-    result = send_wa_auth_code(to_phone="917034761676", auth_code="123456")
+
+    result = send_wa_consultation_reminder_1_hour_before(
+        to_phone="917034761676",
+        patient_name="John Doe",
+        salutation="Dr.",
+        specialist_name="Smith",
+        date_time="2024-10-01 10:00 AM",
+        meet_code="123654789"
+    )
+
+
+
+    # result = send_wa_auth_code(to_phone="917034761676", auth_code="123456")
     return Response(result) 
 
 
@@ -490,12 +510,16 @@ def upload_file_view(request):
             return Response({'error': 'Invalid file type. Only PDF and image files are allowed.'}, status=status.HTTP_400_BAD_REQUEST)
         if not request.POST.get('appointment_id') :
             return Response({'error': 'appointment_id and file_name are required.'}, status=status.HTTP_400_BAD_REQUEST)
-        customerprofile = CustomerProfile.objects.get(user=request.user)
+        if not request.user.is_staff:
+            customerprofile = CustomerProfile.objects.get(user=request.user)
+        else:
+            customerprofile = None
         file_instance = CommonFileUploader.objects.create(
             appointment_id=request.POST.get('appointment_id'),
             common_file=uploaded_file,
             file_name=request.POST.get('file_name'),
-            customer=customerprofile
+            customer=customerprofile,
+            uploaded_by_doctor = True if request.user.is_staff else False
         )
 
         return Response({'message': 'File uploaded successfully', 'file_id': file_instance.id}, status=status.HTTP_201_CREATED)

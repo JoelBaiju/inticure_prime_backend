@@ -175,6 +175,7 @@ def _ensure_timezone_aware(dt: datetime) -> datetime:
 
 
 from django.utils import timezone 
+from inticure_prime_backend.settings import MAX_DOCTOR_AVAILABLITY_SEARCH_DAYS
 
 def is_doctor_available_in_specialization(specialization_id, days, country):
     start_time = timezone.now()
@@ -198,5 +199,5 @@ def get_specializations_service(country):
     serializer = SpecializationsSerializerFull(specializations, many=True)
     specializations_data = serializer.data
     for specialization in specializations_data:
-        specialization['is_doctor_available'] = is_doctor_available_in_specialization(specialization['specialization_id'], 180, country)
+        specialization['is_doctor_available'] = is_doctor_available_in_specialization(specialization['specialization_id'], MAX_DOCTOR_AVAILABLITY_SEARCH_DAYS, country)
     return specializations_data

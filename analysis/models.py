@@ -94,6 +94,9 @@ class AppointmentHeader(models.Model):
     package_used                = models.BooleanField(default=False)
     confirmed_by_admin          = models.BooleanField(default=False)
 
+
+
+
 class Appointment_customers(models.Model):
     appointment     = models.ForeignKey(AppointmentHeader, on_delete=models.CASCADE, related_name='appointment_customers')
     customer        = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='appointment_customers')
@@ -150,6 +153,8 @@ class Prescribed_Medications(models.Model):
     medicine_name   = models.CharField(max_length=200)
     is_active       = models.BooleanField(default=True)
 
+
+
 class Prescribed_Tests(models.Model):
     customer        = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='prescribed_tests', null=True, blank=True)
     doctor          = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE, related_name='prescribed_tests', null=True, blank=True)
@@ -169,7 +174,12 @@ class Notes_for_patient(models.Model):
     updated_at      = models.DateTimeField(auto_now=True ,null=True)
 
 
-
+class Prescrption_validity(models.Model):
+    valid_till  = models.DateField(null=True)
+    active      = models.BooleanField(default=True)
+    doctor      = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE, related_name='prescription_validity', null=True, blank=True)
+    customer    = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='prescription_validity', null=True, blank=True)
+    last_updated= models.DateTimeField(auto_now=True)
 
 class Doctor_Suggested_Plans(models.Model):
     refferral = models.ForeignKey(Referral, on_delete=models.CASCADE, related_name='suggested_plans', null=True, blank=True)
