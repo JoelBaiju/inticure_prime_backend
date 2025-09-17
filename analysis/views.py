@@ -29,6 +29,7 @@ from general.models import PreTransactionData
 from general.tasks import *
 from general.twilio import *
 from general.utils import *
+from general.whatsapp.whatsapp_messages import send_wa_auth_code
 
 # Python standard library
 from dateutil.relativedelta import relativedelta
@@ -72,6 +73,7 @@ class PhoneNumberOrEmailSubmissionView(APIView):
                 otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = '666666')
                 # otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = generate_random_otp())
                 # send_otp_sms(otp = otp_instance.otp , to_number=country_code+phone_number)
+                send_wa_auth_code(country_code+phone_number , otp_instance.otp)
                 print("OTP sent to phone number:", phone_number)
             
         if email:
@@ -1114,7 +1116,7 @@ def ConfirmAppointment(appointment_id =None, pretransaction_id =None, is_admin =
 
 
 
-
+from general.notification_controller import send_appointment_confirmation_notification
 
 
 
@@ -1132,20 +1134,14 @@ def appointment_routine_notifications(appointment_id):
     
     if appointment.customer.completed_first_analysis:
             
-        send_appointment_confirmation_customer_email_task.delay(
-            appointment_id = appointment.appointment_id,
-        )
-    # elif appointment.followup:
-    #     send_followup_confirmation_email_task.delay(
-    #         appointment_id = appointment.appointment_id
-    #     )
+      pass
     else:
-        send_first_appointment_confirmation_email_task.delay(
-            appointment_id = appointment.appointment_id
-        )
         appointment.customer.completed_first_analysis = True
         appointment.customer.save()
     
+    send_appointment_confirmation_notification.delay(
+        appointment_id
+    )
 
     task = monitor_appointment.apply_async(
         args=[appointment.appointment_id],

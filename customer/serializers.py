@@ -66,6 +66,7 @@ class CustomerPreviousAppointmentsSerializer(serializers.ModelSerializer):
             AppointmentHeader.objects.filter(
                 Q(appointment_customers__customer=obj) | Q(customer=obj),
                 Q(appointment_status__in=['completed', 'cancelled'])| Q(start_time__lt=now),
+                Q(doctor__doctor_flag = "senior")
             )
             .select_related("doctor", "specialization")
             .order_by("-start_time")
