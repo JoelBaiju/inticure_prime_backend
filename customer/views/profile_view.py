@@ -221,7 +221,7 @@ def add_customer_country(request):
         )
     except CustomerProfile.DoesNotExist:
         return Response(
-            {"error": "Customer profile not found."}, 
+            {"error": "Patient profile not found."}, 
             status=status.HTTP_404_NOT_FOUND
         )
 
@@ -239,14 +239,14 @@ class PatientDetailsFromPhoneEmailView(APIView):
                 serializer = CustomerProfileSerializerMini(customer_profile)
                 return Response(serializer.data)
             except CustomerProfile.DoesNotExist:
-                return Response({"error": "Customer profile not found."}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Patient profile not found."}, status=status.HTTP_404_NOT_FOUND)
         elif phone:
             try:
                 customer_profile = CustomerProfile.objects.get(whatsapp_number=phone)
                 serializer = CustomerProfileSerializerMini(customer_profile)
                 return Response(serializer.data)
             except CustomerProfile.DoesNotExist:
-                return Response({"error": "Customer profile not found."}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Patient profile not found."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"error": "Phone number or email is required."}, status=status.HTTP_400_BAD_REQUEST)
 

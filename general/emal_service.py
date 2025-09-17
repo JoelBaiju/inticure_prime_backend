@@ -197,6 +197,7 @@ def send_appointment_confirmation_customer_email(
         'backend_url':BACKEND_URL,  
         'salutation':appointment.doctor.salutation,
     }
+
     for app_customer in appointment_customers:
         context['name'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
         meetlink = meeting_tracker.customer_1_meeting_link if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_link
@@ -204,6 +205,32 @@ def send_appointment_confirmation_customer_email(
         html_content = render_to_string("appointment_confirmation_customer.html", context)
         send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
     return True
+
+
+
+
+
+def send_appointment_confirmation_doctor_email(
+    appointment_id,
+):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
+
+        context = {
+            "date": appointment.start_time.date(),
+            "time": appointment.start_time.time(),
+            "specialization": appointment.specialization.specialization,
+            "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
+            'backend_url':BACKEND_URL,  
+            "meet_link":meeting_tracker.doctor_meeting_link
+        }
+        subject = "Consultation Confirmed"
+        html_content = render_to_string("appointment_confirmation_doctor.html", context)
+        send_email_via_sendgrid(subject, html_content, appointment.doctor.email_id)
+    except AppointmentHeader.DoesNotExist:
+        print('Sending appointment email failed appointment id invalid')
+        return False
 
 
 

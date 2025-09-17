@@ -1,5 +1,5 @@
 from .api import whatsapp_api_handler
-from analysis.models import AppointmentHeader
+from analysis.models import AppointmentHeader, Meeting_Tracker
 from ..utils import convert_datetime_to_words
 
 
@@ -10,7 +10,7 @@ def send_wa_consultation_canceled_by_patient_to_specialist(appointment_id):
         patient_name    = appointment.customer.user.first_name
         specialist_name = appointment.doctor.first_name
         date_time       = convert_datetime_to_words(appointment.start_time)
-        to_phone        = appointment.doctor.whatsapp_number
+        to_phone        = appointment.doctor.whatsapp_country_code + appointment.doctor.whatsapp_number
     except AppointmentHeader.DoesNotExist:
         print(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
@@ -33,7 +33,7 @@ def send_wa_patient_requested_cancellation (appointment_id):
         specialist_name = appointment.doctor.first_name
         salutation      = appointment.doctor.salutation
         date_time       = convert_datetime_to_words(appointment.start_time)
-        to_phone        = appointment.customer.whatsapp_number
+        to_phone        = appointment.customer.country_code + appointment.customer.whatsapp_number
 
     except AppointmentHeader.DoesNotExist:
         print(f"Appointment does not exist.for id {appointment_id}")
@@ -51,10 +51,7 @@ def send_wa_patient_requested_cancellation (appointment_id):
 
 
 
-
-
-
-
+# ====================================================================================================================
 
 
 
@@ -68,7 +65,8 @@ def send_wa_appointment_confirmation(appointment_id):
         salutation      = appointment.doctor.salutation
         date_time       = convert_datetime_to_words(appointment.start_time)
         meet_link       = appointment.meeting_link
-        to_phone        = appointment.customer.whatsapp_number
+        to_phone        = appointment.customer.country_code + appointment.customer.whatsapp_number
+
     except AppointmentHeader.DoesNotExist:
         print(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
@@ -84,6 +82,69 @@ def send_wa_appointment_confirmation(appointment_id):
 
 
 
+
+
+
+def send_wa_first_consultation_confirmation(appointment_id):
+    try:
+        appointment     = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        patient_name    = appointment.customer.user.first_name
+        specialist_name = appointment.doctor.first_name
+        salutation      = appointment.doctor.salutation
+        date_time       = convert_datetime_to_words(appointment.start_time)
+        to_phone        = appointment.customer.country_code + appointment.customer.whatsapp_number
+
+        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
+        meet_code       = meeting_tracker.customer_1_meeting_id
+
+    except AppointmentHeader.DoesNotExist:
+        print(f"Appointment does not exist.for id {appointment_id}")
+        return "Appointment does not exist."
+
+    parameters = [
+        {"type": "text", "parameter_name": "name", "text": patient_name},
+        {"type": "text", "parameter_name": "salutation", "text": salutation},
+        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
+        {"type": "text", "parameter_name": "datetime", "text": date_time},
+    ]
+
+    button_parameters = [
+        {
+            "type": "text", 
+            "text": meet_code 
+        }
+    ]
+    return whatsapp_api_handler(to_phone, "first_consultation_confirmation", parameters , button_parameters)
+
+
+
+
+def send_wa_consultation_confirmation_to_specialist(appointment_id):
+    try:
+        appointment     = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        patient_name    = appointment.customer.user.first_name
+        specialist_name = appointment.doctor.first_name
+        date_time       = convert_datetime_to_words(appointment.start_time)
+        to_phone        = appointment.customer.country_code + appointment.customer.whatsapp_number
+
+
+    except AppointmentHeader.DoesNotExist:
+        print(f"Appointment does not exist.for id {appointment_id}")
+        return "Appointment does not exist."
+
+    parameters = [
+        {"type": "text", "parameter_name": "patient_name", "text": patient_name},
+        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
+        {"type": "text", "parameter_name": "datetime", "text": date_time},
+    ]
+
+      
+    return whatsapp_api_handler(to_phone, "consultation_confirmation_to_specialist", parameters)
+
+
+
+
+# ====================================================================================================================
 
 
 def send_wa_auth_code(to_phone, auth_code):
@@ -287,23 +348,6 @@ def send_wa_welcome_to_inticure (to_phone, patient_name):
 
 
 
-def send_wa_first_consultation_confirmation(to_phone, patient_name, salutation, specialist_name, date_time, meet_code):
-    parameters = [
-        {"type": "text", "parameter_name": "name", "text": patient_name},
-        {"type": "text", "parameter_name": "salutation", "text": salutation},
-        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
-        {"type": "text", "parameter_name": "datetime", "text": date_time},
-    ]
-
-    button_parameters = [
-        {
-            "type": "text", 
-            "text": meet_code 
-        }
-    ]
-    return whatsapp_api_handler(to_phone, "first_consultation_confirmation", parameters , button_parameters)
-
-
 def send_wa_specialist_reminder_1_hour_before(to_phone, patient_name, specialist_name, date_time, meet_code):
     parameters = [
         {"type": "text", "parameter_name": "patient_name", "text": patient_name},
@@ -321,16 +365,6 @@ def send_wa_specialist_reminder_1_hour_before(to_phone, patient_name, specialist
 
     return whatsapp_api_handler(to_phone, "specialist_reminder_1_hour_before", parameters, button_parameters)
 
-
-def send_wa_consultation_confirmation_to_specialist(to_phone, patient_name,  specialist_name, date_time, meet_code):
-    parameters = [
-        {"type": "text", "parameter_name": "patient_name", "text": patient_name},
-        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
-        {"type": "text", "parameter_name": "datetime", "text": date_time},
-    ]
-
-      
-    return whatsapp_api_handler(to_phone, "consultation_confirmation_to_specialist", parameters)
 
 
 def send_wa_consultation_missed_specialist_noshow(to_phone, patient_name, specialist_name, date_time):

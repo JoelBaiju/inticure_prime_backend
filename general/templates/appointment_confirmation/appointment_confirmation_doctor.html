@@ -43,7 +43,6 @@
       line-height: 1.3;
     }
 
-    /* Replace SVG wave with a simple CSS wave */
     .header-wave {
       bottom: 0;
       left: 0;
@@ -204,7 +203,17 @@
     .policy-links a:hover {
       text-decoration: underline;
     }
+
+    .disclaimer {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-size: 12px;
+      line-height: 1.5;
+    }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="container">
@@ -216,7 +225,7 @@
     <!-- Header -->
     <div class="header">
       <div class="header-content">
-        <h1>Congratulations on taking the first step on your journey to go from oh no, to OH YES!</h1>
+        <h1>Consultation Confirmed </h1>
       </div>
     </div>
 
@@ -224,57 +233,27 @@
 
     <!-- Email Body -->
     <div class="email-body">
-      <h4>Hi {{name}},</h4>
+      <h4>Hi {{doctor_name}},</h4>
 
-      <p>Your consultation with one of our non-judgemental, empathetic, and courteous doctors has been scheduled.</p>
-      
       <div class="appointment-details">
-        <p><strong>Your consultation has been confirmed:</strong></p>
-        <p>Date: <b>{{date}}</b></p>
-        <p>Time: <b>{{time}}</b></p>
-        <p>With: <b>{{salutation}} {{doctor_name}}</b></p>
+        <p>You have a {{specialization}} consultation confirmed with {{name}} on {{date}} at {{time}}.</p>
       </div>
 
-      <p>Please click the button below at the time of your appointment to start your consultation.</p>
 
       <div class="btn-container">
-        <a href="{{meet_link}}" style="color: white; text-decoration: none;" class="btn-primary">Start consultation</a> 
+        <a style="color: white;" href="{{meet_link}}" class="btn-primary">Start Consultation</a>
       </div>
 
-      <p>You can also access this link and see all your current and upcoming appointments by visiting your <a href="https://customers.inticure.online/consultations">consultation dashboard</a>.</p>
+      <p>You can also access this link and see all your current and upcoming consultations by visiting your <a href="">consultation dashboard</a>.(The link will only become active 15 minutes before the consultation start time.)</p>
 
-      <p><b>Important:</b> During your FIRST consultation, your doctor cannot write a prescription for you. To ensure you receive the most effective treatment, a prescription (if needed) will only be given after consultation with one of our specialists.</p>
+      <p>If you need to <b>reschedule</b> or <b>cancel</b> your consultation, please do so through your <a href="https://doctors.inticure.com">dashboard</a>.</p>
 
-   <p>If you need to <b>reschedule</b> or <b>cancel</b> your consultation, please do so through your <a href="https://customers.inticure.online/consultations">dashboard</a>.</p>
-
-      <p>You may reschedule up to 6 hours before the consultation start time. Cancellations are only allowed before 24 hours of the consultation time. If you do not join the consultation within 15 minutes of the scheduled start time, it will be treated as a no-show and no refund will be issued.</p>
+      <p>Please note: Rescheduling is highly discouraged and should only be used in an emergency if you are unable to attend.</p>
 
 
-      <div class="doctor-bio">
-        <div class="doctor-bio-header">
-          {% if profile_pic %}
-          <img src="{{backend_url}}/media/whyus-doctors-2.png" alt="Dr. {{doctor_name}}" class="doctor-image-small">
-          {% else %}
-          <img src="{{backend_url}}/media/icons/patient_consulting_doctor_online.png" alt="Dr. {{doctor_name}}" class="doctor-image-small">
-          {% endif %}
-          <div class="doctor-title">
-            <h5>{{salutation}} {{doctor_name}}</h5>
-            <p>Your Healthcare Provider</p>
-          </div>
-        </div>
-        <p>{{doctor_bio}}</p>
-      </div>
 
-      <div class="disclaimer">
-        <p><b>Disclaimer:</b> By joining the consultation, you hereby:</p>
-        <p>1. Provide consent for virtual consultation with the practitioner</p>
-        <p>2. Understand the practitioner is licensed to practice only within India</p>
-        <p>3. Agree any prescription provided may only be utilized within India</p>
-        <p>4. Confirm you have read and agree to our Privacy Policy and Terms</p>
-      </div>
-
-      <p>If you have any questions, you can always email us at wecare@inticure.com or WhatsApp us at +91-9778385292.</p>
-           <p><b>Your safety and privacy is our number one priority. ALWAYS!</b></p>
+      <p>If you need any assistance, please reach out to us at drsupport@inticure.com.</p>
+           <p><b>Have a productive consultation!</b></p>
 
       <p class="signature">With you on your journey,<br><strong>Team Inticure</strong></p>
     </div>

@@ -1135,10 +1135,10 @@ def appointment_routine_notifications(appointment_id):
         send_appointment_confirmation_customer_email_task.delay(
             appointment_id = appointment.appointment_id,
         )
-    elif appointment.followup:
-        send_followup_confirmation_email_task.delay(
-            appointment_id = appointment.appointment_id
-        )
+    # elif appointment.followup:
+    #     send_followup_confirmation_email_task.delay(
+    #         appointment_id = appointment.appointment_id
+    #     )
     else:
         send_first_appointment_confirmation_email_task.delay(
             appointment_id = appointment.appointment_id

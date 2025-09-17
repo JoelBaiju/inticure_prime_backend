@@ -490,11 +490,7 @@ def swtm_view(request):
     # )
 
     result = send_wa_patient_requested_cancellation(
-        to_phone="917034761676",
-        patient_name="John Doe",
-        salutation="Dr",
-        specialist_name="Neha",
-        date_time="2024-10-01 10:00 AM",
+       appointment_id=109
     )
 
 
