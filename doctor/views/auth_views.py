@@ -44,7 +44,7 @@ class LoginView(APIView):
             print("Phone number received and got in:", phone_number)
             otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = otp)
             # send_otp_sms(otp = otp_instance.otp , to_number=country_code+phone_number)
-            send_wa_auth_code(country_code + phone_number ,otp)
+            send_wa_auth_code(str(country_code) + str(phone_number) ,otp)
             print("OTP sent to phone number:", phone_number)
             
         if email:

@@ -132,7 +132,7 @@ class WhatsappNumberOrEmailChangeView(APIView):
                 otp_instance = Phone_OTPs.objects.create(phone=whatsapp_number , otp = '666666')
                 # otp_instance = Phone_OTPs.objects.create(phone=whatsapp_number , otp = generate_random_otp())
                 # send_otp_sms(otp = otp_instance.otp , to_number=country_code+whatsapp_number)
-                send_wa_auth_code(country_code+whatsapp_number,otp_instance.otp)
+                send_wa_auth_code(str(country_code)+str(whatsapp_number),otp_instance.otp)
                 print("OTP sent to phone number:", whatsapp_number)
             
         if email:
