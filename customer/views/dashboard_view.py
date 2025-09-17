@@ -53,19 +53,22 @@ def customer_files(request):
     """
     API to get customer files
     """
+    appointment_id = request.GET.get('appointment_id', None)
     try:
-        customer_profile = CustomerProfile.objects.get(user=request.user)
-        doctor_uploaded_files = customer_profile.common_files.filter(uploaded_by_doctor = True)
+        if appointment_id:
+            appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+
+        doctor_uploaded_files = appointment.common_files.filter(uploaded_by_doctor = True)
         doctor_uploaded_files = CommonFilesSerializer(doctor_uploaded_files, many=True)
-        patient_uploaded_files = customer_profile.common_files.filter(uploaded_by_doctor = False)
+        patient_uploaded_files = appointment.common_files.filter(uploaded_by_doctor = False)
         patient_uploaded_files = CommonFilesSerializer(patient_uploaded_files, many=True)
         return Response({
             "doctor_uploaded_files": doctor_uploaded_files.data,
             "patient_uploaded_files": patient_uploaded_files.data
         })
-    except CustomerProfile.DoesNotExist:
+    except AppointmentHeader.DoesNotExist:
         return Response(
-            {"error": "Customer profile not found."}, 
+            {"error": "Appointment not found."}, 
             status=404
         )
     except Exception as e:
