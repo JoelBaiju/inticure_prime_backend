@@ -694,7 +694,13 @@ def get_active_chat_sessions(request):
 
             session_data = {
                 'session_id': session.id,
-                'description': customer_name if user.is_staff and len(customer_name)>2 else  doctor_name  if user.is_superuser or not user.is_staff else "Inticure Support",
+                # 'description': customer_name if user.is_staff and len(customer_name)>2 else  doctor_name  if user.is_superuser or not user.is_staff else "Inticure Support",
+                'description': (
+                    doctor_name if user.is_superuser 
+                    else customer_name if user.is_staff and len(customer_name) > 2 
+                    else "Inticure Support"
+                ),
+
                 'created_at': session.created_at.isoformat(),
                 'closed_at': session.closed_at.isoformat() if session.closed_at else None,
                 'is_open': session.is_open,
