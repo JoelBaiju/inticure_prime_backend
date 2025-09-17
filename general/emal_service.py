@@ -91,9 +91,80 @@ def send_appointment_cancellation_email_to_specialist(appointment_id):
 
 
 
+# ==============================================================================================================
 
 
 
+def send_followup_confirmation_email(
+    appointment_id,
+):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_customers = appointment.appointment_customers.all()
+        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
+    except AppointmentHeader.DoesNotExist:
+        print('Sending follow email failed appointment id invalid')
+        return False
+
+    subject = "Follow-up Appointment Confirmation - Inticure"
+
+    context = {
+        "date": appointment.start_time.date(),
+        "time": appointment.start_time.time(),
+        "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
+        "specialization": appointment.specialization.specialization,
+        "profile_pic": appointment.doctor.profile_pic.url,
+        "doctor_bio": appointment.doctor.doctor_bio,
+        'specialization':appointment.specialization.specialization,
+        'salutation':appointment.doctor.salutation,
+        'year':timezone.now().year,
+        'backend_url':BACKEND_URL,  
+    }
+    for app_customer in appointment_customers:
+        meetlink = meeting_tracker.customer_1_meeting_link if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_link
+        context['meet_link'] = meetlink
+        context['name'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
+        html_content = render_to_string("followup_confirmation.html", context)
+        send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
+    
+
+
+
+
+
+
+def send_first_appointment_confirmation_email(
+    appointment_id
+):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_customers = appointment.appointment_customers.all()
+        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
+    except AppointmentHeader.DoesNotExist:
+        print('Sending first appointment email failed appointment id invalid')
+        return False
+    subject = "Appointment Confirmation - Inticure"
+
+    context = {
+        "date": appointment.start_time.date(),
+        "time": appointment.start_time.time(),
+        "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
+        'specialization':appointment.specialization.specialization,
+        'salutation':appointment.doctor.salutation,
+        'year':timezone.now().year,
+        'backend_url':BACKEND_URL,  
+    }
+
+    for app_customer in appointment_customers:
+        if not app_customer.customer.completed_first_analysis:
+                
+            meetlink = meeting_tracker.customer_1_meeting_link if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_link
+            context['name'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
+            context['meet_link']=meetlink
+            html_content = render_to_string("first_appointment_confirmation_email.html", context)
+            send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
+
+    return True
 
 
 
@@ -136,6 +207,8 @@ def send_appointment_confirmation_customer_email(
 
 
 
+
+# ==============================================================================================================
 
 
 
@@ -380,77 +453,6 @@ def send_followup_referal_reminder_email(to_email, name, specialization,doctor_n
     html_content = render_to_string("appointment_reminder/followup_reminder.html", context)
 
     return send_email_via_sendgrid(subject, html_content, to_email)
-
-
-
-
-def send_first_appointment_confirmation_email(
-    appointment_id
-):
-    try:
-        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
-        appointment_customers = appointment.appointment_customers.all()
-        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
-    except AppointmentHeader.DoesNotExist:
-        print('Sending first appointment email failed appointment id invalid')
-        return False
-    subject = "Appointment Confirmation - Inticure"
-
-    context = {
-        "date": appointment.start_time.date(),
-        "time": appointment.start_time.time(),
-        "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
-        'specialization':appointment.specialization.specialization,
-        'salutation':appointment.doctor.salutation,
-        'year':timezone.now().year,
-        'backend_url':BACKEND_URL,  
-    }
-
-    for app_customer in appointment_customers:
-        if not app_customer.customer.completed_first_analysis:
-                
-            meetlink = meeting_tracker.customer_1_meeting_link if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_link
-            context['name'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
-            context['meet_link']=meetlink
-            html_content = render_to_string("first_appointment_confirmation_email.html", context)
-            send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
-
-    return True
-
-
-
-def send_followup_confirmation_email(
-    appointment_id,
-):
-    try:
-        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
-        appointment_customers = appointment.appointment_customers.all()
-        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
-    except AppointmentHeader.DoesNotExist:
-        print('Sending follow email failed appointment id invalid')
-        return False
-
-    subject = "Follow-up Appointment Confirmation - Inticure"
-
-    context = {
-        "date": appointment.start_time.date(),
-        "time": appointment.start_time.time(),
-        "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
-        "specialization": appointment.specialization.specialization,
-        "profile_pic": appointment.doctor.profile_pic.url,
-        "doctor_bio": appointment.doctor.doctor_bio,
-        'specialization':appointment.specialization.specialization,
-        'salutation':appointment.doctor.salutation,
-        'year':timezone.now().year,
-        'backend_url':BACKEND_URL,  
-    }
-    for app_customer in appointment_customers:
-        meetlink = meeting_tracker.customer_1_meeting_link if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_link
-        context['meet_link'] = meetlink
-        context['name'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
-        html_content = render_to_string("followup_confirmation.html", context)
-        send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
-    
 
 
 

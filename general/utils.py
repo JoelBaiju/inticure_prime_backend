@@ -679,3 +679,13 @@ def get_utc_day_bounds(date_str, tz_str):
     except Exception as e:
         raise ValueError(f"Invalid date or timezone: {str(e)}")
 
+
+
+
+
+
+def convert_datetime_to_words(dt):
+    """
+    Converts a datetime object to a string in words.
+    """
+    return dt.strftime("%A, %B %d, %Y at %I:%M %p")

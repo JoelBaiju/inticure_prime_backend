@@ -1,8 +1,20 @@
 from .api import whatsapp_api_handler
+from analysis.models import AppointmentHeader
+from ..utils import convert_datetime_to_words
 
 
 
-def send_wa_consultation_canceled_by_patient_to_specialist(to_phone, patient_name, specialist_name, date_time):
+def send_wa_consultation_canceled_by_patient_to_specialist(appointment_id):
+    try:
+        appointment     = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        patient_name    = appointment.customer.user.first_name
+        specialist_name = appointment.doctor.first_name
+        date_time       = convert_datetime_to_words(appointment.start_time)
+        to_phone        = appointment.doctor.whatsapp_number
+    except AppointmentHeader.DoesNotExist:
+        print(f"Appointment does not exist.for id {appointment_id}")
+        return "Appointment does not exist."
+
     parameters = [
         {"type": "text", "parameter_name": "patient_name", "text": patient_name},
         {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
@@ -14,8 +26,18 @@ def send_wa_consultation_canceled_by_patient_to_specialist(to_phone, patient_nam
 
 
 
-def send_wa_patient_requested_cancellation (to_phone, patient_name,salutation, specialist_name, date_time):
-    
+def send_wa_patient_requested_cancellation (appointment_id):
+    try:
+        appointment     = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        patient_name    = appointment.customer.user.first_name
+        specialist_name = appointment.doctor.first_name
+        salutation      = appointment.doctor.salutation
+        date_time       = convert_datetime_to_words(appointment.start_time)
+        to_phone        = appointment.customer.whatsapp_number
+
+    except AppointmentHeader.DoesNotExist:
+        print(f"Appointment does not exist.for id {appointment_id}")
+        return "Appointment does not exist."    
     parameters = [
         {"type": "text", "parameter_name": "patient_name", "text": patient_name},
         {"type": "text", "parameter_name": "salutation", "text": salutation},
@@ -38,7 +60,19 @@ def send_wa_patient_requested_cancellation (to_phone, patient_name,salutation, s
 
 
 
-def send_wa_appointment_confirmation(patient_name, salutation, specialist_name, date_time, meet_link, to_phone):
+def send_wa_appointment_confirmation(appointment_id):
+    try:    
+        appointment     = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        patient_name    = appointment.customer.user.first_name
+        specialist_name = appointment.doctor.first_name
+        salutation      = appointment.doctor.salutation
+        date_time       = convert_datetime_to_words(appointment.start_time)
+        meet_link       = appointment.meeting_link
+        to_phone        = appointment.customer.whatsapp_number
+    except AppointmentHeader.DoesNotExist:
+        print(f"Appointment does not exist.for id {appointment_id}")
+        return "Appointment does not exist."
+
     parameters = [
         {"type": "text", "parameter_name": "patient_name", "text": patient_name},
         {"type": "text", "parameter_name": "salutation", "text": salutation},

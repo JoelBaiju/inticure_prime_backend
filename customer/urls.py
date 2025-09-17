@@ -28,4 +28,5 @@ urlpatterns = [
     path('add_customer_country/', add_customer_country),
     path('get_patient_details/', PatientDetailsFromPhoneEmailView.as_view()),
     path('connect_partner/', ConnectPartnersView.as_view()),
-    ]
+    path('customer_files/', customer_files),
+]
