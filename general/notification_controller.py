@@ -1,7 +1,7 @@
 
 from celery import shared_task
 from .emal_service import *
-from whatsapp.whatsapp_messages import *
+from .whatsapp.whatsapp_messages import *
 from analysis.models import AppointmentHeader
 
 @shared_task
