@@ -76,7 +76,7 @@ class DoctorFilterService:
                     "specializations": [spec.specialization.specialization for spec in doctor2.doctor_specializations.all()],
                     "languages": [lang.language.language for lang in doctor2.known_languages.all()],
                     "profile_pic": doctor2.profile_pic.url if doctor2.profile_pic else None,
-                    "bio": doctor2.bio,
+                    "bio": doctor2.doctor_bio,
                 }
                 for doctor2 in preferred_doctors_available_in_date 
                 if doctor2 != doctor
