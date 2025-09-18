@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.forms import ValidationError
 from django.utils import timezone
+from django.core.exceptions import MultipleObjectsReturned
 
 # Rest framework imports
 from rest_framework import status
@@ -67,18 +68,35 @@ class PhoneNumberOrEmailSubmissionView(APIView):
         country_code = request.data.get('country_code', '+91')  
         print("Phone number:", phone_number)
         print("email",email)
+        otp =generate_random_otp()
         if phone_number:
             if len(str(phone_number))>5:
                 print("Phone number received and got in:", phone_number)
                 # otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = '666666')
-                otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = generate_random_otp())
+                   
+                try:
+                    otp_instance, created = Phone_OTPs.objects.get_or_create(phone=phone_number)
+                    otp_instance.otp = otp
+                    otp_instance.save()
+                except MultipleObjectsReturned:
+                    Phone_OTPs.objects.filter(phone=phone_number).delete()
+                    otp_instance = Phone_OTPs.objects.create(phone=phone_number, otp=otp)
+
                 # send_otp_sms(otp = otp_instance.otp , to_number=country_code+phone_number)
                 send_wa_auth_code(str(country_code)+str(phone_number) , otp_instance.otp)
                 print("OTP sent to phone number:", phone_number)
             
         if email:
             # otp_instance = Email_OTPs.objects.create(email=email, otp='666666')
-            otp_instance = Email_OTPs.objects.create(email=email, otp=generate_random_otp())
+            
+            try:
+                otp_instance, created = Email_OTPs.objects.get_or_create(email=email)
+                otp_instance.otp = otp
+                otp_instance.save()
+            except MultipleObjectsReturned:
+                Email_OTPs.objects.filter(email=email).delete()
+                otp_instance = Email_OTPs.objects.create(email=email, otp=otp)
+
             send_email_verification_otp_email(otp = otp_instance.otp , to_email=email , name = ' User')
             print("OTP sent to email:", email)
         

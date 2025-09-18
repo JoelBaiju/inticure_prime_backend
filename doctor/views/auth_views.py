@@ -15,6 +15,8 @@ from general.twilio import send_otp_sms
 from general.utils import generate_random_otp
 from rest_framework.views import APIView
 from rest_framework.decorators import permission_classes
+from django.core.exceptions import MultipleObjectsReturned
+
 
 
 from general.whatsapp.whatsapp_messages import send_wa_auth_code
@@ -42,7 +44,17 @@ class LoginView(APIView):
                 return Response('The provided mobile number is not connected with any account',status=status.HTTP_400_BAD_REQUEST)
 
             print("Phone number received and got in:", phone_number)
-            otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = otp)
+
+
+               
+            try:
+                otp_instance, created = Phone_OTPs.objects.get_or_create(phone=phone_number)
+                otp_instance.otp = otp
+                otp_instance.save()
+            except MultipleObjectsReturned:
+                Phone_OTPs.objects.filter(phone=phone_number).delete()
+                otp_instance = Phone_OTPs.objects.create(phone=phone_number, otp=otp)
+       
             # send_otp_sms(otp = otp_instance.otp , to_number=country_code+phone_number)
             send_wa_auth_code(str(country_code) + str(phone_number) ,otp)
             print("OTP sent to phone number:", phone_number)
@@ -51,7 +63,15 @@ class LoginView(APIView):
             if not DoctorProfiles.objects.filter(email_id = email).exists():
                 return Response('The provided email id is not connected with any account',status=status.HTTP_400_BAD_REQUEST)
 
-            otp_instance = Email_OTPs.objects.create(email=email, otp=otp)
+
+            try:
+                otp_instance, created = Email_OTPs.objects.get_or_create(email=email)
+                otp_instance.otp = otp
+                otp_instance.save()
+            except MultipleObjectsReturned:
+                Email_OTPs.objects.filter(email=email).delete()
+                otp_instance = Email_OTPs.objects.create(email=email, otp=otp)
+            
             send_otp_email(otp = otp_instance.otp , toemail=email , firstname = 'user')
             print("OTP sent to email:", email)
         
