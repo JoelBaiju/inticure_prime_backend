@@ -269,7 +269,7 @@ class Map_Meetings(APIView):
                     return redirect(meeting_tracker.meeting_link)
             context = {
                 'salutation':meeting_tracker.appointment.doctor.salutation,
-                'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.dotor.last_name}",
+                'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.doctor.last_name}",
                 "start_time":meeting_tracker.appointment.start_time,
                 'specialization':meeting_tracker.appointment.specialization.specialization,
                 'username': meeting_tracker.customer_1.user.first_name,
