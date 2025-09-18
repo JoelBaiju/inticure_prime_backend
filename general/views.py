@@ -315,7 +315,7 @@ class Map_Meetings(APIView):
                 'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.appointment.doctor.time_zone),  # 10 minutes in seconds - change this to test different scenarios
                 'meet_link': meeting_tracker.doctor_meeting_link,  
                 'salutation':meeting_tracker.appointment.doctor.salutation,
-                'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.dotor.last_name}",
+                'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.doctor.last_name}",
                 "start_time":meeting_tracker.appointment.start_time,
                 'specialization':meeting_tracker.appointment.specialization.specialization,
             }
