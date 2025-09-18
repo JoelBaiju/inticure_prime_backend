@@ -65,8 +65,9 @@ def send_wa_appointment_confirmation(appointment_id):
         salutation      = appointment.doctor.salutation
         date_time       = convert_datetime_to_words(appointment.start_time)
         meet_link       = appointment.meeting_link
-        to_phone        = appointment.customer.country_code + appointment.customer.whatsapp_number
-
+        # to_phone        = appointment.customer.country_code + appointment.customer.whatsapp_number
+        to_phone        =  appointment.customer.whatsapp_number
+        # country_code    = str(appointment.customer.country_code)
     except AppointmentHeader.DoesNotExist:
         print(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
