@@ -270,11 +270,13 @@ class Map_Meetings(APIView):
             context = {
                 'salutation':meeting_tracker.appointment.doctor.salutation,
                 'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.doctor.last_name}",
-                "start_time":meeting_tracker.appointment.start_time,
+                "time":meeting_tracker.appointment.start_time.time(),
+                "date":meeting_tracker.appointment.start_time.date(),
                 'specialization':meeting_tracker.appointment.specialization.specialization,
                 'username': meeting_tracker.customer_1.user.first_name,
                 'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.customer_1.time_zone),  # 10 minutes in seconds - change this to test different scenarios
                 'meet_link':  meeting_tracker.customer_1_meeting_link ,
+                'meet_code': meeting_tracker.meeting_code,  
                 'is_customer': True
             }
 
@@ -291,11 +293,13 @@ class Map_Meetings(APIView):
             context = {
                 'salutation':meeting_tracker.appointment.doctor.salutation,
                 'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.doctor.last_name}",
-                "start_time":meeting_tracker.appointment.start_time,
+                "time":meeting_tracker.appointment.start_time.time(),
+                "date":meeting_tracker.appointment.start_time.date(),
                 'specialization':meeting_tracker.appointment.specialization.specialization,
                 'username': meeting_tracker.customer_2.user.first_name,
                 'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.customer_1.time_zone),  # 10 minutes in seconds - change this to test different scenarios
                 'meet_link': meeting_tracker.customer_2_meeting_link,
+                'meet_code': meeting_tracker.meeting_code,  
                 'is_customer': True
             }
 
@@ -314,16 +318,18 @@ class Map_Meetings(APIView):
                 'username': meeting_tracker.appointment.doctor.first_name,
                 'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.appointment.doctor.time_zone),  # 10 minutes in seconds - change this to test different scenarios
                 'meet_link': meeting_tracker.doctor_meeting_link,  
+                'meet_code': meeting_tracker.meeting_code,  
                 'salutation':meeting_tracker.appointment.doctor.salutation,
                 'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.doctor.last_name}",
-                "start_time":meeting_tracker.appointment.start_time,
+                "time":meeting_tracker.appointment.start_time.time(),
+                "date":meeting_tracker.appointment.start_time.date(),
                 'specialization':meeting_tracker.appointment.specialization.specialization,
             }
 
         if context:
 
-            return redirect(f'inticure.com/meet/?doctor_name={context["doctor_name"]}&salutation={context["salutation"]}&start_time={context["start_time"]}&specialization={context["specialization"]}&username={context["username"]}&time_left_to_start={context["time_left_to_start"]}&meet_link={context["meet_link"]}&is_customer={context.get("is_customer", False)}')
-            return redirect(f"join-meeting?dr=Dr.%20Neha%20Reddy&date=2025-09-18&time=01:30:00&meetingId=tkx-bgtu-uvr&specialization=No%20Specialization")
+            # return redirect(f'inticure.com/meet/?doctor_name={context["doctor_name"]}&salutation={context["salutation"]}&start_time={context["start_time"]}&specialization={context["specialization"]}&username={context["username"]}&time_left_to_start={context["time_left_to_start"]}&meet_link={context["meet_link"]}&is_customer={context.get("is_customer", False)}')
+            return redirect(f"https://inticure.com/join-meeting?dr={context['salutation']}%20{context['doctor_name']}&date={context['date']}&time={context['time']}&meetingId={context['meet_code']}{f"&specialization={context['specialization']}" if context['specialization']!="No Specialization" else ""}")
 
 
 
