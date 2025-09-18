@@ -145,10 +145,12 @@ class Doctors_list(APIView):
             queryset = DoctorProfiles.objects.filter(is_accepted=True)
 
         paginator = DoctorPagination()
-        paginated_queryset = paginator.paginate_queryset(queryset, request)
+        # paginated_queryset = paginator.paginate_queryset(queryset, request)
 
-        serializer = DoctorProfileSerializer(paginated_queryset, many=True)
-        return paginator.get_paginated_response(serializer.data)
+        # serializer = DoctorProfileSerializer(paginated_queryset, many=True)
+        serializer = DoctorProfileSerializer(queryset, many=True)
+        # return paginator.get_paginated_response(serializer.data)
+        return Response(serializer.data)
     
 
 class DoctorDetailAPIView(APIView):
