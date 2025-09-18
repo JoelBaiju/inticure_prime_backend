@@ -40,7 +40,7 @@ class LoginView(APIView):
         # otp = 666666
 
         if phone_number:
-            if not DoctorProfiles.objects.filter(mobile_number = phone_number).exists():
+            if not DoctorProfiles.objects.filter(whatsapp_number = phone_number).exists():
                 return Response('The provided mobile number is not connected with any account',status=status.HTTP_400_BAD_REQUEST)
 
             print("Phone number received and got in:", phone_number)
