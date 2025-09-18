@@ -290,7 +290,7 @@ class Map_Meetings(APIView):
 
             context = {
                 'salutation':meeting_tracker.appointment.doctor.salutation,
-                'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.dotor.last_name}",
+                'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.doctor.last_name}",
                 "start_time":meeting_tracker.appointment.start_time,
                 'specialization':meeting_tracker.appointment.specialization.specialization,
                 'username': meeting_tracker.customer_2.user.first_name,
