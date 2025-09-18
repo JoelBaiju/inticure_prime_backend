@@ -92,8 +92,8 @@ def dotor_details_from_id(request):
         res = {
             "first_name": doctor.first_name,
             "last_name": doctor.last_name,
-            "email_id": doctor.email_id,    \
-            "phone":doctor.mobile_number,
+            "email_id": doctor.email_id,    
+            "phone":doctor.whatsapp_number,
             "joined_date": doctor.joined_date,
             "status" : status                                                                                       
         }

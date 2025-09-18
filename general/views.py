@@ -323,7 +323,7 @@ class Map_Meetings(APIView):
         if context:
 
             return redirect(f'inticure.com/meet/?doctor_name={context["doctor_name"]}&salutation={context["salutation"]}&start_time={context["start_time"]}&specialization={context["specialization"]}&username={context["username"]}&time_left_to_start={context["time_left_to_start"]}&meet_link={context["meet_link"]}&is_customer={context.get("is_customer", False)}')
-
+            return redirect(f"join-meeting?dr=Dr.%20Neha%20Reddy&date=2025-09-18&time=01:30:00&meetingId=tkx-bgtu-uvr&specialization=No%20Specialization")
 
 
 

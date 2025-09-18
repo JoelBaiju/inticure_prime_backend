@@ -205,7 +205,7 @@ class DoctorAcceptAPIView(APIView):
         doctor.save()
         send_doctor_status_email(
            doctor_id=doctor.doctor_profile_id
-        )
+        )   
 
         return Response({'status': 'Doctor accepted'}, status=status.HTTP_200_OK)
     
