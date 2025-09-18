@@ -116,7 +116,7 @@ class CustomerProfileUpdateView(generics.RetrieveUpdateAPIView):
         return generics.get_object_or_404(self.get_queryset())
 
 from general.whatsapp.whatsapp_messages import send_wa_auth_code
-
+from general.utils import generate_random_otp
 
 class WhatsappNumberOrEmailChangeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -129,15 +129,15 @@ class WhatsappNumberOrEmailChangeView(APIView):
         if whatsapp_number:
             if len(str(whatsapp_number))>5:
                 print("Whatsapp number received and got in:", whatsapp_number)
-                otp_instance = Phone_OTPs.objects.create(phone=whatsapp_number , otp = '666666')
-                # otp_instance = Phone_OTPs.objects.create(phone=whatsapp_number , otp = generate_random_otp())
+                # otp_instance = Phone_OTPs.objects.create(phone=whatsapp_number , otp = '666666')
+                otp_instance = Phone_OTPs.objects.create(phone=whatsapp_number , otp = generate_random_otp())
                 # send_otp_sms(otp = otp_instance.otp , to_number=country_code+whatsapp_number)
                 send_wa_auth_code(str(country_code)+str(whatsapp_number),otp_instance.otp)
                 print("OTP sent to phone number:", whatsapp_number)
             
         if email:
-            otp_instance = Email_OTPs.objects.create(email=email, otp='666666')
-            # otp_instance = Email_OTPs.objects.create(email=email, otp=generate_random_otp())
+            # otp_instance = Email_OTPs.objects.create(email=email, otp='666666')
+            otp_instance = Email_OTPs.objects.create(email=email, otp=generate_random_otp())
             send_email_verification_otp_email(otp = otp_instance.otp , to_email=email , name = ' User')
             print("OTP sent to email:", email)
         
