@@ -122,7 +122,7 @@ class Doctor_Details(APIView):
 
 
 class DoctorPagination(PageNumberPagination):
-    page_size = 10
+    page_size = 50
     page_size_query_param = 'page_size'
     max_page_size = 100
 
@@ -145,12 +145,12 @@ class Doctors_list(APIView):
             queryset = DoctorProfiles.objects.filter(is_accepted=True)
 
         paginator = DoctorPagination()
-        # paginated_queryset = paginator.paginate_queryset(queryset, request)
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
 
-        # serializer = DoctorProfileSerializer(paginated_queryset, many=True)
-        serializer = DoctorProfileSerializer(queryset, many=True)
-        # return paginator.get_paginated_response(serializer.data)
-        return Response(serializer.data)
+        serializer = DoctorProfileSerializer(paginated_queryset, many=True)
+        # serializer = DoctorProfileSerializer(queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)
+        # return Response(serializer.data)
     
 
 class DoctorDetailAPIView(APIView):
