@@ -265,10 +265,10 @@ def create_new_appointment_service(data):
         appointment=appointment,
     )
 
-    # Email + async tasks
-    send_payment_pending_email_task.delay(
-        appointment.appointment_id
-    )
+    # # Email + async tasks
+    # send_payment_pending_email_task.delay(
+    #     appointment.appointment_id
+    # )
     delete_unpaid_appointment.apply_async((appointment.appointment_id,), countdown=900)
     schedule_reminder_to_book_appointment.apply_async((appointment.appointment_id, None), countdown=172800)
 

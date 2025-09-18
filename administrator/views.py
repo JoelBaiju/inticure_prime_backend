@@ -141,6 +141,7 @@ class Doctors_list(APIView):
         elif filter == 'rejected':
             queryset = DoctorProfiles.objects.filter(rejected = True)
         else:
+            print("inside verified")
             queryset = DoctorProfiles.objects.filter(is_accepted=True)
 
         paginator = DoctorPagination()
