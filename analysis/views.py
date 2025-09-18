@@ -1124,6 +1124,7 @@ from general.notification_controller import send_appointment_confirmation_notifi
 
 
 def appointment_routine_notifications(appointment_id):
+    print("inside_routine notifications")
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
