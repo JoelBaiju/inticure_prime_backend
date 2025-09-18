@@ -459,6 +459,7 @@ def whatsapp_callback(request):
 
 
 from .whatsapp.whatsapp_messages import *
+from .notification_controller import send_appointment_confirmation_notification
 
 @api_view(["GET"])
 def swtm_view(request):
@@ -489,7 +490,7 @@ def swtm_view(request):
     #     meet_code="123654789"
     # )
 
-    result = send_wa_patient_requested_cancellation(
+    result = send_appointment_confirmation_notification(
        appointment_id=109
     )
 

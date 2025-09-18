@@ -238,6 +238,75 @@ def send_appointment_confirmation_doctor_email(
 # ==============================================================================================================
 
 
+def send_appointment_rescheduled_email(
+    appointment_id , previous_date,previous_time,new_date,new_time
+):
+
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_customers = appointment.appointment_customers.all()
+        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
+    except AppointmentHeader.DoesNotExist:
+            return False
+    subject = "Appointment Rescheduled - Inticure"
+    
+    for customer in appointment_customers:
+        meetlink = meeting_tracker.customer_1_meeting_link if customer.customer == meeting_tracker.customer_1 else meeting_tracker.customer_2_meeting_link
+        context = {
+            "name": customer.customer.user.first_name + ' ' + customer.customer.user.last_name,
+            "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
+            "specialization": appointment.specialization.specialization,
+            "meet_link": meetlink,
+            "appointment_id": appointment_id,
+            "doctor_flag": 0,
+            # Adding formatted date and time for easier template usage
+            "previous_date":previous_date,
+            "previous_time":previous_time,
+            "new_date":new_date,
+            "new_time":new_time,
+            'year':timezone.now().year,
+            'backend_url':BACKEND_URL,  
+            'salutation':appointment.doctor.salutation,
+        }
+        # Render HTML template with context
+        html_content = render_to_string("order_reschedule.html", context)
+
+        send_email_via_sendgrid(subject, html_content, customer.customer.email)
+
+    context['doctor_flag'] = 1
+    html_content = render_to_string("order_reschedule.html", context)
+    send_email_via_sendgrid(subject, html_content, appointment.doctor.email_id)
+    return True
+
+
+
+
+def send_reschedule_request_email(appointment_id):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_customers = Appointment_customers.objects.filter(appointment=appointment)
+    except AppointmentHeader.DoesNotExist:
+        return
+    subject = "Doctor Emergency – Please Reschedule Your Appointment"
+
+    context = {
+        "date": appointment.start_time.date(),
+        "time": appointment.start_time.time(),
+        "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
+        "salutation": appointment.doctor.salutation, 
+        "year": timezone.now().year,
+        'backend_url':BACKEND_URL,  
+    }
+    for customer in appointment_customers:
+        context['name'] = customer.customer.user.first_name + ' ' + customer.customer.user.last_name
+        html_content = render_to_string("reschedule_request.html", context)
+
+        send_email_via_sendgrid(subject, html_content, customer.customer.email)
+
+
+# =====================================================================================================================
+
+
 
 def send_doctor_status_email(doctor_id):
     try:
@@ -486,51 +555,6 @@ def send_followup_referal_reminder_email(to_email, name, specialization,doctor_n
 
 
 from analysis.models import Meeting_Tracker , AppointmentHeader
-def send_appointment_rescheduled_email(
-    appointment_id , previous_date,previous_time,new_date,new_time
-):
-
-    try:
-        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
-        appointment_customers = appointment.appointment_customers.all()
-        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
-    except AppointmentHeader.DoesNotExist:
-            return False
-    subject = "Appointment Rescheduled - Inticure"
-    
-    for customer in appointment_customers:
-        meetlink = meeting_tracker.customer_1_meeting_link if customer.customer == meeting_tracker.customer_1 else meeting_tracker.customer_2_meeting_link
-        context = {
-            "name": customer.customer.user.first_name + ' ' + customer.customer.user.last_name,
-            "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
-            "specialization": appointment.specialization.specialization,
-            "meet_link": meetlink,
-            "appointment_id": appointment_id,
-            "doctor_flag": 0,
-            # Adding formatted date and time for easier template usage
-            "previous_date":previous_date,
-            "previous_time":previous_time,
-            "new_date":new_date,
-            "new_time":new_time,
-            'year':timezone.now().year,
-            'backend_url':BACKEND_URL,  
-            'salutation':appointment.doctor.salutation,
-        }
-        # Render HTML template with context
-        html_content = render_to_string("order_reschedule.html", context)
-
-        send_email_via_sendgrid(subject, html_content, customer.customer.email)
-
-    context['doctor_flag'] = 1
-    html_content = render_to_string("order_reschedule.html", context)
-    send_email_via_sendgrid(subject, html_content, appointment.doctor.email_id)
-    return True
-
-
-
-
-
-
 
 
 def send_appointment_transfer_email(
@@ -708,28 +732,6 @@ def send_report_email(to_email, doctor_flag, name, doctor_salutation=None, docto
 
 from django.template.loader import render_to_string
 from datetime import datetime
-
-def send_reschedule_request_email(appointment_id):
-    try:
-        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
-        appointment_customers = Appointment_customers.objects.filter(appointment=appointment)
-    except AppointmentHeader.DoesNotExist:
-        return
-    subject = "Doctor Emergency – Please Reschedule Your Appointment"
-
-    context = {
-        "date": appointment.start_time.date(),
-        "time": appointment.start_time.time(),
-        "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
-        "salutation": appointment.doctor.salutation, 
-        "year": timezone.now().year,
-        'backend_url':BACKEND_URL,  
-    }
-    for customer in appointment_customers:
-        context['name'] = customer.customer.user.first_name + ' ' + customer.customer.user.last_name
-        html_content = render_to_string("reschedule_request.html", context)
-
-        send_email_via_sendgrid(subject, html_content, customer.customer.email)
 
 
 

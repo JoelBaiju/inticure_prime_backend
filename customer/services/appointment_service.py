@@ -17,6 +17,8 @@ from doctor.slots_service import get_available_slots
 from customer.utils.validators import AppointmentValidator
 from analysis.views import ConfirmAppointment
 
+from general.notification_controller import send_appointment_reshceduled_notification
+
 class AppointmentService:
     @staticmethod
     def find_next_available_slot(doctor_id, available_dates, timezone_str, is_couple):
@@ -110,14 +112,20 @@ class AppointmentService:
         )
 
         # Send notification
-        send_appointment_rescheduled_email_task.delay(
-            appointment_id=appointment.appointment_id,
-            previous_date=appointment.start_time.date().strftime('%Y-%m-%d'),
-            previous_time=appointment.start_time.time().strftime('%H:%M:%S'),
-            new_date=start_datetime_utc.date().strftime('%Y-%m-%d'),
-            new_time=start_datetime_utc.time().strftime('%H:%M:%S')
-        )
+        # send_appointment_rescheduled_email_task.delay(
+        #     appointment_id=appointment.appointment_id,
+        #     previous_date=appointment.start_time.date().strftime('%Y-%m-%d'),
+        #     previous_time=appointment.start_time.time().strftime('%H:%M:%S'),
+        #     new_date=start_datetime_utc.date().strftime('%Y-%m-%d'),
+        #     new_time=start_datetime_utc.time().strftime('%H:%M:%S')
+        # )
         
+        send_appointment_reshceduled_notification.delay(
+            appointment_id = appointment.appointment_id,
+            old_date_time = appointment.start_time,
+            new_date_time = start_datetime_utc          
+        )
+
         appointment.end_time = end_datetime_utc
         appointment.start_time = start_datetime_utc
         appointment.save()

@@ -369,7 +369,7 @@ def send_payment_pending_email_task(appointment_id):
         send_payment_pending_email(
             appointment_id
         )
-        send_payment_pending_email_task.apply_async((appointment.appointment_id,), countdown=60*60*24)
+        # send_payment_pending_email_task.apply_async((appointment.appointment_id,), countdown=60*60*24)
 
 
 @shared_task

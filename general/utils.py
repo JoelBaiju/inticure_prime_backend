@@ -684,8 +684,12 @@ def get_utc_day_bounds(date_str, tz_str):
 
 
 
-def convert_datetime_to_words(dt):
+def convert_datetime_to_words_in_local_tz(dt , tz_str='UTC'):
     """
-    Converts a datetime object to a string in words.
+    Converts a utc datetime object to local tz and then to words
     """
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=ZoneInfo(tz_str))
+    else:
+        dt = dt.astimezone(ZoneInfo(tz_str))
     return dt.strftime("%A, %B %d, %Y at %I:%M %p")

@@ -180,7 +180,7 @@ def create_doctor_profile(request):
     salutation        = request.data.get('salutation')
     print(salutation)
     # Copy other data to mutable form
-    data = request.data.copy()
+    data = request.data
 
     # Pass to serializer (excluding specializations)
     mobile_number = request.data.get('mobile_number')
