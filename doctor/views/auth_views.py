@@ -116,7 +116,7 @@ class Verify_Login(APIView):
                 if not phone_otp:
                     return Response('Invalid OTP for phone number', status=HTTP_400_BAD_REQUEST)
 
-                doctor_profile = DoctorProfiles.objects.get(mobile_number=phone_number)
+                doctor_profile = DoctorProfiles.objects.get(whatsapp_number=phone_number)
                 user = User.objects.filter(username=phone_number).first()
 
             except DoctorProfiles.DoesNotExist:
