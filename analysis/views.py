@@ -1140,7 +1140,7 @@ def appointment_routine_notifications(appointment_id):
         appointment.customer.completed_first_analysis = True
         appointment.customer.save()
     
-    send_appointment_confirmation_notification.delay(
+    send_appointment_confirmation_notification(
         appointment_id
     )
 
