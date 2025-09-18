@@ -329,7 +329,17 @@ class Map_Meetings(APIView):
         if context:
 
             # return redirect(f'inticure.com/meet/?doctor_name={context["doctor_name"]}&salutation={context["salutation"]}&start_time={context["start_time"]}&specialization={context["specialization"]}&username={context["username"]}&time_left_to_start={context["time_left_to_start"]}&meet_link={context["meet_link"]}&is_customer={context.get("is_customer", False)}')
-            return redirect(f"https://inticure.com/join-meeting?dr={context['salutation']}%20{context['doctor_name']}&date={context['date']}&time={context['time']}&meetingId={context['meet_code']}{f"&specialization={context['specialization']}" if context['specialization']!="No Specialization" else ""}")
+            # return redirect(f"https://inticure.com/join-meeting?dr={context['salutation']}%20{context['doctor_name']}&date={context['date']}&time={context['time']}&meetingId={context['meet_code']}{f"&specialization={context['specialization']}" if context['specialization']!="No Specialization" else ""}")
+            specialization = f"&specialization={context['specialization']}" if context['specialization'] != "No Specialization" else ""
+
+            return redirect(
+                f"https://inticure.com/join-meeting?"
+                f"dr={context['salutation']}%20{context['doctor_name']}"
+                f"&date={context['date']}"
+                f"&time={context['time']}"
+                f"&meetingId={context['meet_code']}"
+                f"{specialization}"
+            )
 
 
 
