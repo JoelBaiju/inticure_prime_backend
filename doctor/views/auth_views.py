@@ -26,6 +26,8 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
+import logging
+logger = logging.getLogger(__name__)
 
 
 class LoginView(APIView):
@@ -43,7 +45,7 @@ class LoginView(APIView):
             if not DoctorProfiles.objects.filter(whatsapp_number = phone_number).exists():
                 return Response('The provided mobile number is not connected with any account',status=status.HTTP_400_BAD_REQUEST)
 
-            print("Phone number received and got in:", phone_number)
+            logger.info("Phone number received and got in:", phone_number)
 
 
                
@@ -63,7 +65,7 @@ class LoginView(APIView):
             if not DoctorProfiles.objects.filter(email_id = email).exists():
                 return Response('The provided email id is not connected with any account',status=status.HTTP_400_BAD_REQUEST)
 
-
+            logger.debug('inside email')
             try:
                 otp_instance, created = Email_OTPs.objects.get_or_create(email=email)
                 otp_instance.otp = otp
@@ -71,11 +73,10 @@ class LoginView(APIView):
             except MultipleObjectsReturned:
                 Email_OTPs.objects.filter(email=email).delete()
                 otp_instance = Email_OTPs.objects.create(email=email, otp=otp)
-            
+            logger.info('before sending')
             send_otp_email(otp = otp_instance.otp , toemail=email , firstname = 'user')
-            print("OTP sent to email:", email)
+            logger.info("OTP sent to email:", email)
         
-            print(otp_instance.otp)
 
         
         return Response({

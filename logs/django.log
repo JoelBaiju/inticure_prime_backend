@@ -15,3 +15,4 @@
 [INFO] 2025-09-18 22:17:30,966 general.views Creating meeting tracker for appointment 109
 [DEBUG] 2025-09-18 22:17:31,855 general.views Error sending appointment confirmation notification.unsupported operand type(s) for +: 'NoneType' and 'NoneType'
 [INFO] 2025-09-18 22:17:31,915 django.channels.server [mHTTP GET /general/swtm/ 200 [0.96, 127.0.0.1:63874][0m
+[INFO] 2025-09-19 10:06:04,834 django.utils.autoreload C:\Users\Berlin\Projects\inticure_prime_backend\general\utils.py changed, reloading.

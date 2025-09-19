@@ -22,7 +22,8 @@ from django.core.mail import EmailMultiAlternatives
 from dateutil import parser
 from zoneinfo import ZoneInfo
 from datetime import timezone as dt_timezone
-
+import logging
+logger = logging.getLogger(__name__)
 
 
 
@@ -50,12 +51,12 @@ def send_otp_email(firstname,otp,toemail):
         [toemail]    
         )
         email.attach_alternative(html_message, 'text/html')
-        print(f"Sending OTP email to {toemail}")
-        print(email.send())
+        logger.debug(f"Sending OTP email to {toemail}")
+        logger.debug(email.send())
     
     except Exception as e:
-        print(f"Failed to send OTP email to {toemail}: {str(e)}")
-        print(f"Email sending failed: {e}")
+        logger.debug(f"Failed to send OTP email to {toemail}: {str(e)}")
+        logger.debug(f"Email sending failed: {e}")
 
 
 
