@@ -29,3 +29,6 @@
 [INFO] 2025-09-19 10:36:28,420 django.utils.autoreload Watching for file changes with StatReloader
 [INFO] 2025-09-19 10:41:56,730 django.utils.autoreload C:\Users\Berlin\Projects\inticure_prime_backend\inticure_prime_backend\settings.py changed, reloading.
 [INFO] 2025-09-19 10:42:00,665 django.utils.autoreload Watching for file changes with StatReloader
+[INFO] 2025-09-19 11:02:41,796 django.utils.autoreload C:\Users\Berlin\Projects\inticure_prime_backend\general\emal_service.py changed, reloading.
+[INFO] 2025-09-19 11:02:43,499 django.utils.autoreload Watching for file changes with StatReloader
+[INFO] 2025-09-19 11:04:13,097 django.utils.autoreload C:\Users\Berlin\Projects\inticure_prime_backend\general\utils.py changed, reloading.

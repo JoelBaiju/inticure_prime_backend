@@ -735,7 +735,6 @@ from datetime import datetime
 
 
 
-from django.template.loader import render_to_string
 from datetime import datetime
 
 def send_user_banned_email(to_email):

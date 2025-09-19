@@ -33,26 +33,36 @@ def generate_random_otp(length=6):
     print(otp)
     return otp
 
+from inticure_prime_backend.settings import BACKEND_URL
+from general.sendgrid import send_email_via_sendgrid ,send_email_via_smtp
 
 def send_otp_email(firstname,otp,toemail):
     try:
 
         subject = 'Your OTP for Email Verification'
-        html_message = render_to_string('email_otp.html', {
-        'name': firstname,
-        'otp': otp
-        })
-        plain_message = strip_tags(html_message)
+     
 
-        email = EmailMultiAlternatives(
-        subject,
-        plain_message,
-        settings.DEFAULT_FROM_EMAIL,  # Use the default from email
-        [toemail]    
-        )
-        email.attach_alternative(html_message, 'text/html')
-        logger.debug(f"Sending OTP email to {toemail}")
-        logger.debug(email.send())
+        # email = EmailMultiAlternatives(
+        # subject,
+        # plain_message,
+        # settings.DEFAULT_FROM_EMAIL,  # Use the default from email
+        # [toemail]    
+        # )
+        # email.attach_alternative(html_message, 'text/html')
+        # logger.debug(f"Sending OTP email to {toemail}")
+        # logger.debug(email.send())
+
+        subject = "Welcome to Inticure – Confirm Your Account"
+
+        context = {
+            'name': firstname,
+            'otp': otp
+        }
+
+        html_content = render_to_string("email_otp.html", context)
+        plain_message = strip_tags(html_content)
+
+        return send_email_via_sendgrid(subject, html_content, toemail)
     
     except Exception as e:
         logger.debug(f"Failed to send OTP email to {toemail}: {str(e)}")
