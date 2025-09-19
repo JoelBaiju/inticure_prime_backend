@@ -383,6 +383,7 @@ class Email_tester(APIView):
     def get(self, request):
        
         responsee = send_otp_email(
+            # toemail="nikhilrakeshh@gmail.com",
             toemail="joelbaiju98@gmail.com",
             otp="123456",
             firstname="user"

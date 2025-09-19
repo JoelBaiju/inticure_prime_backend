@@ -167,25 +167,22 @@ import json
 from analysis.views import ConfirmAppointment
 from django.conf import settings
 from general.models import PreTransactionData, StripeTransactions
-
 @csrf_exempt
 def verify_payment_stripe(request):
     if request.method != "POST":
-        print('invalid request method')
-
-
+        return JsonResponse({"error": "Invalid request method"}, status=405)
 
     endpoint_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', None)
     if not endpoint_secret:
-        print('endpoint_secret not found')
+        return JsonResponse({"error": "Webhook secret not configured"}, status=500)
 
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     if not sig_header:
-        print('sig_header not found')
+        return JsonResponse({"error": "Missing Stripe signature header"}, status=400)
 
     payload = request.body
     if not payload:
-        print('payload not found')
+        return JsonResponse({"error": "Empty payload"}, status=400)
 
     # Verify webhook signature
     try:
@@ -195,10 +192,11 @@ def verify_payment_stripe(request):
             secret=endpoint_secret
         )
     except stripe.error.SignatureVerificationError:
-        print('Signature verification failed')
-    except Exception:
-        print('Error during verification')
+        return JsonResponse({"error": "Signature verification failed"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": f"Verification error: {str(e)}"}, status=400)
 
+    # ✅ Only reached if event is valid
     obj = event['data']['object']
     event_type = event.get('type', "")
     metadata = obj.get('metadata', {})
@@ -208,27 +206,22 @@ def verify_payment_stripe(request):
             pretransaction_id = metadata.get('pretransaction_id')
             appointment_id = metadata.get('appointment_id')
 
-            # Call your appointment confirmation logic
-            print("pre and app " , pretransaction_id , appointment_id)
             if pretransaction_id and appointment_id:
-                print('inside the condition')
-                ConfirmAppointment(pretransaction_id=pretransaction_id, appointment_id=appointment_id)
+                ConfirmAppointment(pretransaction_id=pretransaction_id,
+                                   appointment_id=appointment_id)
 
-            # Save payment_intent_id if needed
             payment_intent_id = (
                 obj.get("id") if event_type == "payment_intent.succeeded"
                 else obj.get("payment_intent")
             )
             if pretransaction_id:
-                # Save the transaction in your model
-                print(pretransaction_id)
-                pretransaction = PreTransactionData.objects.get(pretransaction_id=pretransaction_id)
+                pretransaction = PreTransactionData.objects.get(
+                    pretransaction_id=pretransaction_id
+                )
                 StripeTransactions.objects.create(
                     pretransaction=pretransaction,
                     stripe_payment_intent_id=payment_intent_id
                 )
-            print('success')
-
             return JsonResponse({
                 "status": "success",
                 "event": event_type,
@@ -237,7 +230,6 @@ def verify_payment_stripe(request):
             })
 
         elif event_type == "payment_intent.payment_failed":
-            print('payment_intent.payment_failed')
             return JsonResponse({"status": "failed", "event": event_type, "metadata": metadata})
 
         elif event_type in [
@@ -245,8 +237,6 @@ def verify_payment_stripe(request):
             "checkout.session.expired",
             "payment_intent.canceled"
         ]:
-            print('payment_intent.canceled')
-
             return JsonResponse({"status": "failed", "event": event_type, "metadata": metadata})
 
         elif event_type in [
@@ -255,20 +245,115 @@ def verify_payment_stripe(request):
             "payment_link.updated",
             "payment_intent.created"
         ]:
-            print('payment_intent.created')
-
             return JsonResponse({"status": "info", "event": event_type, "metadata": metadata})
 
         else:
-            print('unhandled')
-
             return JsonResponse({"status": "unhandled", "event": event_type, "metadata": metadata})
 
     except Exception as e:
-        print('error', str(e))
-
-
         return JsonResponse({"error": str(e)}, status=500)
+
+# @csrf_exempt
+# def verify_payment_stripe(request):
+#     if request.method != "POST":
+#         print('invalid request method')
+
+
+
+#     endpoint_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', None)
+#     if not endpoint_secret:
+#         print('endpoint_secret not found')
+
+#     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+#     if not sig_header:
+#         print('sig_header not found')
+
+#     payload = request.body
+#     if not payload:
+#         print('payload not found')
+
+#     # Verify webhook signature
+#     try:
+#         event = stripe.Webhook.construct_event(
+#             payload=payload,
+#             sig_header=sig_header,
+#             secret=endpoint_secret
+#         )
+#     except stripe.error.SignatureVerificationError:
+#         print('Signature verification failed')
+#     except Exception:
+#         print('Error during verification')
+
+#     obj = event['data']['object']
+#     event_type = event.get('type', "")
+#     metadata = obj.get('metadata', {})
+
+#     try:
+#         if event_type in ["checkout.session.completed", "payment_intent.succeeded"]:
+#             pretransaction_id = metadata.get('pretransaction_id')
+#             appointment_id = metadata.get('appointment_id')
+
+#             # Call your appointment confirmation logic
+#             print("pre and app " , pretransaction_id , appointment_id)
+#             if pretransaction_id and appointment_id:
+#                 print('inside the condition')
+#                 ConfirmAppointment(pretransaction_id=pretransaction_id, appointment_id=appointment_id)
+
+#             # Save payment_intent_id if needed
+#             payment_intent_id = (
+#                 obj.get("id") if event_type == "payment_intent.succeeded"
+#                 else obj.get("payment_intent")
+#             )
+#             if pretransaction_id:
+#                 # Save the transaction in your model
+#                 print(pretransaction_id)
+#                 pretransaction = PreTransactionData.objects.get(pretransaction_id=pretransaction_id)
+#                 StripeTransactions.objects.create(
+#                     pretransaction=pretransaction,
+#                     stripe_payment_intent_id=payment_intent_id
+#                 )
+#             print('success')
+
+#             return JsonResponse({
+#                 "status": "success",
+#                 "event": event_type,
+#                 "metadata": metadata,
+#                 "payment_intent_id": payment_intent_id
+#             })
+
+#         elif event_type == "payment_intent.payment_failed":
+#             print('payment_intent.payment_failed')
+#             return JsonResponse({"status": "failed", "event": event_type, "metadata": metadata})
+
+#         elif event_type in [
+#             "checkout.session.async_payment_failed",
+#             "checkout.session.expired",
+#             "payment_intent.canceled"
+#         ]:
+#             print('payment_intent.canceled')
+
+#             return JsonResponse({"status": "failed", "event": event_type, "metadata": metadata})
+
+#         elif event_type in [
+#             "checkout.session.async_payment_succeeded",
+#             "payment_link.created",
+#             "payment_link.updated",
+#             "payment_intent.created"
+#         ]:
+#             print('payment_intent.created')
+
+#             return JsonResponse({"status": "info", "event": event_type, "metadata": metadata})
+
+#         else:
+#             print('unhandled')
+
+#             return JsonResponse({"status": "unhandled", "event": event_type, "metadata": metadata})
+
+#     except Exception as e:
+#         print('error', str(e))
+
+
+#         return JsonResponse({"error": str(e)}, status=500)
 
 
 

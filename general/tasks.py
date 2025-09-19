@@ -202,7 +202,7 @@ def monitor_appointment(appointment_id):
 
     if appointment.start_time + timedelta(minutes=15) < timezone.now():
         return 'Appointment missed'
-    monitor_appointment.apply_async((appointment.appointment_id,), countdown=300)
+    # monitor_appointment.apply_async((appointment.appointment_id,), countdown=300)
 
 
 
@@ -248,7 +248,7 @@ def schedule_reminder_prior_to_appointment(appointment_id):
     
     
 
-    schedule_reminder_prior_to_appointment.apply_async((appointment.appointment_id,), countdown=60*60*24)
+    # schedule_reminder_prior_to_appointment.apply_async((appointment.appointment_id,), countdown=60*60*24)
 
 
 
