@@ -136,6 +136,9 @@ class Verify_Login(APIView):
             except DoctorProfiles.DoesNotExist:
                 return Response('Account not found, Invalid Email ID', status=HTTP_400_BAD_REQUEST)
         logger.debug('doctor found')
+        if not doctor_profile.time_zone:
+            doctor_profile.time_zone = "Asia/Calcutta"
+            doctor_profile.save()
         if doctor_profile.is_accepted:
             status='accepted'
         elif doctor_profile.rejected:
