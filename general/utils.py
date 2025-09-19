@@ -190,11 +190,13 @@ def track_map_meeting(appointment_id, meeting_link, meeting_code):
         return
 
     # Default values
+    customer_1= appointment.customer
     customer_2 = None
     customer_2_meeting_link = None
 
     if appointment.is_couple:
-        customer_2 = appointment_customer[1].customer
+        # customer_2 = ( customer.customer for  customer in appointment_customer  if customer.customer != customer_1)
+        customer_2 = next((c.customer for c in appointment_customer if c.customer != customer_1), None)
         customer_2_meeting_link = create_meeting_link(str(customer_2_id))
 
     meeting_tracker = Meeting_Tracker.objects.create(
@@ -202,7 +204,7 @@ def track_map_meeting(appointment_id, meeting_link, meeting_code):
         meeting_link=meeting_link,
         meeting_code=meeting_code,
         doctor_meeting_id=doctor_id,
-        customer_1=appointment_customer[0].customer,
+        customer_1=customer_1,
         customer_2=customer_2,
         customer_1_meeting_id=customer_1_id,
         customer_2_meeting_id=customer_2_id if appointment.is_couple else None,

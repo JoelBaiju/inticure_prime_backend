@@ -55,7 +55,7 @@ def send_appointment_confirmation_notification(appointment_id):
         return "Appointment does not exist."
     except Exception as e:
         print(f"Error sending appointment confirmation notification for appointment id {appointment_id}: {str(e)}")
-        return "Error sending appointment confirmation notification."
+        return f"Error sending appointment confirmation notification.{e}"
     
 
 
@@ -85,3 +85,6 @@ def send_appointment_reshceduled_notification(appointment_id,old_date_time , new
     
 
 
+
+# @shared_task
+# def send_appointment_reminders(appointment_id):

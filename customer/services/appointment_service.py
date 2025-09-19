@@ -16,6 +16,7 @@ from general.tasks import send_appointment_rescheduled_email_task, send_appointm
 from doctor.slots_service import get_available_slots
 from customer.utils.validators import AppointmentValidator
 from analysis.views import ConfirmAppointment
+from general.notification_controller import send_appointment_cancel_notification
 
 from general.notification_controller import send_appointment_reshceduled_notification
 
@@ -163,8 +164,8 @@ class AppointmentService:
                 )
 
         # Send cancellation notification
-        send_appointment_cancellation_email_task.delay(appointment_id=appointment.appointment_id)
-        
+        # send_appointment_cancellation_email_task.delay(appointment_id=appointment.appointment_id)
+        send_appointment_cancel_notification.delay(appointment_id = appointment.appointment_id)
         # Revoke background tasks
         try:
             doctor_appointment = DoctorAppointment.objects.get(appointment=appointment)

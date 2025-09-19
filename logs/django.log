@@ -1,0 +1,17 @@
+[INFO] 2025-09-18 22:11:40,277 django.utils.autoreload Watching for file changes with StatReloader
+[INFO] 2025-09-18 22:11:52,818 general.views Creating meeting tracker for appointment 109
+[DEBUG] 2025-09-18 22:11:54,094 general.views Error sending appointment confirmation notification.
+[INFO] 2025-09-18 22:11:54,194 django.channels.server [mHTTP GET /general/swtm/ 200 [1.38, 127.0.0.1:63474][0m
+[INFO] 2025-09-18 22:15:24,539 general.views Creating meeting tracker for appointment 109
+[DEBUG] 2025-09-18 22:15:25,165 general.views Error sending appointment confirmation notification.
+[INFO] 2025-09-18 22:15:25,169 django.channels.server [mHTTP GET /general/swtm/ 200 [0.63, 127.0.0.1:63707][0m
+[INFO] 2025-09-18 22:16:56,799 django.utils.autoreload C:\Users\Berlin\Projects\inticure_prime_backend\general\notification_controller.py changed, reloading.
+[INFO] 2025-09-18 22:16:58,483 django.utils.autoreload Watching for file changes with StatReloader
+[INFO] 2025-09-18 22:17:01,761 general.views Creating meeting tracker for appointment 109
+[DEBUG] 2025-09-18 22:17:02,389 general.views Error sending appointment confirmation notification.{e}
+[INFO] 2025-09-18 22:17:02,436 django.channels.server [mHTTP GET /general/swtm/ 200 [0.68, 127.0.0.1:63831][0m
+[INFO] 2025-09-18 22:17:26,353 django.utils.autoreload C:\Users\Berlin\Projects\inticure_prime_backend\general\notification_controller.py changed, reloading.
+[INFO] 2025-09-18 22:17:28,137 django.utils.autoreload Watching for file changes with StatReloader
+[INFO] 2025-09-18 22:17:30,966 general.views Creating meeting tracker for appointment 109
+[DEBUG] 2025-09-18 22:17:31,855 general.views Error sending appointment confirmation notification.unsupported operand type(s) for +: 'NoneType' and 'NoneType'
+[INFO] 2025-09-18 22:17:31,915 django.channels.server [mHTTP GET /general/swtm/ 200 [0.96, 127.0.0.1:63874][0m

@@ -8,6 +8,9 @@ from urllib3 import response
 from administrator.models import PaymentEntries
 from analysis.models import AppointmentHeader
 
+import logging
+logger = logging.getLogger(__name__)
+
 # def consultation_cost_details_view(request):
 #     entry = None
 #     appointment_id = None
@@ -505,10 +508,13 @@ def swtm_view(request):
     #     date_time="2024-10-01 10:00 AM",
     #     meet_code="123654789"
     # )
+    logger.info("Creating meeting tracker for appointment %s", 109)
+
 
     result = send_appointment_confirmation_notification(
        appointment_id=109
     )
+    logger.debug(result)
 
 
     # result = send_wa_auth_code(to_phone="917034761676", auth_code="123456")
