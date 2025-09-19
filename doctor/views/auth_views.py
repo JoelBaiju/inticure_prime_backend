@@ -118,8 +118,8 @@ class Verify_Login(APIView):
                     return Response('Invalid OTP for phone number', status=HTTP_400_BAD_REQUEST)
 
                 doctor_profile = DoctorProfiles.objects.get(whatsapp_number=phone_number)
-                user = User.objects.filter(username=phone_number).first()
-
+                # user = User.objects.filter(username=phone_number).first()
+                user = doctor_profile.user
             except DoctorProfiles.DoesNotExist:
                 return Response('Account not found, Invalid phone number', status=HTTP_400_BAD_REQUEST)
 
@@ -131,11 +131,11 @@ class Verify_Login(APIView):
                     return Response('Invalid OTP for email', status=HTTP_400_BAD_REQUEST)
 
                 doctor_profile = DoctorProfiles.objects.get(email_id=email)
-                user = User.objects.filter(email=email).first()
-
+                # user = User.objects.filter(email=email).first()
+                user = doctor_profile.user
             except DoctorProfiles.DoesNotExist:
                 return Response('Account not found, Invalid Email ID', status=HTTP_400_BAD_REQUEST)
-
+        logger.debug('doctor found')
         if doctor_profile.is_accepted:
             status='accepted'
         elif doctor_profile.rejected:
@@ -157,7 +157,7 @@ class Verify_Login(APIView):
 
         else:
             # Create new user for doctor profile
-            username = phone_number or email
+            username = (phone_number or email) + str(otp)
             if not username:
                 return Response('Username could not be determined.', status=HTTP_400_BAD_REQUEST)
 
