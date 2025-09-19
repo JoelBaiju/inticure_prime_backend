@@ -37,7 +37,7 @@ class LoginView(APIView):
         phone_number = request.data.get('phone_number')
         email = request.data.get('email_id')
         country_code = request.data.get('country_code', '+91')  
-
+        logger.info(email)
         otp = generate_random_otp()
         # otp = 666666
 
@@ -74,7 +74,7 @@ class LoginView(APIView):
                 Email_OTPs.objects.filter(email=email).delete()
                 otp_instance = Email_OTPs.objects.create(email=email, otp=otp)
             logger.info('before sending')
-            logger.debug(send_otp_email(otp = otp_instance.otp , toemail=email , firstname = 'user'))
+            send_otp_email(otp = otp_instance.otp , toemail=email , firstname = 'user')
             logger.info("OTP sent to email:", email)
         
 
