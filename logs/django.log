@@ -27,3 +27,5 @@
 [INFO] 2025-09-19 10:35:54,118 django.utils.autoreload Watching for file changes with StatReloader
 [INFO] 2025-09-19 10:36:24,873 django.utils.autoreload C:\Users\Berlin\Projects\inticure_prime_backend\doctor\views\auth_views.py changed, reloading.
 [INFO] 2025-09-19 10:36:28,420 django.utils.autoreload Watching for file changes with StatReloader
+[INFO] 2025-09-19 10:41:56,730 django.utils.autoreload C:\Users\Berlin\Projects\inticure_prime_backend\inticure_prime_backend\settings.py changed, reloading.
+[INFO] 2025-09-19 10:42:00,665 django.utils.autoreload Watching for file changes with StatReloader
