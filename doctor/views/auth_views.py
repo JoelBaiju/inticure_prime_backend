@@ -74,7 +74,7 @@ class LoginView(APIView):
                 Email_OTPs.objects.filter(email=email).delete()
                 otp_instance = Email_OTPs.objects.create(email=email, otp=otp)
             logger.info('before sending')
-            send_otp_email(otp = otp_instance.otp , toemail=email , firstname = 'user')
+            logger.debug(send_otp_email(otp = otp_instance.otp , toemail=email , firstname = 'user'))
             logger.info("OTP sent to email:", email)
         
 
