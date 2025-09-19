@@ -38,7 +38,7 @@ from general.sendgrid import send_email_via_sendgrid ,send_email_via_smtp
 
 def send_otp_email(firstname,otp,toemail):
     try:
-
+        logger.info('email:',toemail)
         subject = 'Your OTP for Email Verification'
      
 
