@@ -55,12 +55,12 @@ def send_email_via_sendgrid(subject, html_content, to_email):
         sg = SendGridAPIClient(settings.SENDGRID_API_KEY) 
         response = sg.send(message)
         # print(settings.SENDGRID_API_KEY)
-        print(f"Email sent to {to_email} | Status: {response.status_code}")
+        logger.info(f"Email sent to {to_email} | Status: {response.status_code}")
         return response.status_code
     except Exception as e:
         # print(settings.SENDGRID_API_KEY)
         logger.error(f"Error sending email to {to_email}: {e}")
-        return response.status_code
+        return f"error sending email in main function {e}"
 
 
 
