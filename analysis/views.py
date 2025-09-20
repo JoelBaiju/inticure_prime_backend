@@ -36,6 +36,9 @@ from general.whatsapp.whatsapp_messages import send_wa_auth_code
 from dateutil.relativedelta import relativedelta
 from datetime import timedelta 
 
+import logging
+logger = logging.getLogger(__name__)
+
 # ======================FIRST ANALYSIS INTERROGATION ========================//
 
 
@@ -66,12 +69,12 @@ class PhoneNumberOrEmailSubmissionView(APIView):
         phone_number = request.data.get('phone_number')
         email = request.data.get('email')
         country_code = request.data.get('country_code', '+91')  
-        print("Phone number:", phone_number)
-        print("email",email)
+        logger.info("Phone number:", phone_number)
+        logger.info("email",email)
         otp =generate_random_otp()
         if phone_number:
             if len(str(phone_number))>5:
-                print("Phone number received and got in:", phone_number)
+                logger.info("Phone number received and got in:", phone_number)
                 # otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = '666666')
                    
                 try:
@@ -84,7 +87,7 @@ class PhoneNumberOrEmailSubmissionView(APIView):
 
                 # send_otp_sms(otp = otp_instance.otp , to_number=country_code+phone_number)
                 send_wa_auth_code(str(country_code)+str(phone_number) , otp_instance.otp)
-                print("OTP sent to phone number:", phone_number)
+                logger.info("OTP sent to phone number:", phone_number)
             
         if email:
             # otp_instance = Email_OTPs.objects.create(email=email, otp='666666')
@@ -97,9 +100,9 @@ class PhoneNumberOrEmailSubmissionView(APIView):
                 Email_OTPs.objects.filter(email=email).delete()
                 otp_instance = Email_OTPs.objects.create(email=email, otp=otp)
 
-            send_email_verification_otp_email(otp = otp_instance.otp , to_email=email , name = 'User')
+            sg_response =send_email_verification_otp_email(otp = otp_instance.otp , to_email=email , name = 'User')
             logger.info("OTP sent to email:", email)
-
+            logger.info("sedgrid response" ,sg_response)
             
         return Response({
             'message': 'OTP sent successfully',
