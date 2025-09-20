@@ -337,12 +337,9 @@ def send_wa_specialist_reminder_1_hour_before(appointment_id):
 
 
 
-def send_wa_consultation_reminder_not_yet_scheduled(appointment_id):
+def send_wa_consultation_reminder_not_yet_scheduled(patient_name,salutation,specialist_name , to_phone):
     try:
-        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
-        patient_name = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
-        salutation = appointment.doctor.salutation
-        specialist_name = f"{appointment.doctor.first_name} {appointment.doctor.last_name}"
+       
         parameters = [
             {"type": "text", "parameter_name": "name", "text": patient_name},
             {"type": "text", "parameter_name": "salutation", "text": salutation},
@@ -351,18 +348,15 @@ def send_wa_consultation_reminder_not_yet_scheduled(appointment_id):
     
 
     
-        return whatsapp_api_handler(f"{appointment.customer.country_code}{appointment.customer.whatsapp_number}", "consultation_reminder_not_yet_scheduled", parameters)
+        return whatsapp_api_handler( to_phone, "consultation_reminder_not_yet_scheduled", parameters)
     except Exception as e:
         logger.error("wa_consultation_reminder not yet scheduled error" , e)
         return "Message not sent"
 
 
-def send_wa_final_consultation_reminder_not_yet_scheduled(appointment_id):
+def send_wa_final_consultation_reminder_not_yet_scheduled(patient_name,salutation,specialist_name , to_phone):
     try:
-        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
-        patient_name = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
-        salutation = appointment.doctor.salutation
-        specialist_name = f"{appointment.doctor.first_name} {appointment.doctor.last_name}"
+      
         parameters = [
         {"type": "text", "parameter_name": "name", "text": patient_name},
         {"type": "text", "parameter_name": "salutation", "text": salutation},
@@ -370,7 +364,7 @@ def send_wa_final_consultation_reminder_not_yet_scheduled(appointment_id):
         ]
 
         
-        return whatsapp_api_handler(f"{appointment.customer.country_code}{appointment.customer.whatsapp_number}", "final_consultation_reminder_not_yet_scheduled", parameters)
+        return whatsapp_api_handler(to_phone, "final_consultation_reminder_not_yet_scheduled", parameters)
     except Exception as e:
         logger.error("wa_final_consultation_reminder not yet scheduled error" , e)
         return "Message not sent"

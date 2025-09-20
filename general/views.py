@@ -396,6 +396,22 @@ class Email_tester(APIView):
     
 
 
+class Email_tester2(APIView):
+    def get(self, request):
+        subject = "Verify Your Email - Inticure"
+
+        context = {
+            "name": "joel",
+            "otp": '123456',
+            'year':timezone.now().year,
+            'backend_url':BACKEND_URL,  
+        }
+
+        html_content = render_to_string("email_otp.html", context)
+
+        send_email_via_sendgrid(subject, html_content, "joelbaiju98@gmail.com")
+
+        return Response("ssfs")
 
 
 

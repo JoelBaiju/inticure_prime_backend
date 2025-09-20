@@ -442,11 +442,11 @@ def schedule_reminder_to_book_appointment(appointment_id=None, referral_id=None)
             raise ValueError("Either appointment_id or referral_id must be provided")
             
     except AppointmentHeader.DoesNotExist:
-        logger.error(f'Appointment with ID {appointment_id} does not exist')
+        raise ValueError(f'Appointment with ID {appointment_id} does not exist')
     except Referral.DoesNotExist:
-        logger.error(f'Referral with ID {referral_id} does not exist')
+        raise ValueError(f'Referral with ID {referral_id} does not exist')
     except Exception as e:
-        logger.error(f'Error retrieving data: {str(e)}')
+        raise ValueError(f'Error retrieving data: {str(e)}')
    
     # Handle appointment logic
     if appointment and (appointment.appointment_status != 'confirmed' or "cancelled" not in appointment.appointment_status):
@@ -481,13 +481,19 @@ def schedule_reminder_to_book_appointment(appointment_id=None, referral_id=None)
             if appointment.customer.confirmation_method in ["WhatsApp" , "whatsapp" , "both"]:
                 if appointment.start_time - timedelta(hours=47) > timezone.now():
                     send_wa_consultation_reminder_not_yet_scheduled(
-                        appointment_id=appointment.appointment_id,
+                        patient_name=f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}",
+                        salutation=appointment.doctor.salutation,
+                        specialist_name=f"{appointment.doctor.first_name} {appointment.doctor.last_name}",
+                        to_phone=f"{appointment.customer.country_code}{appointment.customer.whatsapp_number}"
                     )
 
                 elif appointment.start_time - timedelta(hours=24) > timezone.now():
                     send_wa_final_consultation_reminder_not_yet_scheduled(
-                        appointment_id=appointment.appointment_id,
-                    )
+                        patient_name=f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}",
+                        salutation=appointment.doctor.salutation,
+                        specialist_name=f"{appointment.doctor.first_name} {appointment.doctor.last_name}",
+                        to_phone=f"{appointment.customer.country_code}{appointment.customer.whatsapp_number}"
+                    )                    
     
 
     # if appointment and appointment.appointment_status == 'pending_payment':
@@ -497,14 +503,22 @@ def schedule_reminder_to_book_appointment(appointment_id=None, referral_id=None)
     #     )
     
     # Handle referral logic
-    # elif referral and not referral.converted_to_appointment:
+    elif referral and not referral.converted_to_appointment:
+        for customer in referal_customers:
+            if customer.customer.confirmation_method in ["email" , "Email" , "both"]:
+                send_followup_referal_reminder_email(
+                    to_email=customer.customer.email,
+                    name=customer.customer.user.first_name + ' ' + customer.customer.user.last_name,
+                    specialization=referral.specialization.specialization,
+                    doctor_name=referral.doctor.first_name + ' ' + referral.doctor.last_name,
+                    doctor_salutation=referral.doctor.salutation,
+                )
+            if customer.customer.confirmation_method in ["WhatsApp" , "whatsapp" , "both"]:
+                send_wa_consultation_reminder_not_yet_scheduled(
+                    patient_name=f"{customer.customer.user.first_name} {customer.customer.user.last_name}",
+                    salutation=referral.doctor.salutation,
+                    specialist_name=f"{referral.doctor.first_name} {referral.doctor.last_name}",
+                    to_phone=f"{customer.customer.country_code}{customer.customer.whatsapp_number}"
+                )
         
-            # send_followup_referal_reminder_email(
-            #     to_email=customer.customer.email,
-            #     name=customer.customer.user.first_name + ' ' + customer.customer.user.last_name,
-            #     specialization=referral.specialization.specialization,
-            #     doctor_name=referral.doctor.first_name + ' ' + referral.doctor.last_name,
-            #     doctor_salutation=referral.doctor.salutation,
-            # )
-
 

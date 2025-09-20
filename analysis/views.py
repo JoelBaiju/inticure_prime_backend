@@ -97,9 +97,9 @@ class PhoneNumberOrEmailSubmissionView(APIView):
                 Email_OTPs.objects.filter(email=email).delete()
                 otp_instance = Email_OTPs.objects.create(email=email, otp=otp)
 
-            send_email_verification_otp_email(otp = otp_instance.otp , to_email=email , name = ' User')
-            print("OTP sent to email:", email)
-        
+            send_email_verification_otp_email(otp = otp_instance.otp , to_email=email , name = 'User')
+            logger.info("OTP sent to email:", email)
+
             
         return Response({
             'message': 'OTP sent successfully',
