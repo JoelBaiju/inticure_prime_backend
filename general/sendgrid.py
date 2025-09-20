@@ -2,6 +2,12 @@ import sendgrid
 from sendgrid.helpers.mail import Mail
 from django.conf import settings
 
+
+import logging
+logger = logging.getLogger(__name__)
+
+
+
 sg = sendgrid.SendGridAPIClient(api_key=settings.EMAIL_HOST_PASSWORD)  # Use SendGrid API key from settings')
 def send_mail(body, to_email):
     """
