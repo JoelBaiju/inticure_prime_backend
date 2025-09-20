@@ -1,5 +1,6 @@
+from venv import logger
 from .api import whatsapp_api_handler
-from analysis.models import AppointmentHeader, Meeting_Tracker
+from analysis.models import Appointment_customers, AppointmentHeader, Meeting_Tracker
 from ..utils import convert_datetime_to_words_in_local_tz
 
 
@@ -176,15 +177,30 @@ def send_wa_auth_code(to_phone, auth_code):
 
 
 
-def send_wa_consultation_rescheduled_by_specialist(to_phone, patient_name, salutation, specialist_name, old_date_time, new_date_time):
-    parameters = [
-        {"type": "text", "parameter_name": "name", "text": patient_name},
-        {"type": "text", "parameter_name": "salutation", "text": salutation},
-        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
-    ]
+def send_wa_consultation_rescheduled_by_specialist(appointment_id):
 
-    return whatsapp_api_handler(to_phone, "consultation_rescheduled_by_specialist", parameters)
+    try:
 
+        
+                
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        specialist_name = appointment.doctor.first_name
+        salutation = appointment.doctor.salutation
+        appt_customers = Appointment_customers.objects.get(appointment=appointment)
+        for customer in appt_customers:
+            patient_name =f" {customer.customer.user.first_name} {customer.customer.user.last_name}"
+
+            parameters = [
+                {"type": "text", "parameter_name": "name", "text": patient_name},
+                {"type": "text", "parameter_name": "salutation", "text": salutation},
+                {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
+            ]
+
+        whatsapp_api_handler(f"{customer.customer.country_code}{customer.customer.whatsapp_number}", "consultation_rescheduled_by_specialist", parameters)
+
+    except Exception as e:
+        print(f"Error in send_wa_consultation_rescheduled_by_specialist.for id {appointment_id}. Error {e}")
+        return f"Error in send_wa_consultation_rescheduled_by_specialist. {e}"
 
 
 
@@ -195,19 +211,21 @@ def send_wa_consultation_rescheduled_by_patient_to_specialist(appointment_id ,  
         specialist_name = appointment.doctor.first_name
         salutation = appointment.doctor.salutation
         to_phone = appointment.doctor.whatsapp_country_code + appointment.doctor.whatsapp_number
-    except AppointmentHeader.DoesNotExist:
-        print(f"Appointment does not exist.for id {appointment_id}")
-        return "Appointment does not exist."
 
-    parameters = [
-        {"type": "text", "parameter_name": "patient_name", "text": patient_name},
-        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
-        {"type": "text", "parameter_name": "old_datetime", "text": convert_datetime_to_words_in_local_tz(old_date_time , appointment.doctor.time_zone)},
-        {"type": "text", "parameter_name": "new_datetime", "text": convert_datetime_to_words_in_local_tz(new_date_time , appointment.doctor.time_zone)},
-    ]
+        parameters = [
+            {"type": "text", "parameter_name": "patient_name", "text": patient_name},
+            {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
+            {"type": "text", "parameter_name": "old_datetime", "text": convert_datetime_to_words_in_local_tz(old_date_time , appointment.doctor.time_zone)},
+            {"type": "text", "parameter_name": "new_datetime", "text": convert_datetime_to_words_in_local_tz(new_date_time , appointment.doctor.time_zone)},
+        ]
 
-        
-    return whatsapp_api_handler(to_phone, "consultation_rescheduled_by_patient_to_specialist", parameters)
+            
+        return whatsapp_api_handler(to_phone, "consultation_rescheduled_by_patient_to_specialist", parameters)
+
+    except Exception as e:
+        logger.error("wa_consultation_rescheduled_by_patient_to_specialist error" , e)
+        return "Message not sent"
+
 
 # ======================================================================================================================
 
@@ -215,7 +233,7 @@ def send_wa_consultation_rescheduled_by_patient_to_specialist(appointment_id ,  
 def send_wa_consultation_reminder_24_hours_before(appointment_id):
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
-        specialist_name = appointment.doctor.first_name
+        specialist_name =f"{ appointment.doctor.first_name} { appointment.doctor.last_name}"
         salutation = appointment.doctor.salutation
         tracker = Meeting_Tracker.objects.get(appointment = appointment)
         appt_customers = appointment.appointment_customers.all()
@@ -225,7 +243,7 @@ def send_wa_consultation_reminder_24_hours_before(appointment_id):
             meet_code = tracker.customer_1_meeting_id if customer.customer == tracker.customer_1 else tracker.customer_2_meeting_id
                 
             body_parameters = [
-                {"type": "text", "text": customer.customer.user.first_name, "parameter_name": "name"},
+                {"type": "text", "text": f"{customer.customer.user.first_name} {customer.customer.user.last_name}", "parameter_name": "name"},
                 {"type": "text", "text": salutation, "parameter_name": "salutation"},
                 {"type": "text", "text": specialist_name, "parameter_name": "specialist_name"},
                 {"type": "text", "text": convert_datetime_to_words_in_local_tz(appointment.start_time , customer.customer.time_zone), "parameter_name": "date_time"},
@@ -238,136 +256,206 @@ def send_wa_consultation_reminder_24_hours_before(appointment_id):
                 }
             ]
             
-            whatsapp_api_handler(f"{customer.customer.whatsapp_country_code}{customer.customer.whatsapp_number}", "consultation_reminder_24_hours_before", body_parameters, button_parameters)
+            whatsapp_api_handler(f"{customer.customer.country_code}{customer.customer.whatsapp_number}", "consultation_reminder_24_hours_before", body_parameters, button_parameters)
 
     except AppointmentHeader.DoesNotExist:
-        print(f"Appointment does not exist.for id {appointment_id}")
+        logger.error(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
     except Exception as e:
-        print("error" , e)
-    return "Message sent"
+        logger.error("wa_consultation_reminder 24 hours before error" , e)
+        return "Message not sent"
 
 
 
 
 
-def send_wa_consultation_reminder_1_hour_before (to_phone, patient_name,salutation, specialist_name, date_time, meet_code): 
-    parameters = [
-        {"type": "text", "parameter_name": "patient_name", "text": patient_name},
-        {"type": "text", "parameter_name": "salutation", "text": salutation},
-        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
-        {"type": "text", "parameter_name": "time", "text": date_time},
-    ]
+def send_wa_consultation_reminder_1_hour_before (appointment_id): 
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        specialist_name =f"{ appointment.doctor.first_name} { appointment.doctor.last_name}"
+        salutation = appointment.doctor.salutation
+        tracker = Meeting_Tracker.objects.get(appointment = appointment)
+        appt_customers = appointment.appointment_customers.all()
+        for customer in appt_customers:
+            meet_code = tracker.customer_1_meeting_id if customer.customer == tracker.customer_1 else tracker.customer_2_meeting_id
+            parameters = [
+                {"type": "text", "text": f"{customer.customer.user.first_name} {customer.customer.user.last_name}", "parameter_name": "patient_name"},
+                {"type": "text", "text": salutation, "parameter_name": "salutation"},
+                {"type": "text", "text": specialist_name, "parameter_name": "specialist_name"},
+                {"type": "text", "text": convert_datetime_to_words_in_local_tz(appointment.start_time , customer.customer.time_zone), "parameter_name": "time"},
+            ]
+            button_parameters = [
+                {
+                    "type": "text", 
+                    "text": meet_code 
+                }
+            ]
+            return whatsapp_api_handler(f"{customer.customer.country_code}{customer.customer.whatsapp_number}", "consultation_reminder_1_hour_before", parameters, button_parameters)
+
+    except AppointmentHeader.DoesNotExist:
+        logger.error(f"Appointment does not exist.for id {appointment_id}")
+        return "Appointment does not exist."
+    except Exception as e:
+        logger.error("wa_consultation_reminder 1 hour before error" , e)
+        return "Message not sent"
 
         
-    button_parameters = [
-        {
-            "type": "text", 
-            "text": meet_code 
-        }
-    ]
-
-    return whatsapp_api_handler(to_phone, "consultation_reminder_1_hour_before", parameters, button_parameters)
 
 
+def send_wa_specialist_reminder_1_hour_before(appointment_id):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        specialist_name =f"{ appointment.doctor.first_name} { appointment.doctor.last_name}"
+        salutation = appointment.doctor.salutation
+        tracker = Meeting_Tracker.objects.get(appointment = appointment)
+    
+        parameters = [
+            {"type": "text", "parameter_name": "patient_name", "text": f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"},
+            {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
+            {"type": "text", "parameter_name": "datetime", "text": convert_datetime_to_words_in_local_tz(appointment.start_time , appointment.customer.time_zone)},
+        ]
 
-def send_wa_specialist_reminder_1_hour_before(to_phone, patient_name, specialist_name, date_time, meet_code):
-    parameters = [
-        {"type": "text", "parameter_name": "patient_name", "text": patient_name},
-        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
-        {"type": "text", "parameter_name": "datetime", "text": date_time},
-    ]
+            
+        button_parameters = [
+            {
+                "type": "text", 
+                "text": tracker.doctor_meeting_id 
+            }
+        ]
 
-        
-    button_parameters = [
-        {
-            "type": "text", 
-            "text": meet_code 
-        }
-    ]
+        return whatsapp_api_handler(f"{appointment.doctor.whatsapp_country_code}{appointment.doctor.whatsapp_number}", "specialist_reminder_1_hour_before", parameters, button_parameters)
 
-    return whatsapp_api_handler(to_phone, "specialist_reminder_1_hour_before", parameters, button_parameters)
-
-
-# ===================================================================================
+    except Exception as e:
+        logger.error("wa_specialist_reminder 1 hour before error" , e)
+        return "Message not sent"
 
 
 
-def send_wa_consultation_reminder_not_yet_scheduled(to_phone, patient_name, salutation, specialist_name):
-    parameters = [
+
+
+# ===================================================================================+===================================
+
+
+
+def send_wa_consultation_reminder_not_yet_scheduled(appointment_id):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        patient_name = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
+        salutation = appointment.doctor.salutation
+        specialist_name = f"{appointment.doctor.first_name} {appointment.doctor.last_name}"
+        parameters = [
+            {"type": "text", "parameter_name": "name", "text": patient_name},
+            {"type": "text", "parameter_name": "salutation", "text": salutation},
+            {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
+        ]
+    
+
+    
+        return whatsapp_api_handler(f"{appointment.customer.country_code}{appointment.customer.whatsapp_number}", "consultation_reminder_not_yet_scheduled", parameters)
+    except Exception as e:
+        logger.error("wa_consultation_reminder not yet scheduled error" , e)
+        return "Message not sent"
+
+
+def send_wa_final_consultation_reminder_not_yet_scheduled(appointment_id):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        patient_name = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
+        salutation = appointment.doctor.salutation
+        specialist_name = f"{appointment.doctor.first_name} {appointment.doctor.last_name}"
+        parameters = [
         {"type": "text", "parameter_name": "name", "text": patient_name},
         {"type": "text", "parameter_name": "salutation", "text": salutation},
         {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
-    ]
+        ]
 
-    
-    return whatsapp_api_handler(to_phone, "consultation_reminder_not_yet_scheduled", parameters)
-
-
-def send_wa_final_consultation_reminder_not_yet_scheduled(to_phone, patient_name, salutation, specialist_name):
-    parameters = [
-        {"type": "text", "parameter_name": "name", "text": patient_name},
-        {"type": "text", "parameter_name": "salutation", "text": salutation},
-        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
-    ]
-
-    
-    return whatsapp_api_handler(to_phone, "final_consultation_reminder_not_yet_scheduled", parameters)
-
+        
+        return whatsapp_api_handler(f"{appointment.customer.country_code}{appointment.customer.whatsapp_number}", "final_consultation_reminder_not_yet_scheduled", parameters)
+    except Exception as e:
+        logger.error("wa_final_consultation_reminder not yet scheduled error" , e)
+        return "Message not sent"
 
 
 # patient missed
-def send_wa_missed_consultation_patient_did_not_join(to_phone, patient_name, salutation, specialist_name, date_time):
-    parameters = [
+def send_wa_missed_consultation_patient_did_not_join(appointment_id):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        patient_name = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
+        salutation = appointment.doctor.salutation
+        specialist_name = f"{appointment.doctor.first_name} {appointment.doctor.last_name}"
+        parameters = [
         {"type": "text", "parameter_name": "name", "text": patient_name},
         {"type": "text", "parameter_name": "salutation", "text": salutation},
         {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
-        {"type": "text", "parameter_name": "datetime", "text": date_time},
-    ]
+        {"type": "text", "parameter_name": "datetime", "text": convert_datetime_to_words_in_local_tz(appointment.start_time , appointment.customer.time_zone)},
+        ]
 
     
-    return whatsapp_api_handler(to_phone, "missed_consultation_patient_did_not_join", parameters)
-
+        return whatsapp_api_handler(f"{appointment.customer.country_code}{appointment.customer.whatsapp_number}", "missed_consultation_patient_did_not_join", parameters)
+    except Exception as e:
+        logger.error("wa_missed_consultation_patient_did_not_join error" , e)
+        return "Message not sent"
 
 
 # doctor missed
-def send_wa_consultation_interrupted_specialist_emergency(to_phone, patient_name, salutation, specialist_name, date_time):
-    parameters = [
-        {"type": "text", "parameter_name": "name", "text": patient_name},
-        {"type": "text", "parameter_name": "salutation", "text": salutation},
-        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
-        {"type": "text", "parameter_name": "datetime", "text": date_time},
-    ]
-
-    
-    return whatsapp_api_handler(to_phone, "consultation_interrupted_specialist_emergency", parameters)
-
-
-
-
-def send_wa_payment_pending_reminder (to_phone, patient_name, salutation, specialist_name, datetime):
-    parameters = [
-        {"type": "text", "parameter_name": "name", "text": patient_name},
-        {"type": "text", "parameter_name": "salutation", "text": salutation},
-        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
-        {"type": "text", "parameter_name": "datetime", "text": datetime},
-    ]
-
-    
-    return whatsapp_api_handler(to_phone, "payment_pending_reminder", parameters)
+def send_wa_consultation_interrupted_specialist_emergency(appointment_id):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        patient_name = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
+        salutation = appointment.doctor.salutation
+        specialist_name = f"{appointment.doctor.first_name} {appointment.doctor.last_name}"
+        parameters = [
+            {"type": "text", "parameter_name": "name", "text": patient_name},
+            {"type": "text", "parameter_name": "salutation", "text": salutation},
+            {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
+            {"type": "text", "parameter_name": "datetime", "text": convert_datetime_to_words_in_local_tz(appointment.start_time , appointment.customer.time_zone)},
+        ]
+        return whatsapp_api_handler(f"{appointment.customer.country_code}{appointment.customer.whatsapp_number}", "consultation_interrupted_specialist_emergency", parameters)
+    except Exception as e:
+        logger.error("wa_consultation_interrupted_specialist_emergency error" , e)
+        return "Message not sent"
 
 
 
-def send_wa__final_payment_reminder_24_hours_before_consultation_time(to_phone, patient_name, salutation, specialist_name, datetime):
-    parameters = [
-        {"type": "text", "parameter_name": "name", "text": patient_name},
-        {"type": "text", "parameter_name": "salutation", "text": salutation},
-        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
-        {"type": "text", "parameter_name": "datetime", "text": datetime},
-    ]
 
-    
-    return whatsapp_api_handler(to_phone, "_final_payment_reminder_24_hours_before_consultation_time", parameters)
+def send_wa_payment_pending_reminder(appointment_id):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        patient_name = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
+        salutation = appointment.doctor.salutation
+        specialist_name = f"{appointment.doctor.first_name} {appointment.doctor.last_name}"
+        parameters = [
+            {"type": "text", "parameter_name": "name", "text": patient_name},
+            {"type": "text", "parameter_name": "salutation", "text": salutation},
+            {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
+            {"type": "text", "parameter_name": "datetime", "text": convert_datetime_to_words_in_local_tz(appointment.start_time , appointment.customer.time_zone)},
+        ]
+        return whatsapp_api_handler(f"{appointment.customer.country_code}{appointment.customer.whatsapp_number}", "payment_pending_reminder", parameters)
+    except Exception as e:
+        logger.error("wa_payment_pending_reminder error" , e)
+        return "Message not sent"
+
+def send_wa__final_payment_reminder_24_hours_before_consultation_time(appointment_id):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        patient_name = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
+        salutation = appointment.doctor.salutation
+        specialist_name = f"{appointment.doctor.first_name} {appointment.doctor.last_name}"
+        parameters = [
+            {"type": "text", "parameter_name": "name", "text": patient_name},
+            {"type": "text", "parameter_name": "salutation", "text": salutation},
+            {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
+            {"type": "text", "parameter_name": "datetime", "text": convert_datetime_to_words_in_local_tz(appointment.start_time , appointment.customer.time_zone)},
+        ]
+        return whatsapp_api_handler(f"{appointment.customer.country_code}{appointment.customer.whatsapp_number}", "_final_payment_reminder_24_hours_before_consultation_time", parameters)
+    except Exception as e:
+        logger.error("wa__final_payment_reminder_24_hours_before_consultation_time error" , e)
+        return "Message not sent"
+
+
+
+
+
 
 
 

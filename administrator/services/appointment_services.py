@@ -50,7 +50,7 @@ from general.tasks import schedule_reminder_to_book_appointment, send_payment_pe
 from analysis.tasks import delete_unpaid_appointment
 from general.utils import convert_local_dt_to_utc
 from general.emal_service import send_payment_pending_email
-
+from general.notification_controller import send_payment_pending_notification
 
 
 
@@ -193,10 +193,10 @@ def create_new_appointment_service(data):
     )
 
     # Email + async tasks
-    # if not appointment.payment_done :
-        # send_payment_pending_email_task.delay(
-        #     appointment.appointment_id
-        # )
+    if not appointment.payment_done :
+        send_payment_pending_notification.delay(
+            appointment.appointment_id
+        )
     delete_unpaid_appointment.apply_async((appointment.appointment_id,), countdown=900)
     schedule_reminder_to_book_appointment.apply_async((appointment.appointment_id, None), countdown=172800)
 

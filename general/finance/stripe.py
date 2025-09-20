@@ -1,3 +1,4 @@
+from urllib import response
 import stripe
 from django.conf import settings
 from general.models import PreTransactionData
@@ -167,22 +168,31 @@ import json
 from analysis.views import ConfirmAppointment
 from django.conf import settings
 from general.models import PreTransactionData, StripeTransactions
+from rest_framework.response import Response
+import logging
+logger = logging.getLogger(__name__)
+
+
 @csrf_exempt
 def verify_payment_stripe(request):
     if request.method != "POST":
-        return JsonResponse({"error": "Invalid request method"}, status=405)
+        logger.error("Invalid request method")
+        return Response("")
 
     endpoint_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', None)
     if not endpoint_secret:
-        return JsonResponse({"error": "Webhook secret not configured"}, status=500)
+        logger.error("End pont secret missing strip verify payment")
+        return Response("")
 
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     if not sig_header:
-        return JsonResponse({"error": "Missing Stripe signature header"}, status=400)
+        logger.error("Missing Stripe signature header")
+        return Response("")
 
     payload = request.body
     if not payload:
-        return JsonResponse({"error": "Empty payload"}, status=400)
+        logger.error("Empty payload")
+        return Response("")
 
     # Verify webhook signature
     try:
@@ -192,9 +202,11 @@ def verify_payment_stripe(request):
             secret=endpoint_secret
         )
     except stripe.error.SignatureVerificationError:
-        return JsonResponse({"error": "Signature verification failed"}, status=400)
+        logger.error("Signature verification failed")
+        return Response("")
     except Exception as e:
-        return JsonResponse({"error": f"Verification error: {str(e)}"}, status=400)
+        logger.error(f"Verification error: {str(e)}")
+        return Response("")
 
     # ✅ Only reached if event is valid
     obj = event['data']['object']
@@ -251,7 +263,8 @@ def verify_payment_stripe(request):
             return JsonResponse({"status": "unhandled", "event": event_type, "metadata": metadata})
 
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        logger.error(f"Error in verify_payment_stripe: {str(e)}")
+        return Response("")
 
 # @csrf_exempt
 # def verify_payment_stripe(request):

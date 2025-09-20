@@ -7,10 +7,10 @@ from general.sendgrid import send_email_via_sendgrid ,send_email_via_smtp
 from doctor.models import DoctorProfiles
 from inticure_prime_backend.settings import BACKEND_URL
 from django.utils import timezone
+from analysis.models import AppointmentHeader
 
-
-
-
+import logging
+logger = logging.getLogger(__name__)
 
 
 
@@ -133,9 +133,7 @@ def send_followup_confirmation_email(
 
 
 
-def send_first_appointment_confirmation_email(
-    appointment_id
-):
+def send_first_appointment_confirmation_email(appointment_id):
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         appointment_customers = appointment.appointment_customers.all()
@@ -171,9 +169,7 @@ def send_first_appointment_confirmation_email(
 
 
 
-def send_appointment_confirmation_customer_email(
-    appointment_id,
-):
+def send_appointment_confirmation_customer_email(appointment_id,):
 
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
@@ -210,9 +206,7 @@ def send_appointment_confirmation_customer_email(
 
 
 
-def send_appointment_confirmation_doctor_email(
-    appointment_id,
-):
+def send_appointment_confirmation_doctor_email(appointment_id,):
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
@@ -334,105 +328,126 @@ def send_doctor_status_email(doctor_id):
 
 from datetime import datetime
 
-def send_appointment_reminder_customer_email(
-    to_email, c_name, date, weekday, time, meeting_link,doctor_name
-    ,specialization,doctor_salutation
-):
-    subject = f"Reminder: Your Upcoming Consultation on {date} at {time}"
+def send_appointment_reminder_customer_email(appintment_id , message):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appintment_id)
+        appointment_customers = appointment.appointment_customers.all()
+        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
+        for customer in appointment_customers:
+            meeting_link = meeting_tracker.customer_1_meeting_link if customer.customer == meeting_tracker.customer_1 else meeting_tracker.customer_2_meeting_link
 
-    context = {
-        "c_name": c_name,
-        "date": date,
-        "weekday": weekday,
-        "time": time,
-        "meeting_link": meeting_link,
-        "year": timezone.now().year,
-        'doctor_name':doctor_name,
-        'salutation':doctor_salutation,
-        'specialization':specialization,
-        'backend_url':BACKEND_URL,
-    }
+            context = {
+                "message":message,
+                "c_name": customer.customer.user.first_name,
+                "date" : appointment.start_time.strftime("%B %d, %Y"),
+                "weekday" : appointment.start_time.strftime("%A"),
+                "time" : appointment.start_time.strftime("%I:%M %p"),
+                "meeting_link": meeting_link,
+                "year": timezone.now().year,
+                'doctor_name':f"{appointment.doctor.first_name} {appointment.doctor.last_name}",
+                'salutation':appointment.doctor.salutation,
+                'specialization':appointment.specialization.specialization,
+                'backend_url':BACKEND_URL,
+            }
+            subject = f"Reminder: {message}"
+            html_content = render_to_string("appointment_reminder/appointment_reminder_customer.html", context)
+            send_email_via_sendgrid(subject, html_content, customer.customer.email)
 
-    html_content = render_to_string("appointment_reminder/appointment_reminder_customer.html", context)
+    except Exception as e:
+        logger.debug(f"appointment_reminder_customer Email not sent error{e}")
+        return f"appointment_reminder_customer Email not sent error{e}"
+    
 
-    return send_email_via_sendgrid(subject, html_content, to_email)
+def send_appointment_reminder_doctor_email(appointment_id , message):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
+        
+        context = {
+            "message":message,
+            "patient_1_name": f"{meeting_tracker.customer_1.user.first_name} {meeting_tracker.customer_2.user.last_name}",
+            "patient_2_name": f"{meeting_tracker.customer_2.user.first_name} {meeting_tracker.customer_2.user.last_name}",
+            "date" : appointment.start_time.strftime("%B %d, %Y"),
+            "weekday" : appointment.start_time.strftime("%A"),
+            "time" : appointment.start_time.strftime("%I:%M %p"),
+            "meeting_link": meeting_tracker.doctor_meeting_link,
+            "year": timezone.now().year,
+            'doctor_name':f"{appointment.doctor.first_name} {appointment.doctor.last_name}",
+            'salutation':appointment.doctor.salutation,
+            'specialization':appointment.specialization.specialization,    
+            'backend_url':BACKEND_URL,
+        }
 
-def send_appointment_reminder_doctor_email(
-    to_email, patient_1_name,patient_2_name, date, weekday, time, meeting_link,doctor_name
-    ,specialization,doctor_salutation
-):
-    subject = f"Reminder: Your Upcoming Consultation on {date} at {time}"
-
-    context = {
-        "patient_1_name": patient_1_name,
-        "patient_2_name": patient_2_name,
-        "date": date,
-        "weekday": weekday,
-        "time": time,
-        "meeting_link": meeting_link,
-        "year": timezone.now().year,
-        'doctor_name':doctor_name,
-        'salutation':doctor_salutation,
-        'specialization':specialization,    
-        'backend_url':BACKEND_URL,
-    }
-
-    html_content = render_to_string("appointment_reminder/appointment_reminder_doctor.html", context)
-
-    return send_email_via_sendgrid(subject, html_content, to_email)
-
+        html_content = render_to_string("appointment_reminder/appointment_reminder_doctor.html", context)
+        subject = f"Reminder: {message} with {context['patient_1_name']}"
+        return send_email_via_sendgrid(subject, html_content , appointment.doctor.email_id)
+    
+    except Exception as e:
+        logger.debug(f"appointment_reminder_doctor Email not sent error{e}")
+        return f"appointment_reminder_doctor Email not sent error{e}"
 
 from datetime import datetime
 from django.template.loader import render_to_string
 
-def send_appointment_started_reminder_doctor_email(
-    to_email, doctor_name, patient_1_name, patient_2_name, date, weekday, time, specialization, meeting_link,doctor_salutation
-):
-    subject = f"Reminder: Your Consultation with has started"
+def send_appointment_started_reminder_doctor_email(appointment_id):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
+        doctor = appointment.doctor
 
-    context = {
-        "doctor_name": doctor_name,
-        'salutation':doctor_salutation,
-        "patient_1_name": patient_1_name,
-        "patient_2_name": patient_2_name,
-        "date": date,
-        "weekday": weekday,
-        "time": time,
-        "specialization": specialization,
-        "meeting_link": meeting_link,
-        "year": timezone.now().year,
-        'backend_url':BACKEND_URL,
-    }
+        context = {
+            "doctor_name": f"{doctor.first_name} {doctor.last_name}",
+            'salutation':doctor.salutation,
+            "patient_1_name": f"{meeting_tracker.customer_1.user.first_name} {meeting_tracker.customer_1.user.last_name}",
+            "patient_2_name": f"{meeting_tracker.customer_2.user.first_name} {meeting_tracker.customer_2.user.last_name}",
+            "date": appointment.start_time.strftime("%B %d, %Y"),
+            "weekday": appointment.start_time.strftime("%A"),
+            "time": appointment.start_time.strftime("%I:%M %p"),
+            "specialization": appointment.specialization.specialization,
+            "meeting_link": meeting_tracker.doctor_meeting_link,
+            "year": timezone.now().year,
+            'backend_url':BACKEND_URL,
+        }
 
-    html_content = render_to_string("appointment_reminder/appointment_started_reminder_doctor.html", context)
+        subject = f"Reminder: Your Consultation with {context['patient_1_name']} has started"
 
-    return send_email_via_sendgrid(subject, html_content, to_email)
+        html_content = render_to_string("appointment_reminder/appointment_started_reminder_doctor.html", context)
+
+        return send_email_via_sendgrid(subject, html_content, doctor.email_id)
+
+    except Exception as e:
+        logger.debug(f"send_appointment_started_reminder_doctor_email Email not sent error{e}")
+        return f"send_appointment_started_reminder_doctor_email Email not sent error{e}"
 
 
 
 
 
-def send_appointment_started_reminder_customer_email(
-    to_email, doctor_name, patient_name, date, weekday, time, specialization, meeting_link, patient_pic=None, patient_note=None,doctor_salutation=None
-):
-    subject = f"Reminder: Your Consultation with {patient_name} on {date} at {time}"
-
-    context = {
-        "doctor_name": doctor_name,
-        "patient_name": patient_name,
-        'salutation':doctor_salutation,
-        "date": date,
-        "weekday": weekday,
-        "time": time,
-        "specialization": specialization,
-        "meeting_link": meeting_link,
-        "year": timezone.now().year,
-        'backend_url':BACKEND_URL,
-    }
-
-    html_content = render_to_string("appointment_reminder/appointment_started_reminder_customer.html", context)
-
-    return send_email_via_sendgrid(subject, html_content, to_email)
+def send_appointment_started_reminder_customer_email(appointment_id):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
+        appt_customers = appointment.appointment_customers.all()
+        for customer in appt_customers:
+            meeting_link = meeting_tracker.customer_1_meeting_link if customer.customer == meeting_tracker.customer_1 else meeting_tracker.customer_2_meeting_link
+            context = {
+                "doctor_name": f"{appointment.doctor.first_name} {appointment.doctor.last_name}",
+                "patient_name": f"{customer.customer.user.first_name} {customer.customer.user.last_name}",
+                'salutation':appointment.doctor.salutation,
+                "date": appointment.start_time.strftime("%B %d, %Y"),
+                "weekday": appointment.start_time.strftime("%A"),
+                "time": appointment.start_time.strftime("%I:%M %p"),
+                "specialization": appointment.specialization.specialization,
+                "meeting_link": meeting_link,
+                "year": timezone.now().year,
+                'backend_url':BACKEND_URL,
+            }
+            subject = f"Reminder: Your Consultation with {context['doctor_name']} has started"
+            html_content = render_to_string("appointment_reminder/appointment_started_reminder_customer.html", context)
+            send_email_via_sendgrid(subject, html_content, customer.customer.email_id)
+    except Exception as e:
+        logger.debug(f"send_appointment_started_reminder_customer_email Email not sent error{e}")
+        return f"send_appointment_started_reminder_customer_email Email not sent error{e}"
 
 
 
@@ -552,41 +567,22 @@ def send_followup_referal_reminder_email(to_email, name, specialization,doctor_n
 
 
 
+def send_followup_referal_final_reminder_email(to_email, name, specialization,doctor_name,doctor_salutation=None):
+    subject = f"Reminder: Schedule Your {specialization} Consultation with Inticure"
 
-
-from analysis.models import Meeting_Tracker , AppointmentHeader
-
-
-def send_appointment_transfer_email(
-    to_email, email, appointment_id, doctor, doctor_flag=0, salutation=' '
-):
-    """
-    Sends appointment transfer notification email.
-    
-    Args:
-        to_email: Recipient email address
-        email: Email address used in the greeting
-        appointment_id: ID of the transferred appointment
-        doctor: Name of the doctor the appointment was transferred to
-        doctor_flag: 0 for patient notification, 1 for doctor notification
-    """
-    subject = "Appointment Transfer Notification - Inticure"
-    
     context = {
-        "email": email,
-        "appointment_id": appointment_id,
-        "doctor": doctor,
-        "doctor_flag": doctor_flag,
-        'salutation':salutation,
+        "name": name,
+        "specialization": specialization,
+        "doctor_name":doctor_name,
         'year':timezone.now().year,
         'backend_url':BACKEND_URL,  
+        'salutation':doctor_salutation,
+        'final':True,
     }
 
-    # Render HTML template with context
-    html_content = render_to_string("appointment_transfer.html", context)
+    html_content = render_to_string("appointment_reminder/followup_reminder.html", context)
 
     return send_email_via_sendgrid(subject, html_content, to_email)
-
 
 
 
@@ -619,6 +615,25 @@ def send_payment_pending_email(appointment_id):
         send_email_via_sendgrid(subject, html_content, appointment.customer.email)
         
 
+def send_payment_pending_email_final(appointment_id):
+    
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+    except AppointmentHeader.DoesNotExist:
+        return
+    subject = "Action Required: Complete Payment to Confirm Your Consultation"
+
+    context = {
+        "name": appointment.customer.user.first_name + ' ' + appointment.customer.user.last_name,
+        "year": timezone.now().year,
+        'backend_url':BACKEND_URL,  
+    }
+    # Render HTML template with context
+    html_content = render_to_string("payment_mail_final_24_before.html", context)
+
+    if appointment.appointment_status != 'confirmed':
+        send_email_via_sendgrid(subject, html_content, appointment.customer.email)
+        
 
 
 from datetime import datetime

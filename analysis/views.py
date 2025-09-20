@@ -1134,7 +1134,7 @@ def ConfirmAppointment(appointment_id =None, pretransaction_id =None, is_admin =
 
 
 
-from general.notification_controller import send_appointment_confirmation_notification
+from general.notification_controller import send_appointment_confirmation_notification ,schedule_all_reminders
 
 
 
@@ -1169,15 +1169,7 @@ def appointment_routine_notifications(appointment_id):
 
     meeting_tracker.monitor_task_id = task.id
 
-    if appointment.start_time - timedelta(days = 7) > timezone.now():
-        task = schedule_reminder_prior_to_appointment.apply_async(
-            args=[appointment.appointment_id],
-            eta=appointment.start_time - timedelta(days = 7),
-        )
-    elif appointment.start_time - timedelta(days = 1) > timezone.now():
-        task = schedule_reminder_prior_to_appointment.apply_async(
-            args=[appointment.appointment_id],
-            eta=appointment.start_time - timedelta(hours=1),
-        )
+    schedule_all_reminders(appointment_id)
+    
     meeting_tracker.reminder_task_id = task.id
     meeting_tracker.save()

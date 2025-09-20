@@ -173,8 +173,8 @@ class AppointmentService:
             doctor_appointment.delete()
             if meeting_tracker.monitor_task_id:
                 current_app.control.revoke(meeting_tracker.monitor_task_id, terminate=True)
-            if meeting_tracker.reminder_task_id:
-                current_app.control.revoke(meeting_tracker.reminder_task_id, terminate=True)
+            # if meeting_tracker.reminder_task_id:
+            #     current_app.control.revoke(meeting_tracker.reminder_task_id, terminate=True)
 
         except (DoctorAppointment.DoesNotExist, Meeting_Tracker.DoesNotExist):
             pass

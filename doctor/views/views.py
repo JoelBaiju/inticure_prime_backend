@@ -151,7 +151,7 @@ class FilterDoctorsView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
+from general.notification_controller import send_doctor_reshceduled_notification
 class AppointmentRescheduleView_Doctor(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -181,7 +181,7 @@ class AppointmentRescheduleView_Doctor(APIView):
         appointment.save()
 
         Reschedule_history.objects.create(appointment = appointment , reason = reason , initiated_by = 'doctor' )
-        send_reschedule_request_email_task.delay(appointment_id=appointment.appointment_id)
+        send_doctor_reshceduled_notification.delay(appointment_id=appointment.appointment_id)
         return Response({
             "message": "Appointment reschedule initiated.",
             "appointment_id": appointment.appointment_id

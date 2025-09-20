@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Consultation Payment Pending</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      background-color: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .logo-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 25px 40px;
+      background: #ffffff;
+      border: 1px solid #d4d4d4;
+    }
+
+    .logo {
+      height: 50px;
+      width: auto;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      color: white;
+      padding: 40px 40px 50px;
+      text-align: center;
+      position: relative;
+    }
+
+    .header h1 {
+      font-size: 26px;
+      font-weight: 600;
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .header-wave {
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      margin-top: 8px;
+      background-color: #6A1B78;
+    }
+
+    .email-body {
+      padding: 40px;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .email-body h4 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0 0 20px;
+      color: #6A1B78;
+    }
+
+    .email-body p {
+      font-size: 16px;
+      margin: 0 0 18px;
+      color: #555;
+    }
+
+    .email-body a {
+      color: #8F619D;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .email-body a:hover {
+      color: #6A1B78;
+      text-decoration: underline;
+    }
+
+    .btn-container {
+      text-align: center;
+      margin: 30px 0;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      color: white;
+      padding: 12px 30px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      box-shadow: 0 4px 15px rgba(106, 27, 120, 0.3);
+    }
+
+    .policy-links {
+      margin: 25px 0 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .policy-links a {
+      color: #6A1B78;
+      margin: 0 10px;
+      text-decoration: none;
+    }
+
+    .policy-links a:hover {
+      text-decoration: underline;
+    }
+
+    .footer {
+      background: linear-gradient(135deg, #8F619D 0%, #6A1B78 100%);
+      padding: 40px;
+      color: white;
+      text-align: center;
+    }
+
+    .footer p {
+      margin: 0 0 15px;
+      font-size: 14px;
+    }
+
+    .footer b {
+      font-weight: 600;
+    }
+
+    .social-links {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 0;
+    }
+
+    .disclaimer {
+      text-align: left;
+      font-size: 12px;
+      color: #f1f1f1;
+      margin: 20px 0 0;
+    }
+
+    .disclaimer p {
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Logo -->
+    <div class="logo-container">
+      <img src="{{backend_url}}/media/icons/inticure_logo_new.png" alt="Inticure Logo" class="logo">
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+      <h1>Payment Pending for Your Consultation</h1>
+    </div>
+    <div class="header-wave"></div>
+
+    <!-- Email Body -->
+    <div class="email-body">
+      <h4>Hi {{name}},</h4>
+
+      <p>Your consultation is <b>scheduled for tomorrw, but not confirmed , this is the last warning</b>.</p>
+      <p>Please make the payment so that we can confirm your appointment.</p>
+
+      <div class="btn-container">
+        <a href="https://customers.inticure.online/consultations" style="color: white;" class="btn-primary">Make Payment</a>
+      </div>
+
+      <p>Once your payment is confirmed, you will receive a confirmation email for your consultation.</p>
+      <p><b>Your safety and privacy is our number one priority. ALWAYS!</b></p>
+
+    
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>Please review our policies below:</p>
+        <div class="policy-links">
+        <p>
+          <a style="color: white;" href="https://inticure.com/terms">Terms and Conditions</a> | 
+          <a style="color: white;" href="https://inticure.com/privacy">Privacy Policy</a> | 
+          <a style="color: white;" href="https://inticure.com/cancel_policy">Cancellation Policy</a>
+        </p>
+      </div>
+      <div class="social-links">
+        <a href="https://www.facebook.com/profile.php?id=100086973277320" target="_blank" style="display: inline-block; margin: 0 10px;">
+          <img src="{{backend_url}}/media/icons/facebook.png" alt="Facebook" width="22"> 
+        </a>
+        <a href="https://www.youtube.com/channel/UCmFHPhjy7R6E_Lfv9_4nr-Q" target="_blank" style="display: inline-block; margin: 0 10px;">
+          <img src="{{backend_url}}/media/icons/youtube.png" alt="YouTube" width="22">
+        </a>
+        <a href="https://www.instagram.com/get_inticured/" target="_blank" style="display: inline-block; margin: 0 10px;">
+          <img src="{{backend_url}}/media/icons/instagram.png" alt="Instagram" width="22">
+        </a>
+        <a href="https://www.linkedin.com/company/inticure/?viewAsMember=true" target="_blank" style="display: inline-block; margin: 0 10px;">
+          <img src="{{backend_url}}/media/icons/linkedin.png" alt="LinkedIn" width="22">
+        </a>
+      </div>
+      
+      <p><b>Follow Us</b></p>
+
+      <div class="disclaimer">
+        <p><strong>Disclaimer:</strong></p>
+        <p>1. By making the payment, you provide informed consent for a virtual consultation with the mentioned Practitioner.</p>
+        <p>2. You acknowledge that the Practitioner is authorized only in India and consultations are considered within India.</p>
+        <p>3. Prescriptions are valid only in India.</p>
+        <p>4. You agree to the Privacy Policy and Terms of Use.</p>
+      </div>
+
+      <p>© {{year}} Next Big HealthCare Pvt. Ltd. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

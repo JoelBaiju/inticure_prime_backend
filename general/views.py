@@ -377,20 +377,22 @@ def meeting_waiting_room(request):
 
         
 from .emal_service import *
-from .utils import send_otp_email
 
 class Email_tester(APIView):
     def get(self, request):
        
-        responsee = send_otp_email(
-            # toemail="nikhilrakeshh@gmail.com",
-            toemail="joelbaiju98@gmail.com",
-            otp="123456",
-            firstname="user"
-        )
+        # context = {
+        # "email": 'user',
+        # "year": datetime.now().year,
+        # 'backend_url':BACKEND_URL,  
+        # }
 
+        return render(request, 'meet/new.html')
 
-        return Response(responsee)
+        
+    
+
+        return Response('sfoih')
     
 
 

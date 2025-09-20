@@ -181,7 +181,10 @@
     <div class="email-body">
       <h4>Hi {{name}},</h4>
 
-      <p>We just wanted to remind you that you have not scheduled your consultation with our <strong>{{specialization}} {{doctor_name}}</strong>.</p>
+      <p>We just wanted to remind you that you have not scheduled your consultation with <strong>{{salutation}} {{doctor_name}} | {{specialization}}</strong>.</p>
+      {% if final %}
+      <p>This is the final reminder. Please schedule your consultation as soon as possible.</p>
+      {% endif %}
 
       <div class="btn-container">
         <a style="color: white;" href="https://customers.inticure.online/consultations" class="btn-primary">Schedule Your Consultation</a>
