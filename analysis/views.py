@@ -69,12 +69,12 @@ class PhoneNumberOrEmailSubmissionView(APIView):
         phone_number = request.data.get('phone_number')
         email = request.data.get('email')
         country_code = request.data.get('country_code', '+91')  
-        logger.info("Phone number:", phone_number)
-        logger.info("email",email)
+        logger.info(f"Phone number: {phone_number}")
+        logger.info(f"email: {email}")
         otp =generate_random_otp()
         if phone_number:
             if len(str(phone_number))>5:
-                logger.info("Phone number received and got in:", phone_number)
+                logger.info(f"Phone number received and got in: {phone_number}")
                 # otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = '666666')
                    
                 try:
@@ -87,7 +87,7 @@ class PhoneNumberOrEmailSubmissionView(APIView):
 
                 # send_otp_sms(otp = otp_instance.otp , to_number=country_code+phone_number)
                 send_wa_auth_code(str(country_code)+str(phone_number) , otp_instance.otp)
-                logger.info("OTP sent to phone number:", phone_number)
+                logger.info(f"OTP sent to phone number: {phone_number}")
             
         if email:
             # otp_instance = Email_OTPs.objects.create(email=email, otp='666666')
@@ -101,8 +101,8 @@ class PhoneNumberOrEmailSubmissionView(APIView):
                 otp_instance = Email_OTPs.objects.create(email=email, otp=otp)
 
             sg_response =send_email_verification_otp_email(otp = otp_instance.otp , to_email=email , name = 'User')
-            logger.info("OTP sent to email:", email)
-            logger.info("sedgrid response" ,sg_response)
+            logger.info(f"OTP sent to email: {email}")
+            logger.info(f"sedgrid response ,{sg_response}")
             
         return Response({
             'message': 'OTP sent successfully',
