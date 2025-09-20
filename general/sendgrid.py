@@ -53,8 +53,11 @@ def send_email_via_sendgrid(subject, html_content, to_email):
         return response.status_code
     except Exception as e:
         # print(settings.SENDGRID_API_KEY)
-        print(f"Error sending email to {to_email}: {e}")
-        return None
+        logger.error(f"Error sending email to {to_email}: {e}")
+        return response.status_code
+
+
+
 
 
 

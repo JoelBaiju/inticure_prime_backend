@@ -533,7 +533,7 @@ def send_patient_missed_to_doctor_email(
 
 def send_email_verification_otp_email(to_email, name, otp):
     subject = "Verify Your Email - Inticure"
-
+    logger.debug(f"inside send email function to_email: {to_email}, name: {name}, otp: {otp}")
     context = {
         "name": name,
         "otp": otp,
