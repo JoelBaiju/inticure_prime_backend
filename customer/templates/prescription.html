@@ -237,15 +237,15 @@
       <div class="doc-info">
         <h2>{{ salutation }} {{ doctor_name }}</h2>
         <!-- <p><strong>{% for spec in doctor_specializations %}{{ spec }}{% if not forloop.last %}, {% endif %}{% endfor %}</strong></p> -->
-        <p>Reg. No: {{ reg_no }}</p>
-        <p>Phone: +919778385292</p>
+        <!-- <p>Reg. No: {{ reg_no }}</p> -->
+        <p>Phone: +91 9778385292</p>
         <p>Email: wecare@inticure.com</p>
       </div>
       
       <div class="pat-info">
         <h3>Patient Information</h3>
         <p><strong>Name:</strong> {{ patient_first_name }} {{ patient_last_name }}</p>
-        <p><strong>Preferred Name:</strong> {{ patient_details.preferred_name }}</p>
+        <!-- <p><strong>Preferred Name:</strong> {{ patient_details.preferred_name }}</p> -->
         <p><strong>Gender:</strong> {{ patient_details.gender }}</p>
         <p><strong>Date of Birth:</strong> {{ patient_details.date_of_birth }}</p>
         <p><strong>Contact:</strong> {{ patient_details.mobile_number }}</p>
@@ -255,8 +255,8 @@
      <h3 class="section-title">Consultation Details</h3>
         <div class="no-data" style="text-align: left;">
             <p style="color: #333;">Date : {{date}}</p>
-            <p style="color: #333;">Consultation Type : {{cunsultation_type}}</p>
-            <p style="color: #333;">Consultation Status : {%if status %} Follow Up {% else %} First Consultation {% endif %}</p>    
+            <!-- <p style="color: #333;">Consultation Type : {{cunsultation_type}}</p>
+            <p style="color: #333;">Consultation Status : {%if status %} Follow Up {% else %} First Consultation {% endif %}</p>     -->
         </div>     
       
     <!-- Prescription Content -->
@@ -352,6 +352,7 @@
       <!-- Signature -->
       <div class="signature-area">
         <div class="signature-line"></div>
+        <p><strong> E Signed By</strong></p>
         <p><strong>{{ salutation }} {{ doctor_name }}</strong></p>
         <!-- <img class="signature" src="{{backend_url}}{{doctor_signature}}" alt=""> -->
         <p>Date: {{date}}</p>
@@ -362,7 +363,6 @@
     <div class="">
       <div class="disclaimer">
         <p><strong>Disclaimer:</strong> This prescription has been issued following a telemedicine consultation as per the guidelines issued by the MoHFW, Govt. of India.</p>
-        <p>.</p>
       </div>
       
       <p><strong>Your health and privacy are our top priority</strong></p>
