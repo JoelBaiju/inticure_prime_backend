@@ -64,21 +64,24 @@ class PrescriptionService:
     def generate_prescription_context(customer, doctor):
         """Generate context data for prescription PDF"""
         # Get latest completed appointment
-        # latest_appointment = AppointmentHeader.objects.filter(
-        #     customer=customer, 
-        #     doctor=doctor, 
-        #     completed=True
-        # ).latest('start_time')
+        latest_appointment = AppointmentHeader.objects.filter(
+            customer=customer, 
+            doctor=doctor, 
+            completed=True
+        ).latest('start_time')
 
         # Get prescription data for specific doctor
         tests = Prescribed_Tests.objects.filter(
             customer=customer, doctor=doctor, submitted=False
         ).select_related("doctor")
-        
+       # Get the latest medication by ordering and taking the first result
         medicines = Prescribed_Medications.objects.filter(
-            customer=customer, doctor=doctor, is_active=True
-        ).select_related("doctor")
-        
+            customer=customer,
+            doctor=doctor,
+            is_active=True
+        ).select_related("doctor").order_by("-created_at", "-updated_at")
+
+        latest_med = medicines.first()
         patient_notes = Notes_for_patient.objects.filter(
             customer=customer, doctor=doctor
         ).select_related("doctor")
@@ -120,8 +123,8 @@ class PrescriptionService:
             "consultation_type": 'Video',
             # "status": latest_appointment.followup,
             "status": "hello",
-            'date': "haiiaiai"
-            # 'date': latest_appointment.start_time.date()
+            # 'date': "haiiaiai",
+            'date': latest_med.updated_at if latest_med.updated_at else latest_med.created_at 
         }
 
     @staticmethod
