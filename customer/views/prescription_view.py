@@ -48,31 +48,66 @@ class PrescriptionsView(APIView):
         })
 
 
+# class PrescriptionPDFView(APIView):
+#     def get(self, request):
+#         """Generate prescription PDF for customer and doctor"""
+#         customer_id = request.GET.get('cid')
+#         doctor_id = request.GET.get('did')
+        
+#         try:
+#             customer = CustomerProfile.objects.get(id=customer_id)
+#             doctor = DoctorProfiles.objects.get(doctor_profile_id=doctor_id)
+#         except (CustomerProfile.DoesNotExist, DoctorProfiles.DoesNotExist):
+#             return HttpResponse(
+#                 '<h1>Error: Invalid customer or doctor ID</h1>', 
+#                 status=status.HTTP_400_BAD_REQUEST
+#             )
+
+#         try:
+#             context = PrescriptionService.generate_prescription_context(customer, doctor)
+#             pdf = PrescriptionPDFGenerator.generate_prescription_pdf(context)
+            
+#             response = HttpResponse(pdf, content_type='application/pdf')
+#             response['Content-Disposition'] = 'inline; filename="prescription.pdf"'
+#             return response
+#         except Exception as e:
+#             return HttpResponse(
+#                 f'<h1>Error generating PDF: {str(e)}</h1>', 
+#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+#             )
+
+
+from django.http import HttpResponse
+from rest_framework.views import APIView
+from rest_framework import status
+
 class PrescriptionPDFView(APIView):
+    permission_classes = [IsAuthenticated] 
+    renderer_classes = []    # ⬅️ disables DRF rendering
+
     def get(self, request):
-        """Generate prescription PDF for customer and doctor"""
         customer_id = request.GET.get('cid')
         doctor_id = request.GET.get('did')
-        
+
         try:
             customer = CustomerProfile.objects.get(id=customer_id)
             doctor = DoctorProfiles.objects.get(doctor_profile_id=doctor_id)
         except (CustomerProfile.DoesNotExist, DoctorProfiles.DoesNotExist):
             return HttpResponse(
-                '<h1>Error: Invalid customer or doctor ID</h1>', 
+                '<h1>Error: Invalid customer or doctor ID</h1>',
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         try:
             context = PrescriptionService.generate_prescription_context(customer, doctor)
             pdf = PrescriptionPDFGenerator.generate_prescription_pdf(context)
-            
+
             response = HttpResponse(pdf, content_type='application/pdf')
             response['Content-Disposition'] = 'inline; filename="prescription.pdf"'
             return response
         except Exception as e:
             return HttpResponse(
-                f'<h1>Error generating PDF: {str(e)}</h1>', 
+                f'<h1>Error generating PDF: {str(e)}</h1>',
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
