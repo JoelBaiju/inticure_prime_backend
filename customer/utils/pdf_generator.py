@@ -22,9 +22,7 @@ class PrescriptionPDFGenerator:
         # TODO: Move this to settings or environment variable
         path_wkhtmltopdf = getattr(
             settings, 
-            'WKHTMLTOPDF_PATH', 
-            r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
-        )   
+            'WKHTMLTOPDF_PATH' )   
         return pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 
     @staticmethod
