@@ -174,12 +174,13 @@ def add_prescription_validity(request):
         valid_till = timezone.now().date() + timezone.timedelta(days=valid_till_days)
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
 
-        validity = Prescrption_validity.objects.create(
-            valid_till=valid_till,
+        validity , created = Prescrption_validity.objects.get_or_create(
             active=True,
             customer = appointment.customer,
             doctor = appointment.doctor 
         )
+        validity.valid_till = valid_till
+        validity.save()
         return Response({"message": "Prescription validity added successfully"}, status=201)
     except Exception as e:
         return Response({"error": str(e)}, status=400)

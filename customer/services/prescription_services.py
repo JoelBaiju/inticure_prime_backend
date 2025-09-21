@@ -3,7 +3,8 @@ from django.conf import settings
 
 from analysis.models import (
     Prescribed_Medications, Prescribed_Tests, 
-    Notes_for_patient, Follow_Up_Notes, AppointmentHeader
+    Notes_for_patient, Follow_Up_Notes, AppointmentHeader,
+    Prescrption_validity
 )
 from customer.models import Suggested_packages
 from doctor.models import DoctorPaymentRules
@@ -13,6 +14,7 @@ from customer.serializers import (
     PatientSerializer
 )
 from doctor.serializers import DoctorPaymentRulesSerializer
+from django.utils import timezone
 
 
 class PrescriptionService:
@@ -64,11 +66,11 @@ class PrescriptionService:
     def generate_prescription_context(customer, doctor):
         """Generate context data for prescription PDF"""
         # Get latest completed appointment
-        latest_appointment = AppointmentHeader.objects.filter(
-            customer=customer, 
-            doctor=doctor, 
-            completed=True
-        ).latest('start_time')
+        # latest_appointment = AppointmentHeader.objects.filter(
+        #     customer=customer, 
+        #     doctor=doctor, 
+        #     completed=True
+        # ).latest('start_time')
 
         # Get prescription data for specific doctor
         tests = Prescribed_Tests.objects.filter(
@@ -82,6 +84,15 @@ class PrescriptionService:
         ).select_related("doctor").order_by("-created_at", "-updated_at")
 
         latest_med = medicines.first()
+        try:
+            prescrption_validity = Prescrption_validity.objects.filter(
+                customer = customer , doctor = doctor , active= True
+            )
+            if not prescrption_validity and prescrption_validity[0].valid_till > timezone.now():
+                return ""
+        except :
+            return ""
+
         patient_notes = Notes_for_patient.objects.filter(
             customer=customer, doctor=doctor
         ).select_related("doctor")
@@ -124,6 +135,7 @@ class PrescriptionService:
             # "status": latest_appointment.followup,
             "status": "hello",
             # 'date': "haiiaiai",
+            "valid_till": prescrption_validity[0].valid_till if prescrption_validity else "",
             'date': latest_med.updated_at if latest_med.updated_at else latest_med.created_at 
         }
 
