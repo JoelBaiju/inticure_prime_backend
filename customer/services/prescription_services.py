@@ -64,11 +64,11 @@ class PrescriptionService:
     def generate_prescription_context(customer, doctor):
         """Generate context data for prescription PDF"""
         # Get latest completed appointment
-        latest_appointment = AppointmentHeader.objects.filter(
-            customer=customer, 
-            doctor=doctor, 
-            completed=True
-        ).latest('start_time')
+        # latest_appointment = AppointmentHeader.objects.filter(
+        #     customer=customer, 
+        #     doctor=doctor, 
+        #     completed=True
+        # ).latest('start_time')
 
         # Get prescription data for specific doctor
         tests = Prescribed_Tests.objects.filter(
@@ -118,8 +118,10 @@ class PrescriptionService:
             'doctor_signature': doctor.sign_file_name.url if doctor.sign_file_name else None,
             "backend_url": settings.BACKEND_URL,
             "consultation_type": 'Video',
-            "status": latest_appointment.followup,
-            'date': latest_appointment.start_time.date()
+            # "status": latest_appointment.followup,
+            "status": "hello",
+            'date': "haiiaiai"
+            # 'date': latest_appointment.start_time.date()
         }
 
     @staticmethod
