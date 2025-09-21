@@ -80,10 +80,26 @@ class PrescriptionsView(APIView):
 from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework import status
+from rest_framework.renderers import BaseRenderer
+
+
+
+
+class PDFRenderer(BaseRenderer):
+    media_type = 'application/pdf'
+    format = 'pdf'
+    charset = None 
+    render_style = 'binary'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        # When you return a plain HttpResponse with bytes,
+        # DRF will never call this.  But DRF needs at least one renderer listed.
+        return data
+    
 
 class PrescriptionPDFView(APIView):
     permission_classes = [IsAuthenticated] 
-    renderer_classes = []    # ⬅️ disables DRF rendering
+    renderer_classes = [PDFRenderer]    # ⬅️ disables DRF rendering
 
     def get(self, request):
         customer_id = request.GET.get('cid')
