@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 
 from ..models import CustomerProfile
-from analysis.models import AppointmentHeader
+from analysis.models import AppointmentHeader ,Meeting_Tracker
 from ..serializers import CustomerDashboardSerializer , CustomerPreviousAppointmentsSerializer
 
 
@@ -75,4 +75,28 @@ def customer_files(request):
         return Response(
             {"error": "Error fetching customer files."}, 
             status=500
+        )
+
+
+
+
+
+@api_view(['GET'])
+def get_meet_details_with_meet_id(request):
+    """
+    API to get meet details with meet id
+    """
+    meet_id = request.GET.get('meet_id', None)
+    if not meet_id:
+        return Response(
+            {"error": "meet_id is required."}, 
+            status=400
+        )
+
+    try:
+        tracker = Meeting_Tracker.objects.get(customer_1_meeting_id=meet_id)    
+    except Exception as e:
+        return Response(
+            {"error": "Meeting not found."}, 
+            status=404
         )
