@@ -1,8 +1,9 @@
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 
 import pytz
 from django.db import transaction
 from django.utils import timezone
+from django.db.models import Greatest, Max
 
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -40,7 +41,7 @@ from ..services.payout_service import create_payout
 
 
 
-class DoctorAvailableHoursView(APIView):
+class   DoctorAvailableHoursView(APIView):
     """
     GET  /api/doctor/available-hours/?date=YYYY-MM-DD
     POST /api/doctor/available-hours/
@@ -284,7 +285,21 @@ class Available_dates(APIView):
         unique_dates = [st.date() for st in start_times_converted_to_local_tz]
         unique_dates = list(set(unique_dates))
         unique_dates.sort()
-        return Response({'available_dates':list(unique_dates)}, status=status.HTTP_200_OK)
+        
+                
+        doctor_max_session_duration = (
+            Specializations.objects
+            .filter(doctor_specializations__doctor=doctor)
+            .annotate(
+                max_duration=Greatest(
+                    F('single_session_duration'),
+                    F('double_session_duration')
+                )
+            )
+            .aggregate(overall_max=Max('max_duration'))['overall_max']
+            or timedelta(0)
+        )
+        return Response({'available_dates':list(unique_dates) , "doctor_max_session_duration":doctor_max_session_duration}, status=status.HTTP_200_OK)
 
 
 class Specialization_already_referred(APIView):
