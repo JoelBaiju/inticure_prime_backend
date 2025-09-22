@@ -219,7 +219,7 @@ def initiate_chat_patient_doctor(request):
         chat_session = ChatSession.objects.create(
             created_by='patient',
             description=f"Patient chat with doctor for appointment id: {appointment_id}",
-            expires_at=timezone.now() + timedelta(hours=24)  # Session expires in 7 days
+            expires_at=appointment.start_time + timedelta(hours=24)  # Session expires in 7 days
 
         )
         # Create session users with limited-time tokens
@@ -306,7 +306,7 @@ def initiate_chat_doctor_patient(request):
             chat_session = ChatSession.objects.create(
                 created_by='doctor',
                 description=f"Doctor chat with patient for appointment id: {appointment_id}",
-                expires_at=timezone.now() + timedelta(hours=24)  # Session expires in 7 days
+                expires_at=appointment.start_time + timedelta(hours=24)  # Session expires in 7 days
             )
             session_user = SessionUser.objects.create(
                 session=chat_session,
@@ -369,7 +369,7 @@ def initiate_chat_doctor_admin(request):
         chat_session = ChatSession.objects.create(
             created_by='doctor',
             description=f"Doctor chat with admin",
-            expires_at=timezone.now() + timedelta(hours=24)  # Session expires in 7 days
+            expires_at=timezone.now() + timedelta(days=360)  # Session expires in 7 days
         )
         session_user = SessionUser.objects.create(
             session=chat_session,
