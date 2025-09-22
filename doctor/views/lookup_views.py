@@ -134,6 +134,7 @@ def get_available_slots_by_doctor(request):
     preferred_date = request.data.get("date")
     # cid    = request.data.get("cid")
     appointment_id = request.data.get('appointment_id')
+    specialization_id = request.data.get('specialization_id')
     print("herererererererererererererererer")
     if not doctor_id:
         return Response({"error": "doctor_id is required"}, status=400)
@@ -146,7 +147,7 @@ def get_available_slots_by_doctor(request):
     except CustomerProfile.DoesNotExist:
         return Response({"error": "Customer not found"}, status=404)
     try:
-        results = fetch_available_slots(request.user, doctor_id, preferred_date,country)
+        results = fetch_available_slots(request.user, doctor_id,specialization_id, preferred_date,country)
         return Response({"slots": results}, status=200)
     except DoctorProfiles.DoesNotExist:
         return Response({"error": "Doctor not found"}, status=404)

@@ -591,7 +591,7 @@ def get_available_slots(
             return _handle_direct_doctor_lookup(
                 doctor_id, date_time_start, date_time_end, 
                 alignment_minutes, min_allowed_start, 
-                timezone_str, is_couple
+                timezone_str, is_couple,specialization_id
             )
         # Validate required parameters
         if not country:
@@ -627,7 +627,8 @@ def _handle_direct_doctor_lookup(
     alignment_minutes: Optional[int], 
     min_allowed_start: datetime,
     timezone_str: str, 
-    is_couple: bool
+    is_couple: bool,
+    specialization_id
 ) -> Dict[str, Any]:
     """Handle slot generation for a specific doctor"""
     try:
@@ -645,7 +646,7 @@ def _handle_direct_doctor_lookup(
         if is_junior:
             session_duration = JUNIOR_SESSION_DURATION
         else:
-            specialization = doctor.doctor_specializations.first()
+            specialization = doctor.doctor_specializations.filter(specialization__specialization_id =specialization_id).first()
             if not specialization:
                 return {"error": "Doctor has no specialization"}
             

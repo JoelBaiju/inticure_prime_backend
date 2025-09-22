@@ -106,7 +106,7 @@ from general.utils import (
 from ..slots_service import get_available_slots
 
 
-def fetch_available_slots(user, doctor_id, preferred_date=None,country=None):
+def fetch_available_slots(user, doctor_id ,specialization_id, preferred_date=None,country=None):
     # Validate doctor
     doctor = DoctorProfiles.objects.get(doctor_profile_id=doctor_id)
 
@@ -135,6 +135,7 @@ def fetch_available_slots(user, doctor_id, preferred_date=None,country=None):
         date_time_end=preferred_dt_end,
         timezone_str=timezone_str,
         country=country,
+        specialization_id=specialization_id
     )
     # results["current_date"] = str(preferred_dt_start.date())
 
