@@ -661,7 +661,11 @@ def _handle_direct_doctor_lookup(
             session_duration = int(duration_field.total_seconds() // 60)
         
         if alignment_minutes is None:
-            alignment_minutes = session_duration
+            if session_duration:
+                alignment_minutes = session_duration
+            else:                   
+                logger.error(f"Session Duration is empty of or not added please confirm")
+                return {"Session Duration came empty or not added for this doctors specialization please verify "}
         
         return _generate_slot_response(
             doctors, date_time_start, date_time_end, session_duration,

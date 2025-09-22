@@ -226,15 +226,18 @@ class Followup_notes_serializer(serializers.ModelSerializer):
 
 class PrescribedMedicationsSerializer(serializers.ModelSerializer):
     doctor = serializers.SerializerMethodField()
-
+    doctor_id = serializers.SerializerMethodField()
     class Meta:
         model = Prescribed_Medications
         fields = '__all__'
-        read_only_fields = ['id', 'created_at', 'updated_at' , 'doctor']
+        read_only_fields = ['id', 'created_at', 'updated_at' , 'doctor' , "doctor_id"]
     def get_doctor(self, obj):
         first = obj.doctor.first_name
         last = obj.doctor.last_name
         return f"{first} {last}".strip()
+    
+    def get_doctor_id(self,obj):
+        return obj.doctor.doctor_profile_id
 
 
 
