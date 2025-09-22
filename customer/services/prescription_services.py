@@ -80,18 +80,19 @@ class PrescriptionService:
         medicines = Prescribed_Medications.objects.filter(
             customer=customer,
             doctor=doctor,
+            validity__gt = timezone.now(),
             is_active=True
         ).select_related("doctor").order_by("-created_at", "-updated_at")
 
         latest_med = medicines.first()
-        try:
-            prescrption_validity = Prescrption_validity.objects.filter(
-                customer = customer , doctor = doctor , active= True
-            )
-            if not prescrption_validity and prescrption_validity[0].valid_till > timezone.now():
-                return ""
-        except :
-            return ""
+        # try:
+        #     prescrption_validity = Prescrption_validity.objects.filter(
+        #         customer = customer , doctor = doctor , active= True
+        #     )
+        #     if not prescrption_validity and prescrption_validity[0].valid_till > timezone.now():
+        #         return ""
+        # except :
+        #     return ""
 
         patient_notes = Notes_for_patient.objects.filter(
             customer=customer, doctor=doctor
@@ -135,7 +136,7 @@ class PrescriptionService:
             # "status": latest_appointment.followup,
             "status": "hello",
             # 'date': "haiiaiai",
-            "valid_till": prescrption_validity[0].valid_till if prescrption_validity else "",
+            # "valid_till": prescrption_validity[0].valid_till if prescrption_validity else "",
             'date': latest_med.updated_at if latest_med.updated_at else latest_med.created_at 
         }
 

@@ -246,10 +246,17 @@
         <h3>Patient Information</h3>
         <p><strong>Name:</strong> {{ patient_first_name }} {{ patient_last_name }}</p>
         <!-- <p><strong>Preferred Name:</strong> {{ patient_details.preferred_name }}</p> -->
-        <p><strong>Gender:</strong> {{ patient_details.gender }}</p>
+        <p><strong>Gender:</strong> {{ patient_details.gender|title }}</p>
         <p><strong>Date of Birth:</strong> {{ patient_details.date_of_birth }}</p>
-        <p><strong>Contact:</strong> {{ patient_details.mobile_number }}</p>
-      </div>
+        {% if patient_details.mobile_number %}  
+          <p><strong>Contact:</strong> {{ patient_details.mobile_number }}</p>
+        {% elif patient_details.email %}
+          <p><strong>Email:</strong> {{ patient_details.email }}</p>
+        {% elif patient_details.whatsapp_number %}
+          <p><strong>WhatsApp:</strong> {{ patient_details.whatsapp_number }}</p>
+        {% endif %}
+
+        </div>
     </div>
 
      <h3 class="section-title">Consultation Details</h3>
@@ -362,7 +369,12 @@
     <!-- Footer -->
     <div class="">
       <div class="disclaimer">
-        <p><strong>Disclaimer:</strong> This prescription has been issued following a telemedicine consultation as per the guidelines issued by the MoHFW, Govt. of India. And it is valid only till {{valid_till}}</p>
+        <p><strong>Disclaimer:</strong> This prescription  has been issued following a telemedicine consultation as per the guidelines issued by the MoHFW, Govt. of India.</p>
+      <strong>Important Safety Warning:</strong> DO NOT USE Phosphodiesterase-5 inhibitor (PDE5-I) class of medications such as Sildenafil, Tadalafil, etc. if you are using Nitrate drugs for chest pain or heart problems.
+
+      <!-- <p class="validity-notice" style="margin-top: 10px; font-style: italic;">
+        Prescription valid till : {{valid_till}}
+      </p> -->
       </div>
       
       <p><strong>Your health and privacy are our top priority</strong></p>
