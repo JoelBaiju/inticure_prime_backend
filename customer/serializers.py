@@ -8,7 +8,8 @@ from analysis.models import Referral , Referral_customer
 from general.utils import Appointment_actions , convert_utc_to_local_return_dt
 from datetime import datetime, date as dt_date, timedelta
 from django.db.models import Q
-from analysis.models import AppointmentHeader
+from analysis.models import AppointmentHeader , Meeting_Tracker
+
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -215,6 +216,7 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
         result = []
         for appt in appointments:
             local_dt = convert_utc_to_local_return_dt(appt.start_time, obj.time_zone)
+            tracker = Meeting_Tracker.objects.get(appointment = appt)
             result.append({
                 "appointment_id": appt.appointment_id,
                 "appointment_date": local_dt.date(),
@@ -223,7 +225,7 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                                 if appt.doctor else "N/A",
                 "status": appt.appointment_status,
                 "specialization": appt.specialization.specialization if appt.specialization else "N/A",
-                "meeting_link": appt.meeting_link,
+                "meeting_link": tracker.customer_1_meeting_id if tracker.customer_1 == obj else tracker.customer_2_meeting_id if tracker.customer_2 == obj else None,
                 "type_booking": "Couples" if appt.is_couple else "Individual",
                 "booked_by": appt.booked_by,
                 "is_couple": appt.is_couple,
