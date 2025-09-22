@@ -9,7 +9,8 @@ from rest_framework.permissions import IsAuthenticated
 from ..services.crud_services import create_new_appointment_service
 from rest_framework.decorators import api_view, permission_classes
 from ..services.availability_services import edit_availability_block
-
+from django.utils import timezone
+from datetime import timedelta
 
 class PrescribedMedicationsCreateView(APIView):
     permission_classes = [IsAuthenticated]
@@ -23,8 +24,20 @@ class PrescribedMedicationsCreateView(APIView):
         data = request.data.copy()
         print(doctor.doctor_profile_id)
         data['doctor'] = doctor.doctor_profile_id
-
-        serializer = PrescribedMedicationsCreateSerializer(data=data)
+        try:
+            validity_days = data.get('validity')
+            if validity_days is None:
+                return Response({'error': 'Validity period is required'}, status=status.HTTP_400_BAD_REQUEST)
+            if not isinstance(validity_days, (int, float)):
+                return Response({'error': 'Validity must be a number'}, status=status.HTTP_400_BAD_REQUEST)
+            if validity_days <= 0:
+                return Response({'error': 'Validity period must be positive'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            data['validity'] = timezone.now() + timedelta(days=validity_days)
+            serializer = PrescribedMedicationsCreateSerializer(data=data)
+      
+        except Exception as e:
+            return Response({'error': f'Error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         if serializer.is_valid():
             serializer.save()
             return Response({'message': 'Medication added successfully', 'data': serializer.data}, status=status.HTTP_201_CREATED)

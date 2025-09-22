@@ -152,6 +152,7 @@ class Prescribed_Medications(models.Model):
     strength        = models.CharField(max_length=100)
     medicine_name   = models.CharField(max_length=200)
     is_active       = models.BooleanField(default=True)
+    validity        = models.DateField(null=True)
 
 
 
@@ -180,6 +181,7 @@ class Prescrption_validity(models.Model):
     doctor      = models.ForeignKey(DoctorProfiles, on_delete=models.CASCADE, related_name='prescription_validity', null=True, blank=True)
     customer    = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='prescription_validity', null=True, blank=True)
     last_updated= models.DateTimeField(auto_now=True)
+    
 
 class Doctor_Suggested_Plans(models.Model):
     refferral = models.ForeignKey(Referral, on_delete=models.CASCADE, related_name='suggested_plans', null=True, blank=True)
