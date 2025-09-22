@@ -470,7 +470,7 @@ class PatientSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.first_name')
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
-
+    dob = serializers.DateField(source='date_of_birth', format='%d-%m-%Y', input_formats=['%d-%m-%Y', '%Y-%m-%d'])
     class Meta:
         model = CustomerProfile
         fields = [
