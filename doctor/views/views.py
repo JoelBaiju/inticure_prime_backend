@@ -3,7 +3,6 @@ from datetime import datetime, time, timedelta
 import pytz
 from django.db import transaction
 from django.utils import timezone
-from django.db.models import Greatest, Max
 
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -35,6 +34,10 @@ from ..services.crud_services import update_appointment_status
 from ..services.earnings_services import get_doctor_earnings
 from ..services.filter_doctor_service import DoctorFilterService
 from ..services.payout_service import create_payout
+
+
+from django.db.models import Max
+from django.db.models.functions import Greatest
 
 
 
