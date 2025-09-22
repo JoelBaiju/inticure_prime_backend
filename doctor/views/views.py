@@ -302,7 +302,7 @@ class Available_dates(APIView):
             .aggregate(overall_max=Max('max_duration'))['overall_max']
             or timedelta(0)
         )
-        return Response({'available_dates':list(unique_dates) , "doctor_max_session_duration":int(doctor_max_session_duration) + 600}, status=status.HTTP_200_OK)
+        return Response({'available_dates':list(unique_dates) , "doctor_max_session_duration":doctor_max_session_duration + timedelta(minutes=10)}, status=status.HTTP_200_OK)
 
 
 class Specialization_already_referred(APIView):
