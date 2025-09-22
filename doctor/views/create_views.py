@@ -33,7 +33,7 @@ class PrescribedMedicationsCreateView(APIView):
             if validity_days <= 0:
                 return Response({'error': 'Validity period must be positive'}, status=status.HTTP_400_BAD_REQUEST)
                 
-            data['validity'] = timezone.now() + timedelta(days=validity_days)
+            data['validity'] = (timezone.now() + timedelta(days=validity_days)).date()
             serializer = PrescribedMedicationsCreateSerializer(data=data)
       
         except Exception as e:
