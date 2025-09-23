@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('initiate_chat_customer_doctor/', views.initiate_chat_patient_doctor, name='initiate_chat'),
+    # path('initiate_chat_customer_doctor/', views.initiate_chat_patient_doctor, name='initiate_chat'),
     path('join/', views.join_chat, name='join_session'),
     # path('join_d/', views.join_chat_doctor, name='join_session_doctor'),
     path('initiate_chat_patient_admin/', views.initiate_chat_patient_admin, name='initiate_chat_patient_admin'),
