@@ -553,9 +553,11 @@ def get_multiple_doctor_profiles(request):
             country__country_name=a_country,
             specialization = specialization
         ).first()
-        print("\n\n rule . country",rule.country)
-        print("\n\n rule country spec doc" ,rule,country,specialization,doc['doctor_profile_id'])
+
         if rule:
+            print("\n\n rule . country",rule.country)
+            print("\n\n rule country spec doc" ,rule,country,specialization,doc['doctor_profile_id'])
+        
             if is_couple:
                 doc['final_price'] = rule.get_effective_payment()['custom_user_total_fee_couple'] if rule else None
             else:
