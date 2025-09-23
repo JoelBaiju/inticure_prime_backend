@@ -111,27 +111,27 @@ def get_appointments_data(doctor, limit=3):
         appointment_status="confirmed",
         completed=False,
         start_time__gte=now
-    ).order_by("start_time")[:limit]
+    ).order_by("start_time")
 
     previous_qs = AppointmentHeader.objects.filter(
         doctor=doctor,
         appointment_status__in=["confirmed", "completed"],
         completed=True,
         start_time__lte=now
-    ).order_by("-start_time")[:limit]
+    ).order_by("-start_time")
 
     missed_qs = AppointmentHeader.objects.filter(
         doctor=doctor,
         appointment_status__in=["confirmed", "completed"],
         completed=False,
         start_time__lte=now
-    ).order_by("-start_time")[:limit]
+    ).order_by("-start_time")
 
     rescheduled_qs = AppointmentHeader.objects.filter(
         doctor=doctor,
         appointment_status__in=["rescheduled_by_customer", "rescheduled_by_doctor"],
         completed=False
-    ).order_by("start_time")[:limit]
+    ).order_by("start_time")
 
     return {
         "upcoming_appointments": [format_appointment(a, doctor, include_meeting=True) for a in upcoming_qs],
