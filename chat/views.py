@@ -190,68 +190,68 @@ from .decorators import validate_session_token
 from django.contrib.auth import login
 
 
-@permission_classes([IsAuthenticated])
-@api_view(['GET'])
-@rate_limit(rate='5/m')
-def initiate_chat_patient_doctor(request):
-    """
-    Secure version of chat initiation with:
-    - Rate limiting
-    - Proper authentication
-    - Input validation
-    - Session validation
-    """
-    try:
-        # customer_user = request.user
-        customer_user = User.objects.get(username = request.GET.get('username'))
-        appointment_id = request.GET.get('appointment_id')
+# @permission_classes([IsAuthenticated])
+# @api_view(['GET'])
+# @rate_limit(rate='5/m')
+# def initiate_chat_patient_doctor(request):
+#     """
+#     Secure version of chat initiation with:
+#     - Rate limiting
+#     - Proper authentication
+#     - Input validation
+#     - Session validation
+#     """
+#     try:
+#         # customer_user = request.user
+#         customer_user = User.objects.get(username = request.GET.get('username'))
+#         appointment_id = request.GET.get('appointment_id')
         
-        if not appointment_id:
-            return JsonResponse({'error': 'Appointment ID is required'}, status=400)
+#         if not appointment_id:
+#             return JsonResponse({'error': 'Appointment ID is required'}, status=400)
 
-        appointment = get_object_or_404(AppointmentHeader, appointment_id=appointment_id)
+#         appointment = get_object_or_404(AppointmentHeader, appointment_id=appointment_id)
 
-        if appointment.appointment_status not in ['confirmed', 'completed']:
-            return JsonResponse({'error': 'Appointment not confirmed'}, status=400)
+#         if appointment.appointment_status not in ['confirmed', 'completed']:
+#             return JsonResponse({'error': 'Appointment not confirmed'}, status=400)
 
-        # Verify customer is part of this appointment
-        if appointment.customer.user != customer_user:
-            return JsonResponse({'error': 'Not authorized for this appointment'}, status=403)
+#         # Verify customer is part of this appointment
+#         if appointment.customer.user != customer_user:
+#             return JsonResponse({'error': 'Not authorized for this appointment'}, status=403)
 
-        chat_session = ChatSession.objects.create(
-            created_by='patient',
-            description=f"Patient chat with doctor for appointment id: {appointment_id}",
-            expires_at=appointment.start_time + timedelta(hours=24)  # Session expires in 7 days
+#         chat_session = ChatSession.objects.create(
+#             created_by='patient',
+#             description=f"Patient chat with doctor for appointment id: {appointment_id}",
+#             expires_at=appointment.start_time + timedelta(hours=24)  # Session expires in 7 days
 
-        )
-        # Create session users with limited-time tokens
-        session_user = SessionUser.objects.create(
-            session=chat_session,
-            user=customer_user,
-            token=uuid.uuid4(),
-            expires_at=timezone.now() + timedelta(hours=24)
-        )
-        session_user_doctor = SessionUser.objects.create(
-            session=chat_session,
-            user=appointment.doctor.user,
-            token=uuid.uuid4(),
-            expires_at=timezone.now() + timedelta(hours=24))
+#         )
+#         # Create session users with limited-time tokens
+#         session_user = SessionUser.objects.create(
+#             session=chat_session,
+#             user=customer_user,
+#             token=uuid.uuid4(),
+#             expires_at=timezone.now() + timedelta(hours=24)
+#         )
+#         session_user_doctor = SessionUser.objects.create(
+#             session=chat_session,
+#             user=appointment.doctor.user,
+#             token=uuid.uuid4(),
+#             expires_at=timezone.now() + timedelta(hours=24))
 
-        # Create initial message
-        Message.objects.create(
-            session=chat_session,
-            sender=customer_user,
-            content=f"Patient chat with doctor for appointment id: {appointment_id}")
+#         # Create initial message
+#         Message.objects.create(
+#             session=chat_session,
+#             sender=customer_user,
+#             content=f"Patient chat with doctor for appointment id: {appointment_id}")
 
-        login(request, customer_user)
+#         login(request, customer_user)
 
-        # Use HTTPS and POST-redirect-GET pattern
-        return redirect(f'/chat/join/?session_id={chat_session.id}&token={session_user.token}')
+#         # Use HTTPS and POST-redirect-GET pattern
+#         return redirect(f'/chat/join/?session_id={chat_session.id}&token={session_user.token}')
 
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+#     except Exception as e:
+#         return JsonResponse({'error': str(e)}, status=500)
 
-
+from general.whatsapp.whatsapp_messages import send_wa_patient_chat_notification_to_specialist
 
 
 @permission_classes([IsAuthenticated])
@@ -275,7 +275,7 @@ def initiate_chat_doctor_patient(request):
             doctor_user = current_user
             customer_users = [customer.customer.user for customer in appointment.appointment_customers.all()]
         else:
-            print("\n\ninside doctor")
+            print("\n\ninside customer")
             customer_users = [current_user]
             doctor_user = doctor.user
         
@@ -306,10 +306,13 @@ def initiate_chat_doctor_patient(request):
 
         for customer_user in customer_users:
             chat_session = ChatSession.objects.create(
-                created_by='doctor',
+                created_by='doctor' if request.user.is_staff else "customer",
                 description=f"Doctor chat with patient for appointment id: {appointment_id}",
                 expires_at=appointment.start_time + timedelta(hours=24)  # Session expires in 7 days
             )
+            if request.user.is_staff and appointment.doctor.whatsapp_number:
+                send_wa_patient_chat_notification_to_specialist(f"{appointment.doctor.whatsapp_country_code}{appointment.doctor.whatsapp_number}" , f"{appointment.doctor.salutation}. {appointment.doctor.first_name}")
+
             session_user = SessionUser.objects.create(
                 session=chat_session,
                 user=doctor_user,
