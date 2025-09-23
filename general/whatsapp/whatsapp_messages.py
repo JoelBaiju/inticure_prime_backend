@@ -1,8 +1,8 @@
-from venv import logger
 from .api import whatsapp_api_handler
 from analysis.models import Appointment_customers, AppointmentHeader, Meeting_Tracker
 from ..utils import convert_datetime_to_words_in_local_tz
-
+import logging
+logger = logging.getLogger(__name__)
 
 
 def send_wa_consultation_canceled_by_patient_to_specialist(appointment_id):
