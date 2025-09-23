@@ -74,7 +74,7 @@ def get_doctor_info(doctor):
     ) if specialization_qs else "no specialization"
 
     return {
-        "name": f"Dr. {doctor.first_name} {doctor.last_name}",
+        "name": f"{doctor.salutation}. {doctor.first_name} {doctor.last_name}",
         "specialization": specialization_names,
         "experience": doctor.experience if doctor.experience else "N/A",
         "rating": 4.9,  # TODO: Replace placeholder
