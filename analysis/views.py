@@ -979,7 +979,7 @@ from django.utils import timezone
 
 def ConfirmAppointment(appointment_id =None, pretransaction_id =None, is_admin = False):
 
-    logger.debug('confirm appointment got called with pre and app' , pretransaction_id , appointment_id)
+    logger.debug(f"confirm appointment got called with pre and app , {pretransaction_id} , {appointment_id}")
     try:
         # Step 1: Fetch all necessary objects first
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
