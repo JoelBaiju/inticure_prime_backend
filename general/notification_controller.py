@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def send_appointment_cancel_notification(appointment_id):
     logger.debug("inside appointment cancelled notification")
     try:
-        appointment = AppointmentHeader.objects.get(appointment_id=appointment.appointment_id)
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         if appointment.customer.confirmation_method in  ['email' ,"Email" , "both" ]:
             logger.debug(f"send_appointment_cancellation_email for appointment id {appointment_id} email")
             logger.debug(send_appointment_cancellation_email(appointment_id))
