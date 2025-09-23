@@ -91,7 +91,6 @@ def get_meet_details_with_meet_id(request):
     API to get meet details with meet id
     """
     meet_id = request.GET.get('meet_id', None)
-    meet_id = uuid.UUID(meet_id)
     logger.debug(f"......{meet_id}......2718f35d-88b1-4d68-a524-28350ca0b68f")
     logger.debug(f"......{meet_id == '2718f35d-88b1-4d68-a524-28350ca0b68f'}")
     if not meet_id:
