@@ -1121,7 +1121,7 @@ def ConfirmAppointment(appointment_id =None, pretransaction_id =None, is_admin =
 
         # Step 9: Return success response ONLY AFTER all operations are complete
         logger.debug("✅ Appointment confirmed successfully")
-        logger.debug(appointment.appointment_status , appointment_id , appointment.appointment_id)
+        # logger.debug(appointment.appointment_status , appointment_id , appointment.appointment_id)
         logger.debug({"message": "Appointment confirmed successfully.", "select_slots": False, "add_partner": False})
         return Response({"message": "Appointment confirmed successfully.", "select_slots": False, "add_partner": False}, status=200)
 
