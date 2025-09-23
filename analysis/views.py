@@ -1052,7 +1052,7 @@ def ConfirmAppointment(appointment_id =None, pretransaction_id =None, is_admin =
         # Step 3: Perform confirmation actions
         appointment.payment_done = True
         appointment.appointment_status = 'confirmed'
-        logger.debug("appointmrnt_status" , appointment.appointment_status)
+        logger.debug(f"appointmrnt_status {appointment.appointment_status}")
 
         # Step 4: Create/Update DoctorAppointment
         if not doctor_appointment:
