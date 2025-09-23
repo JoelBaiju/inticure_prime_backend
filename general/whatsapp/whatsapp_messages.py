@@ -6,6 +6,8 @@ logger = logging.getLogger(__name__)
 
 
 def send_wa_consultation_canceled_by_patient_to_specialist(appointment_id):
+
+    logger.debug("c send_wa_consultation_canceled_by_patient_to_specialist")
     try:
         appointment     = AppointmentHeader.objects.get(appointment_id=appointment_id)
         patient_name    = appointment.customer.user.first_name

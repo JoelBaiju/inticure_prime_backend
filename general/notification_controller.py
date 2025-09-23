@@ -11,16 +11,20 @@ logger = logging.getLogger(__name__)
 
 @shared_task
 def send_appointment_cancel_notification(appointment_id):
-
+    logger.debug("inside appointment cancelled notification")
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment.appointment_id)
         if appointment.customer.confirmation_method in  ['email' ,"Email" , "both" ]:
-            send_appointment_cancellation_email(appointment_id)
+            logger.debug(f"send_appointment_cancellation_email for appointment id {appointment_id} email")
+            logger.debug(send_appointment_cancellation_email(appointment_id))
         if appointment.customer.confirmation_method in  ['whatsapp' ,"Whatsapp" , "both"]:
-            send_wa_patient_requested_cancellation(appointment_id)
+            logger.debug(f"send_appointment_cancellation_email for appointment id {appointment_id} whatsapp")
+            logger.debug(send_wa_patient_requested_cancellation(appointment_id))
 
-        send_appointment_cancellation_email_to_specialist(appointment_id)
-        send_wa_consultation_canceled_by_patient_to_specialist(appointment_id)
+        logger.debug(f"send_appointment_cancellation_email_to_specialist for appointment id {appointment_id}")
+        logger.debug(send_appointment_cancellation_email_to_specialist(appointment_id))
+        logger.debug(f"send_wa_consultation_canceled_by_patient_to_specialist for appointment id {appointment_id}")
+        logger.debug(send_wa_consultation_canceled_by_patient_to_specialist(appointment_id))
 
     except AppointmentHeader.DoesNotExist:
         logger.debug(f"Appointment does not exist.for id {appointment.appointment_id}")
