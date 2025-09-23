@@ -127,7 +127,8 @@ def get_meet_details_with_meet_id(request):
             data = {
                 "doctor_name" : f"{doctor.salutation} {doctor.first_name}",
                 "specialization" : appointment.specialization.specialization,
-                "date_time" : date_time.time(),
+                "date" : date_time.date(),
+                "time":date_time.time()
             }
         
         elif not is_customer_1:
