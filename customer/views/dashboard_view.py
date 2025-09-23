@@ -82,6 +82,8 @@ def customer_files(request):
 
 
 from general.utils import convert_local_dt_to_utc_return_dt
+import uuid
+
 
 @api_view(['GET'])
 def get_meet_details_with_meet_id(request):
@@ -89,6 +91,7 @@ def get_meet_details_with_meet_id(request):
     API to get meet details with meet id
     """
     meet_id = request.GET.get('meet_id', None)
+    meet_id = uuid.UUID(meet_id)
     logger.debug(f"......{meet_id}......")
     if not meet_id:
         return Response(
