@@ -48,9 +48,11 @@ def send_appointment_confirmation_notification(appointment_id):
         if appointment.customer.confirmation_method in  ['whatsapp' ,"WhatsApp" , "both"]:
             logger.debug(f"send_appointment_confirmation_notification for appointment id {appointment_id} whatsapp")
             if appointment.customer.completed_first_analysis:
-                send_wa_appointment_confirmation(appointment_id)
+                logger.debug(f"send_appointment_confirmation_notification for appointment id {appointment_id} whatsapp")
+                logger.debug(send_wa_appointment_confirmation(appointment_id))
             else:
-                send_wa_first_consultation_confirmation(appointment_id)
+                logger.debug(f"send_appointment_confirmation_notification for appointment id {appointment_id} whatsapp first consultation")
+                logger.debug(send_wa_first_consultation_confirmation(appointment_id))
 
         send_wa_consultation_confirmation_to_specialist(appointment_id)
         send_appointment_confirmation_doctor_email(appointment_id)
