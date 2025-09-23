@@ -130,7 +130,7 @@ class DoctorProfilePublicSerializer(serializers.ModelSerializer):
         fields = ['doctor_profile_id','name', 'doctor_bio', 'profile_pic', 'languages', 'specializations','qualification','is_prescription_allowed']
 
     def get_name(self, obj):
-        return f"{obj.first_name} {obj.last_name}"
+        return f"{obj.salutation} {obj.first_name} "
 
 
 
