@@ -102,11 +102,11 @@ def get_meet_details_with_meet_id(request):
     try:
         
         try:
-            tracker = Meeting_Tracker.objects.filter(customer_1_meeting_id=meet_id).first()
+            tracker = Meeting_Tracker.objects.get(customer_1_meeting_id=meet_id)
             is_customer_1 = True
         except Meeting_Tracker.DoesNotExist:
             try :
-                tracker = Meeting_Tracker.objects.filter(customer_2_meeting_id = meet_id).first()
+                tracker = Meeting_Tracker.objects.get(customer_2_meeting_id = meet_id)
                 is_customer_1 = False
             except Meeting_Tracker.DoesNotExist:
                 return Response(
