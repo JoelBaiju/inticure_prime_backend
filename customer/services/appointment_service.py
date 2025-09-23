@@ -172,7 +172,7 @@ class AppointmentService:
         # Send cancellation notification
         # send_appointment_cancellation_email_task.delay(appointment_id=appointment.appointment_id)
         logger.debug(f"cancel_appointment for appointment id {appointment.appointment_id} send_appointment_cancel_notification.delay")
-        send_appointment_cancel_notification.delay(appointment_id = appointment.appointment_id)
+        send_appointment_cancel_notification(appointment_id = appointment.appointment_id)
         logger.debug(f"cancel_appointment for appointment id {appointment.appointment_id} send_appointment_cancel_notification.delay sent")
         # Revoke background tasks
         try:
