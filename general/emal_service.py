@@ -22,10 +22,10 @@ def send_appointment_cancellation_email(appointment_id):
         appointment_customers = appointment.appointment_customers.all()
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
     except AppointmentHeader.DoesNotExist:
-        print('Sending appointment email failed appointment id invalid')
+        logger.debug('Sending appointment email failed appointment id invalid')
         return False
     except Meeting_Tracker.DoesNotExist:
-        print('Sending appointment email failed meeting tracker not found')
+        logger.debug('Sending appointment email failed meeting tracker not found')
         return False
 
     subject = "Appointment Cancellation Confirmation - Inticure"
@@ -59,10 +59,10 @@ def send_appointment_cancellation_email_to_specialist(appointment_id):
         appointment_customers = appointment.appointment_customers.all()
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
     except AppointmentHeader.DoesNotExist:
-        print('Sending appointment email failed appointment id invalid')
+        logger.debug('Sending appointment email failed appointment id invalid')
         return False
     except Meeting_Tracker.DoesNotExist:
-        print('Sending appointment email failed meeting tracker not found')
+        logger.debug('Sending appointment email failed meeting tracker not found')
         return False
 
     subject = "Appointment Cancellation Confirmation - Inticure"
@@ -103,7 +103,7 @@ def send_followup_confirmation_email(
         appointment_customers = appointment.appointment_customers.all()
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
     except AppointmentHeader.DoesNotExist:
-        print('Sending follow email failed appointment id invalid')
+        logger.debug('Sending follow email failed appointment id invalid')
         return False
 
     subject = "Follow-up Appointment Confirmation - Inticure"
@@ -139,7 +139,7 @@ def send_first_appointment_confirmation_email(appointment_id):
         appointment_customers = appointment.appointment_customers.all()
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
     except AppointmentHeader.DoesNotExist:
-        print('Sending first appointment email failed appointment id invalid')
+        logger.debug('Sending first appointment email failed appointment id invalid')
         return False
     subject = "Appointment Confirmation - Inticure"
 
@@ -176,7 +176,7 @@ def send_appointment_confirmation_customer_email(appointment_id,):
         appointment_customers = appointment.appointment_customers.all()
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
     except AppointmentHeader.DoesNotExist:
-        print('Sending appointment email failed appointment id invalid')
+        logger.debug('Sending appointment email failed appointment id invalid')
         return False
 
     subject = f"Your Consultation with {appointment.specialization.specialization} {appointment.doctor.first_name + ' ' + appointment.doctor.last_name} is Confirmed"
@@ -223,7 +223,7 @@ def send_appointment_confirmation_doctor_email(appointment_id,):
         html_content = render_to_string("appointment_confirmation_doctor.html", context)
         send_email_via_sendgrid(subject, html_content, appointment.doctor.email_id)
     except AppointmentHeader.DoesNotExist:
-        print('Sending appointment email failed appointment id invalid')
+        logger.debug('Sending appointment email failed appointment id invalid')
         return False
 
 
