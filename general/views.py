@@ -265,11 +265,11 @@ class Map_Meetings(APIView):
         join = request.GET.get('join')
         
         if meeting_tracker:
-            if join:
-                if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
-                    meeting_tracker.customer_1_joined = True
-                    meeting_tracker.save()
-                    return redirect(meeting_tracker.meeting_link)
+            # if join:
+            if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
+                meeting_tracker.customer_1_joined = True
+                meeting_tracker.save()
+                return redirect(meeting_tracker.meeting_link)
             context = {
                 'salutation':meeting_tracker.appointment.doctor.salutation,
                 'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.doctor.last_name}",
@@ -287,11 +287,11 @@ class Map_Meetings(APIView):
             customer_2_meeting_id = attendee_meeting_id
         ).first()
         if meeting_tracker:
-            if join:
-                if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
-                    meeting_tracker.customer_2_joined = True
-                    meeting_tracker.save()
-                    return redirect(meeting_tracker.meeting_link)
+            # if join:
+            if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
+                meeting_tracker.customer_2_joined = True
+                meeting_tracker.save()
+                return redirect(meeting_tracker.meeting_link)
 
             context = {
                 'salutation':meeting_tracker.appointment.doctor.salutation,
@@ -311,11 +311,11 @@ class Map_Meetings(APIView):
             doctor_meeting_id = attendee_meeting_id
         ).first()
         if meeting_tracker:
-            if join:
-                if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
-                    meeting_tracker.doctor_joined = True
-                    meeting_tracker.save()
-                    return redirect(meeting_tracker.meeting_link)
+            # if join:
+            if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
+                meeting_tracker.doctor_joined = True
+                meeting_tracker.save()
+                return redirect(meeting_tracker.meeting_link)
 
             context = {
                 'username': meeting_tracker.appointment.doctor.first_name,
