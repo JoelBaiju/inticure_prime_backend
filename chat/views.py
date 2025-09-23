@@ -11,7 +11,7 @@ from django.db import models
 from rest_framework.permissions import IsAuthenticated
 
 from .models import ChatSession
-from general.whatsapp.whatsapp_messages import send_wa_patient_chat_notification_to_specialist ,send_wa_consultation_rescheduled_by_patient_to_specialist ,send_wa_consultation_rescheduled_by_specialist
+from general.whatsapp.whatsapp_messages import send_wa_patient_chat_notification_to_specialist 
 
 
 User = get_user_model()
