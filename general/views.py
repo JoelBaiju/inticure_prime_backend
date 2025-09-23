@@ -270,6 +270,8 @@ class Map_Meetings(APIView):
                 meeting_tracker.customer_1_joined = True
                 meeting_tracker.save()
                 return redirect(meeting_tracker.meeting_link)
+            else:
+                return Response("there is still time broo")
             context = {
                 'salutation':meeting_tracker.appointment.doctor.salutation,
                 'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.doctor.last_name}",
@@ -296,6 +298,9 @@ class Map_Meetings(APIView):
                 meeting_tracker.customer_2_joined = True
                 meeting_tracker.save()
                 return redirect(meeting_tracker.meeting_link)
+        
+            else:
+                return Response("there is still time broo")
 
             context = {
                 'salutation':meeting_tracker.appointment.doctor.salutation,
@@ -324,6 +329,9 @@ class Map_Meetings(APIView):
                 meeting_tracker.doctor_joined = True
                 meeting_tracker.save()
                 return redirect(meeting_tracker.meeting_link)
+
+            else:
+                return Response("there is still time broo")
 
             context = {
                 'username': meeting_tracker.appointment.doctor.first_name,
