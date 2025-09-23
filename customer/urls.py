@@ -29,4 +29,5 @@ urlpatterns = [
     path('get_patient_details/', PatientDetailsFromPhoneEmailView.as_view()),
     path('connect_partner/', ConnectPartnersView.as_view()),
     path('customer_files/', customer_files),
+    path('meet_details_with_id/', get_meet_details_with_meet_id),
 ]

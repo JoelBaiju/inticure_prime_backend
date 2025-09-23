@@ -92,10 +92,31 @@ def get_meet_details_with_meet_id(request):
             {"error": "meet_id is required."}, 
             status=400
         )
-
     try:
-        tracker = Meeting_Tracker.objects.get(customer_1_meeting_id=meet_id) 
-           
+            
+        try:
+            tracker = Meeting_Tracker.objects.get(customer_1_meeting_id=meet_id) 
+            is_customer_1 = True
+        except Meeting_Tracker.DoesNotExist:
+            try :
+                tracker = Meeting_Tracker.objects.get(customer_2_meeting_id = meet_id)
+                is_customer_1 = False
+            except Meeting_Tracker.DoesNotExist:
+                return Response(
+                    {"error": "Meeting not found."}, 
+                    status=404
+                )
+        doctor = tracker.appointment.doctor
+        appointment = tracker.appointment
+        if is_customer_1:
+            data = {
+                "doctor_name" : f"{doctor.salutation} {doctor.first_name}",
+                "specialization" : appointment.specialization.specialization,
+                "time" : appointment.start_time.time(),
+                "date":appointment.start_time.date(),
+            }
+
+
     except Exception as e:
         return Response(
             {"error": "Meeting not found."}, 
