@@ -124,7 +124,7 @@ def send_followup_confirmation_email(
         meetlink = meeting_tracker.customer_1_meeting_link if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_link
         context['meet_link'] = meetlink
         context['name'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
-        html_content = render_to_string("followup_confirmation.html", context)
+        html_content = render_to_string("appointment_confirmation/followup_confirmation.html", context)
         send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
     
 
@@ -159,7 +159,7 @@ def send_first_appointment_confirmation_email(appointment_id):
             meetlink = meeting_tracker.customer_1_meeting_link if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_link
             context['name'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
             context['meet_link']=meetlink
-            html_content = render_to_string("first_appointment_confirmation_email.html", context)
+            html_content = render_to_string("appointment_confirmation/first_appointment_confirmation_email.html", context)
             send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
 
     return True
@@ -198,7 +198,7 @@ def send_appointment_confirmation_customer_email(appointment_id,):
         context['name'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
         meetlink = meeting_tracker.customer_1_meeting_link if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_link
         context['meet_link']=meetlink
-        html_content = render_to_string("appointment_confirmation_customer.html", context)
+        html_content = render_to_string("appointment_confirmation/appointment_confirmation_customer.html", context)
         send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
     return True
 
@@ -220,7 +220,7 @@ def send_appointment_confirmation_doctor_email(appointment_id,):
             "meet_link":meeting_tracker.doctor_meeting_link
         }
         subject = "Consultation Confirmed"
-        html_content = render_to_string("appointment_confirmation_doctor.html", context)
+        html_content = render_to_string("appointment_confirmation/appointment_confirmation_doctor.html", context)
         send_email_via_sendgrid(subject, html_content, appointment.doctor.email_id)
     except AppointmentHeader.DoesNotExist:
         logger.debug('Sending appointment email failed appointment id invalid')
