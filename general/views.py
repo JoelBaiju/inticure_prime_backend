@@ -256,8 +256,8 @@ from django.utils import timezone
 
 class Map_Meetings(APIView):
     def get(self, request,attendee_meeting_id):
-        print(attendee_meeting_id)
-        print("4a6f5241-529d-4e84-bd6d-cdd601f51b3a" == attendee_meeting_id)
+        logger.debug(attendee_meeting_id)
+        logger.debug("4a6f5241-529d-4e84-bd6d-cdd601f51b3a" == attendee_meeting_id)
         context = False 
         meeting_tracker = Meeting_Tracker.objects.filter(
             customer_1_meeting_id = attendee_meeting_id
