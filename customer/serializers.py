@@ -190,6 +190,7 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                                 if appt.doctor else "N/A",
                 "status": appt.appointment_status,
                 "specialization": appt.specialization.specialization if appt.specialization else "N/A",
+                "specialization": appt.specialization.specialization_id if appt.specialization else "N/A",
                 "type_booking": "Couples" if appt.is_couple else "Individual",
                 "actions": Appointment_actions(appt.appointment_id),
                 "booked_by": appt.booked_by,
@@ -197,7 +198,8 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                 "is_couple": appt.is_couple,
                 "package_included": appt.package_included,
                 "salutation": appt.doctor.salutation if appt.doctor else None,
-                "price_details":first_consultation_cost_calculator(appointment_id=appt.appointment_id)['total_cost']
+                "price_details": first_consultation_cost_calculator(appointment_id=appt.appointment_id)['total_cost'],
+                "currency": appt.customer.country_details.currency,
             })
         return result
 
@@ -316,6 +318,7 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                                 if appt.doctor else "N/A",
                 "status": appt.appointment_status,
                 "specialization": appt.specialization.specialization if appt.specialization else "N/A",
+                "specialization_id": appt.specialization.specialization_id if appt.specialization else "N/A",
                 "type_booking": "Couples" if appt.is_couple else "Individual",
                 "booked_by": appt.booked_by,
                 "is_couple": appt.is_couple,
@@ -325,6 +328,7 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                 "rescheduled_by": latest_reschedule.initiated_by if latest_reschedule else None,
                 "reschedule_reason": latest_reschedule.reason if latest_reschedule else None,
                 "salutation": appt.doctor.salutation if appt.doctor else None,
+                
             })
         return result
 
@@ -363,7 +367,8 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                 "package_included": appt.package_included,
                 "session_count": appt.package.appointments_left if appt.package else None,
                 "salutation": appt.doctor.salutation if appt.doctor else None,
-                "price_details":first_consultation_cost_calculator(appointment_id=appt.appointment_id)['total_cost']
+                "price_details":first_consultation_cost_calculator(appointment_id=appt.appointment_id)['total_cost'],
+                "currency":appt.customer.country_details.currency
 
             })
         return result
