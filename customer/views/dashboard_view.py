@@ -115,7 +115,7 @@ def get_meet_details_with_meet_id(request):
                 "time" : appointment.start_time.time(),
                 "date":appointment.start_time.date(),
             }
-
+        return Response(data)
 
     except Exception as e:
         return Response(
