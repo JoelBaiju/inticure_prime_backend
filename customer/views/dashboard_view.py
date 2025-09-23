@@ -7,6 +7,8 @@ from ..models import CustomerProfile
 from analysis.models import AppointmentHeader ,Meeting_Tracker
 from ..serializers import CustomerDashboardSerializer , CustomerPreviousAppointmentsSerializer
 
+import logging
+logger = logging.getLogger(__name__)
 
 class CustomerDashboardView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
@@ -81,56 +83,124 @@ def customer_files(request):
 
 from general.utils import convert_local_dt_to_utc_return_dt
 
+# @api_view(['GET'])
+# def get_meet_details_with_meet_id(request):
+#     """
+#     API to get meet details with meet id
+#     """
+#     meet_id = request.GET.get('meet_id', None)
+#     logger.debug(meet_id)
+#     if not meet_id:
+#         return Response(
+#             {"error": "meet_id is required."}, 
+#             status=400
+#         )
+#     try:
+        
+#         # try:
+#         #     tracker = Meeting_Tracker.objects.get(customer_1_meeting_id=meet_id) 
+#         #     is_customer_1 = True
+#         # except Meeting_Tracker.DoesNotExist:
+#         #     try :
+#         #         tracker = Meeting_Tracker.objects.get(customer_2_meeting_id = meet_id)
+#         #         is_customer_1 = False
+#         #     except Meeting_Tracker.DoesNotExist:
+#         #         return Response(
+#         #             {"error": "Meeting not found."}, 
+#         #             status=404
+#         #         )
+#         from django.db.models import Q
+
+#         tracker = Meeting_Tracker.objects.filter(
+#             Q(customer_1_meeting_id=meet_id) | Q(customer_2_meeting_id=meet_id)
+#         ).first()
+
+#         if not tracker:
+#             return Response({"error": "Meeting not found."}, status=404)
+#         doctor = tracker.appointment.doctor
+#         appointment = tracker.appointment
+        
+         
+#         if is_customer_1:
+#             date_time =convert_local_dt_to_utc_return_dt(appointment.start_time, tracker.customer_1.time_zone)
+#             data = {
+#                 "doctor_name" : f"{doctor.salutation} {doctor.first_name}",
+#                 "specialization" : appointment.specialization.specialization,
+#                 "time" : date_time.time(),
+#                 "date":date_time.date(),
+#             }
+        
+#         elif not is_customer_1:
+#             date_time =convert_local_dt_to_utc_return_dt(appointment.start_time, tracker.customer_2.time_zone)
+#             data = {
+#                 "doctor_name" : f"{doctor.salutation} {doctor.first_name}",
+#                 "specialization" : appointment.specialization.specialization,
+#                 "time" : date_time.time(),
+#                 "date":date_time.date(),
+#             }
+#         return Response(data)
+
+#     except Exception as e:
+#         return Response(
+#             {"error": "Meeting not found."}, 
+#             status=404
+#         )
+
+
+
+
+
+
+
+
+from django.db.models import Q
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
 @api_view(['GET'])
 def get_meet_details_with_meet_id(request):
     """
-    API to get meet details with meet id
+    API to get meet details with meet_id
     """
-    meet_id = request.GET.get('meet_id', None)
+    meet_id = request.GET.get('meet_id')
+    logger.debug(meet_id)
     if not meet_id:
-        return Response(
-            {"error": "meet_id is required."}, 
-            status=400
-        )
+        return Response({"error": "meet_id is required."}, status=400)
+
     try:
-        
-        try:
-            tracker = Meeting_Tracker.objects.get(customer_1_meeting_id=meet_id) 
-            is_customer_1 = True
-        except Meeting_Tracker.DoesNotExist:
-            try :
-                tracker = Meeting_Tracker.objects.get(customer_2_meeting_id = meet_id)
-                is_customer_1 = False
-            except Meeting_Tracker.DoesNotExist:
-                return Response(
-                    {"error": "Meeting not found."}, 
-                    status=404
-                )
+        tracker = (
+            Meeting_Tracker.objects
+            .filter(Q(customer_1_meeting_id=meet_id) | Q(customer_2_meeting_id=meet_id))
+            .select_related("appointment__doctor", "appointment__specialization")
+            .first()
+        )
+
+        if not tracker:
+            return Response({"error": "Meeting not found."}, status=404)
+
+        # ✅ Determine which customer matched
+        is_customer_1 = tracker.customer_1_meeting_id == meet_id
+
         doctor = tracker.appointment.doctor
         appointment = tracker.appointment
-        
-         
+
         if is_customer_1:
-            date_time =convert_local_dt_to_utc_return_dt(appointment.start_time, tracker.customer_1.time_zone)
-            data = {
-                "doctor_name" : f"{doctor.salutation} {doctor.first_name}",
-                "specialization" : appointment.specialization.specialization,
-                "time" : date_time.time(),
-                "date":date_time.date(),
-            }
-        
-        elif not is_customer_1:
-            date_time =convert_local_dt_to_utc_return_dt(appointment.start_time, tracker.customer_2.time_zone)
-            data = {
-                "doctor_name" : f"{doctor.salutation} {doctor.first_name}",
-                "specialization" : appointment.specialization.specialization,
-                "time" : date_time.time(),
-                "date":date_time.date(),
-            }
+            date_time = convert_local_dt_to_utc_return_dt(
+                appointment.start_time, tracker.customer_1.time_zone
+            )
+        else:
+            date_time = convert_local_dt_to_utc_return_dt(
+                appointment.start_time, tracker.customer_2.time_zone
+            )
+
+        data = {
+            "doctor_name": f"{doctor.salutation} {doctor.first_name}",
+            "specialization": appointment.specialization.specialization,
+            "time": date_time.time(),
+            "date": date_time.date(),
+        }
         return Response(data)
 
     except Exception as e:
-        return Response(
-            {"error": "Meeting not found."}, 
-            status=404
-        )
+        logger.exception("Error fetching meeting details")
+        return Response({"error": "Meeting not found."}, status=404)
