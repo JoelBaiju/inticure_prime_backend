@@ -1152,9 +1152,9 @@ def appointment_routine_notifications(appointment_id):
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
     except Meeting_Tracker.DoesNotExist:
-        return {"error": "Meeting tracker not found for the given appointment ID."}
+        logger.error("error :Meeting tracker not found for the given appointment ID.")
     except AppointmentHeader.DoesNotExist:
-        return {"error": "Appointment not found for the given appointment ID."}
+        logger.error ("error : Appointment not found for the given appointment ID.")
     
     if appointment.customer.completed_first_analysis:
             
