@@ -33,6 +33,7 @@ def get_doctor_earnings(user):
             appointment__doctor=doctor,
             appointment__start_time__date__gte=timezone.now().replace(day=1),
             appointment__start_time__date__lte=timezone.now(),
+            appointment__completed = True
         ).aggregate(Sum("total_amount"))["total_amount__sum"]
         or 0
     )
@@ -41,6 +42,7 @@ def get_doctor_earnings(user):
         PreTransactionData.objects.filter(
             appointment__doctor=doctor,
             appointment__start_time__date__gte=timezone.now().replace(month=timezone.now().month - 1, day=1),
+            appointment__completed = True,
             appointment__start_time__date__lte=timezone.now().replace(day=1) - timedelta(days=1),
         ).aggregate(Sum("total_amount"))["total_amount__sum"]
         or 0
@@ -63,6 +65,7 @@ def get_doctor_earnings(user):
             PreTransactionData.objects.filter(
                 appointment__doctor=doctor,
                 appointment__start_time__date=date_obj,
+                appointment__completed = True
             ).aggregate(total=Sum("total_amount"))["total"]
             or 0
         )
