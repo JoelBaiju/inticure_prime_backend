@@ -199,7 +199,7 @@ def send_wa_consultation_rescheduled_by_specialist(appointment_id):
         salutation = appointment.doctor.salutation
         appt_customers = Appointment_customers.objects.filter(appointment=appointment)
         for customer in appt_customers:
-            patient_name =f" {customer.customer.user.first_name} {customer.customer.user.last_name}"
+            patient_name =f"{customer.customer.user.first_name} {customer.customer.user.last_name}"
 
             parameters = [
                 {"type": "text", "parameter_name": "name", "text": patient_name},
@@ -220,12 +220,11 @@ def send_wa_consultation_rescheduled_by_patient_to_specialist(appointment_id ,  
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         patient_name = appointment.customer.user.first_name
         specialist_name = appointment.doctor.first_name
-        salutation = appointment.doctor.salutation
         to_phone = appointment.doctor.whatsapp_country_code + appointment.doctor.whatsapp_number
 
         parameters = [
             {"type": "text", "parameter_name": "patient_name", "text": patient_name},
-            {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
+            {"type": "text", "parameter_name": "specialist_name", "text":  specialist_name},
             {"type": "text", "parameter_name": "old_datetime", "text": convert_datetime_to_words_in_local_tz(old_date_time , appointment.doctor.time_zone)},
             {"type": "text", "parameter_name": "new_datetime", "text": convert_datetime_to_words_in_local_tz(new_date_time , appointment.doctor.time_zone)},
         ]
