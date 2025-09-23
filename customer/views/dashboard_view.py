@@ -81,7 +81,7 @@ def customer_files(request):
 
 
 
-from general.utils import convert_local_dt_to_utc_return_dt
+from general.utils import convert_datetime_to_words_in_local_tz
 import uuid
 
 
@@ -123,7 +123,7 @@ def get_meet_details_with_meet_id(request):
         
          
         if is_customer_1:
-            date_time =convert_local_dt_to_utc_return_dt(appointment.start_time, tracker.customer_1.time_zone)
+            date_time =convert_datetime_to_words_in_local_tz(appointment.start_time, tracker.customer_1.time_zone)
             data = {
                 "doctor_name" : f"{doctor.salutation} {doctor.first_name}",
                 "specialization" : appointment.specialization.specialization,
@@ -132,7 +132,7 @@ def get_meet_details_with_meet_id(request):
             }
         
         elif not is_customer_1:
-            date_time =convert_local_dt_to_utc_return_dt(appointment.start_time, tracker.customer_2.time_zone)
+            date_time =convert_datetime_to_words_in_local_tz(appointment.start_time, tracker.customer_2.time_zone)
             data = {
                 "doctor_name" : f"{doctor.salutation} {doctor.first_name}",
                 "specialization" : appointment.specialization.specialization,
