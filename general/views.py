@@ -283,10 +283,14 @@ class Map_Meetings(APIView):
                 'is_customer': True
             }
 
-        meeting_tracker = Meeting_Tracker.objects.filter(
-            customer_2_meeting_id = attendee_meeting_id
-        ).first()
-        if meeting_tracker:
+           
+        elif Meeting_Tracker.objects.filter(
+                customer_2_meeting_id = attendee_meeting_id
+            ).exists():
+
+            meeting_tracker = Meeting_Tracker.objects.filter(
+                customer_2_meeting_id = attendee_meeting_id
+            ).first()
             # if join:
             if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
                 meeting_tracker.customer_2_joined = True
@@ -307,10 +311,14 @@ class Map_Meetings(APIView):
             }
 
 
-        meeting_tracker = Meeting_Tracker.objects.filter(
+       
+        if Meeting_Tracker.objects.filter(
             doctor_meeting_id = attendee_meeting_id
-        ).first()
-        if meeting_tracker:
+            ).exists():
+            
+            meeting_tracker = Meeting_Tracker.objects.filter(
+            doctor_meeting_id = attendee_meeting_id
+            ).first()
             # if join:
             if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
                 meeting_tracker.doctor_joined = True
