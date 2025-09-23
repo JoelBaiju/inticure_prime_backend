@@ -23,7 +23,8 @@ def get_earnings(doctor):
 
     earnings_today = PreTransactionData.objects.filter(
         appointment__doctor=doctor,
-        appointment__start_time__date=today
+        appointment__start_time__date=today,
+        appointment__completed = True
     ).aggregate(total=Sum("total_amount"))["total"] or 0
 
     earnings_yesterday = PreTransactionData.objects.filter(
