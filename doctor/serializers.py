@@ -170,11 +170,12 @@ class AppointmentDetailSerializer(serializers.ModelSerializer):
     start_time = serializers.SerializerMethodField()
     end_time = serializers.SerializerMethodField()
     appointment_date = serializers.SerializerMethodField()
+    doctor_meeting_link = serializers.SerializerMethodField()
     class Meta:
         model = AppointmentHeader
         fields = [
             'appointment_id', 'appointment_status', 'doctor_name', 'specialization', 'category',
-            'language_pref', 'gender_pref', 'meeting_link', 'payment_done', 
+            'language_pref', 'gender_pref', 'doctor_meeting_link', 'payment_done', 
             'language_pref','gender_pref','start_time', 'end_time' , 'appointment_date',
             
         ]
@@ -185,7 +186,9 @@ class AppointmentDetailSerializer(serializers.ModelSerializer):
         return convert_utc_to_local_return_dt(obj.end_time, obj.doctor.time_zone)
     def get_appointment_date(self, obj):
         return convert_utc_to_local_return_dt(obj.start_time, obj.doctor.time_zone).date()
-    
+    def get_doctor_meeting_link(self,obj):
+        tracker = Meeting_Tracker.objects.get(appointment = obj)
+        return tracker.doctor_meeting_link        
 
 
 
