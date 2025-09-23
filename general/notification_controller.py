@@ -53,7 +53,7 @@ def send_appointment_confirmation_notification(appointment_id):
             logger.debug(f"send_appointment_confirmation_notification for appointment id {appointment_id} whatsapp")
             if appointment.customer.completed_first_analysis:
                 logger.debug(f"send_appointment_confirmation_notification for appointment id {appointment_id} whatsapp")
-                logger.debug(send_wa_appointment_confirmation(appointment_id))
+                logger.debug(logger.debug(send_wa_appointment_confirmation(appointment_id)))
             else:
                 logger.debug(f"send_appointment_confirmation_notification for appointment id {appointment_id} whatsapp first consultation")
                 logger.debug(send_wa_first_consultation_confirmation(appointment_id))
