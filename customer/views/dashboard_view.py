@@ -171,7 +171,8 @@ def get_meet_details_with_meet_id(request):
         tracker = (
             Meeting_Tracker.objects
             .filter(Q(customer_1_meeting_id=meet_id) | Q(customer_2_meeting_id=meet_id))
-            .select_related("appointment__doctor", "appointment__specialization")
+            .select_related("app" \
+            "ointment__doctor", "appointment__specialization")
             .first()
         )
 
@@ -186,11 +187,13 @@ def get_meet_details_with_meet_id(request):
 
         if is_customer_1:
             date_time = convert_local_dt_to_utc_return_dt(
-                appointment.start_time, tracker.customer_1.time_zone
+                # appointment.start_time, tracker.customer_1.time_zone
+                appointment.start_time, "Asia/Kolkata"
             )
         else:
             date_time = convert_local_dt_to_utc_return_dt(
-                appointment.start_time, tracker.customer_2.time_zone
+                # appointment.start_time, tracker.customer_2.time_zone
+                appointment.start_time, "Asia/Kolkata"
             )
 
         data = {
