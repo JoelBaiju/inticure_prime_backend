@@ -197,7 +197,7 @@ def send_wa_consultation_rescheduled_by_specialist(appointment_id):
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         specialist_name = appointment.doctor.first_name
         salutation = appointment.doctor.salutation
-        appt_customers = Appointment_customers.objects.get(appointment=appointment)
+        appt_customers = Appointment_customers.objects.filter(appointment=appointment)
         for customer in appt_customers:
             patient_name =f" {customer.customer.user.first_name} {customer.customer.user.last_name}"
 
