@@ -89,7 +89,6 @@ def send_wa_appointment_confirmation(appointment_id):
         {"type": "text", "parameter_name": "salutation", "text": salutation},
         {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
         {"type": "text", "parameter_name": "date_time", "text": date_time},
-        {"type": "text", "parameter_name": "meet_link", "text": meet_link},
     ]
 
     
