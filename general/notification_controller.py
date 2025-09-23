@@ -18,22 +18,22 @@ def send_appointment_cancel_notification(appointment_id):
         send_wa_consultation_canceled_by_patient_to_specialist(appointment_id)
 
     except AppointmentHeader.DoesNotExist:
-        print(f"Appointment does not exist.for id {appointment.appointment_id}")
+        logger.debug(f"Appointment does not exist.for id {appointment.appointment_id}")
         return "Appointment does not exist."
     except Exception as e:
-        print(f"Error sending appointment cancel notification for appointment id {appointment_id}: {str(e)}")
+        logger.debug(f"Error sending appointment cancel notification for appointment id {appointment_id}: {str(e)}")
         return "Error sending appointment cancel notification."
 
 
 
 @shared_task
 def send_appointment_confirmation_notification(appointment_id):
-    print(f"send_appointment_confirmation_notification for appointment id {appointment_id}")
+    logger.debug(f"send_appointment_confirmation_notification for appointment id {appointment_id}")
     try:
         appointment = AppointmentHeader.objects.get(appointment_id = appointment_id)
-        print(appointment.customer.confirmation_method)
+        logger.debug(appointment.customer.confirmation_method)
         if appointment.customer.confirmation_method in  ['email' ,"Email" , "both" ]:
-            print(f"send_appointment_confirmation_notification for appointment id {appointment_id} email")
+            (f"send_appointment_confirmation_notification for appointment id {appointment_id} email")
             if appointment.customer.completed_first_analysis:
                 send_appointment_confirmation_customer_email(appointment_id)
             else : 
@@ -41,7 +41,7 @@ def send_appointment_confirmation_notification(appointment_id):
     
     
         if appointment.customer.confirmation_method in  ['whatsapp' ,"WhatsApp" , "both"]:
-            print(f"send_appointment_confirmation_notification for appointment id {appointment_id} whatsapp")
+            logger.debug(f"send_appointment_confirmation_notification for appointment id {appointment_id} whatsapp")
             if appointment.customer.completed_first_analysis:
                 send_wa_appointment_confirmation(appointment_id)
             else:
@@ -51,17 +51,17 @@ def send_appointment_confirmation_notification(appointment_id):
         send_appointment_confirmation_doctor_email(appointment_id)
 
     except AppointmentHeader.DoesNotExist:
-        print(f"Appointment does not exist.for id {appointment_id}")
+        logger.debug(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
     except Exception as e:
-        print(f"Error sending appointment confirmation notification for appointment id {appointment_id}: {str(e)}")
+        logger.debug(f"Error sending appointment confirmation notification for appointment id {appointment_id}: {str(e)}")
         return f"Error sending appointment confirmation notification.{e}"
     
 
 
 @shared_task
 def send_appointment_reshceduled_notification(appointment_id,old_date_time , new_date_time):
-    print(f"send_appointment_reshceduled_notification for appointment id {appointment_id}")
+    logger.debug(f"send_appointment_reshceduled_notification for appointment id {appointment_id}")
 
     try:
         appointment = AppointmentHeader.objects.get(appointment_id = appointment_id)
@@ -77,10 +77,10 @@ def send_appointment_reshceduled_notification(appointment_id,old_date_time , new
         send_wa_consultation_rescheduled_by_patient_to_specialist(appointment_id , old_date_time, new_date_time)
 
     except AppointmentHeader.DoesNotExist:
-        print(f"Appointment does not exist.for id {appointment_id}")
+        logger.debug(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
     except Exception as e:
-        print(f"Error sending appointment rescheduled notification for appointment id {appointment_id}: {str(e)}")
+        logger.debug(f"Error sending appointment rescheduled notification for appointment id {appointment_id}: {str(e)}")
         return "Error sending appointment rescheduled notification."
     
 
@@ -92,7 +92,7 @@ def send_appointment_reshceduled_notification(appointment_id,old_date_time , new
 
 @shared_task
 def send_doctor_reshceduled_notification(appointment_id):
-    print(f"send_appointment_reshceduled_notification for appointment id {appointment_id}")
+    logger.debug(f"send_appointment_reshceduled_notification for appointment id {appointment_id}")
 
     try:
         appointment = AppointmentHeader.objects.get(appointment_id = appointment_id)
@@ -103,10 +103,10 @@ def send_doctor_reshceduled_notification(appointment_id):
 
 
     except AppointmentHeader.DoesNotExist:
-        print(f"Appointment does not exist.for id {appointment_id}")
+        logger.debug(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
     except Exception as e:
-        print(f"Error sending appointment rescheduled notification for appointment id {appointment_id}: {str(e)}")
+        logger.debug(f"Error sending appointment rescheduled notification for appointment id {appointment_id}: {str(e)}")
         return "Error sending appointment rescheduled notification."
     
 
@@ -213,7 +213,7 @@ from analysis.models import AppointmentHeader
 
 @shared_task
 def monitor_appointment(appointment_id):
-    print(appointment_id)
+    logger.debug(appointment_id)
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         tracker = Meeting_Tracker.objects.get(appointment=appointment)
