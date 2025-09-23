@@ -95,7 +95,7 @@ def send_wa_appointment_confirmation(appointment_id):
     button_parameters = [
         {
             "type": "text", 
-            "text": meet_code 
+            "text": str(meet_code) 
         }
     ]
     return whatsapp_api_handler(to_phone, "appointment_confirmation", parameters ,button_parameters)
@@ -131,7 +131,7 @@ def send_wa_first_consultation_confirmation(appointment_id):
     button_parameters = [
         {
             "type": "text", 
-            "text": meet_code 
+            "text": str(meet_code) 
         }
     ]
     return whatsapp_api_handler(to_phone, "first_consultation_confirmation", parameters , button_parameters)
