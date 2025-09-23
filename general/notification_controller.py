@@ -108,9 +108,11 @@ def send_doctor_reshceduled_notification(appointment_id):
     try:
         appointment = AppointmentHeader.objects.get(appointment_id = appointment_id)
         if appointment.customer.confirmation_method in  ['email' ,"Email" , "both" ]:
-            send_reschedule_request_email(appointment_id)
+            logger.debug(f"send_appointment_reshceduled_notification for appointment id {appointment_id} email")
+            logger.debug(send_reschedule_request_email(appointment_id))
         if appointment.customer.confirmation_method in  ['whatsapp' ,"WhatsApp" , "both"]:
-            send_wa_consultation_rescheduled_by_specialist(appointment_id)             
+            logger.debug(f"send_appointment_reshceduled_notification for appointment id {appointment_id} whatsapp")
+            logger.debug(send_wa_consultation_rescheduled_by_specialist(appointment_id))             
 
 
     except AppointmentHeader.DoesNotExist:
