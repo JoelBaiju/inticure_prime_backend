@@ -79,7 +79,7 @@ def customer_files(request):
 
 
 
-
+from general.utils import convert_local_dt_to_utc_return_dt
 
 @api_view(['GET'])
 def get_meet_details_with_meet_id(request):
@@ -93,7 +93,7 @@ def get_meet_details_with_meet_id(request):
             status=400
         )
     try:
-            
+        
         try:
             tracker = Meeting_Tracker.objects.get(customer_1_meeting_id=meet_id) 
             is_customer_1 = True
@@ -108,12 +108,24 @@ def get_meet_details_with_meet_id(request):
                 )
         doctor = tracker.appointment.doctor
         appointment = tracker.appointment
+        
+         
         if is_customer_1:
+            date_time =convert_local_dt_to_utc_return_dt(appointment.start_time, tracker.customer_1.time_zone)
             data = {
                 "doctor_name" : f"{doctor.salutation} {doctor.first_name}",
                 "specialization" : appointment.specialization.specialization,
-                "time" : appointment.start_time.time(),
-                "date":appointment.start_time.date(),
+                "time" : date_time.time(),
+                "date":date_time.date(),
+            }
+        
+        elif not is_customer_1:
+            date_time =convert_local_dt_to_utc_return_dt(appointment.start_time, tracker.customer_2.time_zone)
+            data = {
+                "doctor_name" : f"{doctor.salutation} {doctor.first_name}",
+                "specialization" : appointment.specialization.specialization,
+                "time" : date_time.time(),
+                "date":date_time.date(),
             }
         return Response(data)
 

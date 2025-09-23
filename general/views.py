@@ -328,6 +328,7 @@ class Map_Meetings(APIView):
                 "date":meeting_tracker.appointment.start_time.date(),
                 'specialization':meeting_tracker.appointment.specialization.specialization,
             }
+            
 
         if context:
 
@@ -335,16 +336,16 @@ class Map_Meetings(APIView):
             # return redirect(f"https://inticure.com/join-meeting?dr={context['salutation']}%20{context['doctor_name']}&date={context['date']}&time={context['time']}&meetingId={context['meet_code']}{f"&specialization={context['specialization']}" if context['specialization']!="No Specialization" else ""}")
             specialization = f"&specialization={context['specialization']}" if context['specialization'] != "No Specialization" else ""
 
-            return redirect(
-                f"https://inticure.com/join-meeting?"
-                f"dr={context['salutation']}%20{context['doctor_name']}"
-                f"&date={context['date']}"
-                f"&time={context['time']}"
-                f"&meetingId={context['meet_code']}"
-                f"{specialization}"
-            )
+            # return redirect(
+            #     f"https://inticure.com/join-meeting?"
+            #     f"dr={context['salutation']}%20{context['doctor_name']}"
+            #     f"&date={context['date']}"
+            #     f"&time={context['time']}"
+            #     f"&meetingId={context['meet_code']}"
+            #     f"{specialization}"
+            # )
 
-
+            return redirect(meeting_tracker.meeting_link)
 
         return Response({
             'message': 'Meeting not found'
