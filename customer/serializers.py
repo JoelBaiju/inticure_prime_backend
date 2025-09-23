@@ -199,7 +199,7 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                 "package_included": appt.package_included,
                 "salutation": appt.doctor.salutation if appt.doctor else None,
                 "price_details": first_consultation_cost_calculator(appointment_id=appt.appointment_id)['total_cost'],
-                "currency": appt.customer.country_details.currency,
+                "currency": appt.customer.country_details.currency_symbol,
             })
         return result
 
@@ -368,7 +368,7 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                 "session_count": appt.package.appointments_left if appt.package else None,
                 "salutation": appt.doctor.salutation if appt.doctor else None,
                 "price_details":first_consultation_cost_calculator(appointment_id=appt.appointment_id)['total_cost'],
-                "currency":appt.customer.country_details.currency
+                "currency":appt.customer.country_details.currency_symbol
 
             })
         return result
