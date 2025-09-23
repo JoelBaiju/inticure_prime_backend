@@ -27,7 +27,12 @@ class DoctorAvailabilityView(APIView):
     def get(self, request):
         doctor_id = request.query_params.get("doctor_id")
         date_str = request.query_params.get("date")
-        is_couple = request.query_params.get("is_couple", "false").lower() == "true"
+        is_couple = request.query_params.get("is_couple", "false").lower() == "true",
+        specialization_id = request.query_params.get("specialization_id")
+
+
+        if not specialization_id:
+            return Response({"error": "specializatioin is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         if not doctor_id:
             return Response({"error": "doctor_id is required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -62,7 +67,8 @@ class DoctorAvailabilityView(APIView):
             is_couple=is_couple,
             timezone_str=timeZone,
             buffer=timedelta(hours=6),
-            country='India'
+            country='India',
+            specialization_id=specialization_id
         )
 
         slots = results.get('slots', [])
