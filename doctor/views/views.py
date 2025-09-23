@@ -39,7 +39,8 @@ from ..services.payout_service import create_payout
 from django.db.models import Max
 from django.db.models.functions import Greatest
 
-
+import logging
+logger = logging.getLogger(__name__)
 
 
 
@@ -185,7 +186,8 @@ class AppointmentRescheduleView_Doctor(APIView):
         appointment.save()
 
         Reschedule_history.objects.create(appointment = appointment , reason = reason , initiated_by = 'doctor' )
-        send_doctor_reshceduled_notification.delay(appointment_id=appointment.appointment_id)
+        logger.debug("inside the doctor reshedule api bofore sending the notification ")
+        send_doctor_reshceduled_notification(appointment_id=appointment.appointment_id)
         return Response({
             "message": "Appointment reschedule initiated.",
             "appointment_id": appointment.appointment_id
