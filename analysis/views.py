@@ -127,26 +127,26 @@ class PhoneNumberOrEmailVerificationView(APIView):
         email = request.data.get('email')
         otp = request.data.get('otp')
         timezone = request.data.get('timezone')  # Default to UTC if not provided
-        print(timezone)
+        logger.debug(timezone)
 
         if not otp or (not phone_number and not email):
             return Response({'error': 'Phone number or email and OTP are required.'}, status=HTTP_400_BAD_REQUEST)
-        print(otp)
+        logger.debug(otp)
         user = None
-        print('hereeeeeeeee user not found yet',user)
-        print('phone number:',phone_number,'here')
+        logger.debug('hereeeeeeeee user not found yet',user)
+        logger.debug('phone number:',phone_number,'here')
 
 
 
         if phone_number :
-            print('phone number got condition 1 passed')
+            logger.debug('phone number got condition 1 passed')
             # if  len(phone_number)<5:
-            print('phone matched and not going for  verification')
+            logger.debug('phone matched and not going for  verification')
             try:
                 phone_otp = Phone_OTPs.objects.filter(phone=phone_number, otp=otp).order_by('-created_at').first()
                 if not phone_otp:
                     return Response('Invalid otp for phone', status=HTTP_400_BAD_REQUEST)
-                print('verification successfull trying to fetch user')
+                logger.debug('verification successfull trying to fetch user')
                 # user = User.objects.filter(username=phone_number).first()
                 customer = CustomerProfile.objects.filter(whatsapp_number = phone_number).first()
 
@@ -168,11 +168,11 @@ class PhoneNumberOrEmailVerificationView(APIView):
         if customer:
             user = customer.user
             try :
-                print('user_exists')
+                logger.debug('user_exists')
                 customer_profile = customer
                 customer_profile.time_zone = timezone if timezone else 'UTC'
                 customer_profile.save()
-                print("Customer Profile found:", customer_profile)
+                logger.debug("Customer Profile found:", customer_profile)
                 if customer_profile.completed_first_analysis :
                     exists = True
                 elif  customer_profile.partner:
@@ -184,8 +184,8 @@ class PhoneNumberOrEmailVerificationView(APIView):
             except CustomerProfile.DoesNotExist:
                 exists = False
 
-            print("User found:", user.username)
-            print('user exists ', exists)
+            logger.debug("User found:", user.username)
+            logger.debug('user exists ', exists)
             
             # Existing user
             refresh = RefreshToken.for_user(user)
@@ -201,7 +201,7 @@ class PhoneNumberOrEmailVerificationView(APIView):
             }, status=HTTP_200_OK)
         else:
             # Create new user
-            print("Creating new user")
+            logger.debug("Creating new user")
             username = phone_number or email
             if not username:
                 return Response({'error': 'Username could not be determined.'}, status=HTTP_400_BAD_REQUEST)
@@ -218,13 +218,13 @@ class PhoneNumberOrEmailVerificationView(APIView):
                 completed_first_analysis=False,
                 email = email if email else None,
             )
-            print("New user created:", user.username)
-            print("Customer Profile created:", customer_profile)
+            logger.debug("New user created:", user.username)
+            logger.debug("Customer Profile created:", customer_profile)
             customer_profile.time_zone = timezone if timezone else 'UTC'
             customer_profile.save()
 
             refresh = RefreshToken.for_user(user)
-            print("New user created:", user.username)
+            logger.debug("New user created:", user.username)
             return Response({
                 "country":customer_profile.country_details.country_name if customer_profile.country_details else None,
                 'user_exists': False,
@@ -283,7 +283,7 @@ class SubmitGenderCategoryView(APIView):
                 return Response({'error': 'Category does not exist'}, status=400)
 
         session.save()
-        print(category_id,gender)
+        logger.debug(category_id,gender)
         # Now fetch questionnaire based on gender (and optionally category)
         filter = {}
         # Use the correct field name as per your Questionnaire model
@@ -297,7 +297,7 @@ class SubmitGenderCategoryView(APIView):
 
         try:
             questionnaire = Questionnaire.objects.filter(customer_gender = gender )
-            print("Questionnaire:", questionnaire)
+            logger.debug("Questionnaire:", questionnaire)
             questionnaire_serialized = QuestionnaireSerializer(questionnaire, many=True).data
 
             for question in questionnaire_serialized:
@@ -309,7 +309,7 @@ class SubmitGenderCategoryView(APIView):
             return Response({'error': 'Category does not exist'}, status=400)
         except ValidationError as ve:
             return Response({'error': str(ve)}, status=400)
-        print("Questionnaire data:", questionnaire_serialized)
+        logger.debug("Questionnaire data:", questionnaire_serialized)
         return Response({
             'response_code': 200,
             'status': 'Ok',
@@ -406,9 +406,9 @@ class SlotsBooking(APIView):
         timeZone = request.data.get('timezone', 'UTC')  # Default to UTC if not provided
         customer_id  = request.data.get('customer_id',None) 
 
-        print(country )
-        print(timeZone)
-        print("recieved date", preferred_date)
+        logger.debug(country )
+        logger.debug(timeZone)
+        logger.debug("recieved date", preferred_date)
         if first_analysis:
             if not token:
                 return Response({"error": "Missing analysis_token"}, status=400)
@@ -458,11 +458,11 @@ class SlotsBooking(APIView):
             return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
 
         if not specialization_id or  specialization_id == "No Specialization":
-            print('no Specialization')
+            logger.debug('no Specialization')
             specializations= Specializations.objects.filter(specialization = "No Specialization").first()
             specialization_id =specializations.specialization_id
-        print("\n preferred_dt_start", preferred_dt_start)
-        print("\n preferred_dt_end", preferred_dt_end)
+        logger.debug("\n preferred_dt_start", preferred_dt_start)
+        logger.debug("\n preferred_dt_end", preferred_dt_end)
         slot_data = get_available_slots(
             specialization_id=specialization_id,
             date_time_start=preferred_dt_start,
@@ -481,7 +481,7 @@ class SlotsBooking(APIView):
              slot_data["slots"]
         except:
             return Response({"error": "No slots available"}, status=400)
-        print("slots_data",slot_data)
+        logger.debug("slots_data",slot_data)
         return Response({   
             "slots": slot_data["slots"],
             "matched_preferences": slot_data["matched_preferences"],
@@ -507,19 +507,19 @@ def get_multiple_doctor_profiles(request):
             specialization = Specializations.objects.get(specialization = "No Specialization")
         else:
             specialization = Specializations.objects.get(specialization_id =specialization_id)
-        print(specialization)
-        print("\n\nfsafasf",customer_id,"fsfsaas")
-        print("\n\ncountry",country)
+        logger.debug(specialization)
+        logger.debug("\n\nfsafasf",customer_id,"fsfsaas")
+        logger.debug("\n\ncountry",country)
         if customer_id:
             try:
                 country = CustomerProfile.objects.get(id = customer_id).country_details.country_name
-                print(country)
+                logger.debug(country)
             except:
                 pass
         country_available = DoctorPaymentRules.objects.filter(country__country_name = country , specialization__specialization =specialization.specialization).exists()
-        print("\n\ncountry_available",country , specialization ,country_available)
+        logger.debug("\n\ncountry_available",country , specialization ,country_available)
         if not country_available:
-            print("\n\ninside payment  in country not available")
+            logger.debug("\n\ninside payment  in country not available")
             country = "United States"
         
     except Specializations.DoesNotExist:
@@ -541,12 +541,12 @@ def get_multiple_doctor_profiles(request):
     response_data = serialized.data  # list
     a_country=country
     for doc in response_data:
-        print(f"\n\nis prescription allowed for doc {doc['name']}",doc["is_prescription_allowed"])
+        logger.debug(f"\n\nis prescription allowed for doc {doc['name']}",doc["is_prescription_allowed"])
         if doc['is_prescription_allowed'] :
             a_country = "India"  
-            print("\n\ninside condition changed to india" , country)
+            logger.debug("\n\ninside condition changed to india" , country)
         else:
-            print("\n\ninside condition no prescription " , country)
+            logger.debug("\n\ninside condition no prescription " , country)
             a_country=country
         rule = DoctorPaymentRules.objects.filter(
             doctor__doctor_profile_id=doc['doctor_profile_id'],
@@ -555,13 +555,13 @@ def get_multiple_doctor_profiles(request):
         ).first()
 
         if rule:
-            print("\n\n rule . country",rule.country)
-            print("\n\n rule country spec doc" ,rule,country,specialization,doc['doctor_profile_id'])
+            logger.debug("\n\n rule . country",rule.country)
+            logger.debug("\n\n rule country spec doc" ,rule,country,specialization,doc['doctor_profile_id'])
         
             if is_couple:
                 doc['final_price'] = rule.get_effective_payment()['custom_user_total_fee_couple'] if rule else None
             else:
-                print(rule.get_effective_payment)
+                logger.debug(rule.get_effective_payment)
                 doc['final_price'] = rule.get_effective_payment()['custom_user_total_fee_single'] if rule else None
             doc['country']=rule.country.country_name
             doc['currency']=rule.country.currency
@@ -671,8 +671,8 @@ class FinalSubmit(CreateAPIView):
                 # Mark session submitted
                 session.status = "final_submitted"
                 session.save()
-                print("First Analysis Completed")
-                print("Category:", category , "gender_pref" , gender_pref , "language_pref", language_pref, "specialization", specialization, "is_couple", is_couple)
+                logger.debug("First Analysis Completed")
+                logger.debug("Category:", category , "gender_pref" , gender_pref , "language_pref", language_pref, "specialization", specialization, "is_couple", is_couple)
          
             # --- First Analysis Completed ---
             else:
@@ -684,8 +684,8 @@ class FinalSubmit(CreateAPIView):
                 ) if data.get("specialization") else None
                 is_couple = bool(data.get("is_couple"))
                 timeZone = get_customer_timezone(user)  # Get user's timezone
-                print("First Analysis Already Completed")
-                print("Category:", category,gender_pref, language_pref)
+                logger.debug("First Analysis Already Completed")
+                logger.debug("Category:", category,gender_pref, language_pref)
             # --- Slot Processing ---
             slot = data.get("slot", {})
             start_str = slot.get("start")
@@ -742,13 +742,13 @@ class FinalSubmit(CreateAPIView):
                 payment_rule = None
                 package = None
                 if include_package:
-                    print(package_id)
+                    logger.debug(package_id)
                     payment_rule = DoctorPaymentRules.objects.get(id=package_id)
 
             # --- Create Appointment ---
-            # print(session.gender_preference , session.language_preference , session.category)
-            print(gender_pref , language_pref , category)
-            print(package,include_package,payment_rule)
+            # logger.debug(session.gender_preference , session.language_preference , session.category)
+            logger.debug(gender_pref , language_pref , category)
+            logger.debug(package,include_package,payment_rule)
             appointment = AppointmentHeader.objects.create(
                 customer=customer_profile,
                 category=category,
@@ -813,7 +813,7 @@ class FinalSubmit(CreateAPIView):
             }, status=201)
 
         except Exception as e:
-            print(f"Error in FinalSubmit: {str(e)}")
+            logger.debug(f"Error in FinalSubmit: {str(e)}")
             return Response({"error": str(e)}, status=400)
 
 
@@ -883,10 +883,10 @@ from django.utils import timezone
 #     try:
 #         if not handled:
 #             appointment.payment_done = True
-#             print("just before confriming")
+#             logger.debug("just before confriming")
 #             appointment.appointment_status = 'confirmed'
 #             appointment.save()
-#             print("\n\n staturs" , appointment.appointment_status , appointment_id , appointment.appointment_id)
+#             logger.debug("\n\n staturs" , appointment.appointment_status , appointment_id , appointment.appointment_id)
 
 #             if doctor_appointment:
 #                 doctor_appointment.confirmed = True
@@ -955,11 +955,11 @@ from django.utils import timezone
 #             appointment.package_used = True
 #             appointment.save() 
 
-#         print("✅ Appointment confirmed successfully")
+#         logger.debug("✅ Appointment confirmed successfully")
 
 #     except Exception as e:
 #         import traceback
-#         traceback.print_exc()
+#         traceback.logger.debug_exc()
 #         raise e
 
 
@@ -979,7 +979,7 @@ from django.utils import timezone
 
 def ConfirmAppointment(appointment_id =None, pretransaction_id =None, is_admin = False):
 
-    print('confirm appointment got called with pre and app' , pretransaction_id , appointment_id)
+    logger.debug('confirm appointment got called with pre and app' , pretransaction_id , appointment_id)
     try:
         # Step 1: Fetch all necessary objects first
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
@@ -992,16 +992,16 @@ def ConfirmAppointment(appointment_id =None, pretransaction_id =None, is_admin =
             pre_transaction = None
 
     except AppointmentHeader.DoesNotExist:
-        print({"error": "Appointment not found"})
+        logger.debug({"error": "Appointment not found"})
         return Response({"error": "Appointment not found"}, status=404)
     except PreTransactionData.DoesNotExist:
-        print({"pre-transaction data not found"})
+        logger.debug({"pre-transaction data not found"})
         return Response({"error": "Pre-transaction data not found"}, status=404)
     except CustomerProfile.DoesNotExist:
-        print({"error": "Customer profile not found"})
+        logger.debug({"error": "Customer profile not found"})
         return Response({"error": "Customer profile not found"}, status=404)
     except Exception as e:
-        print({"error": f"An unexpected error occurred during setup: {str(e)}"})
+        logger.debug({"error": f"An unexpected error occurred during setup: {str(e)}"})
         # Catch any other unexpected errors during object retrieval
         return Response({"error": f"An unexpected error occurred during setup: {str(e)}"}, status=500)
 
@@ -1026,7 +1026,7 @@ def ConfirmAppointment(appointment_id =None, pretransaction_id =None, is_admin =
                     "booked by another customer. Customer must select a new slot."
                 )
                 appointment.save()
-                print({"message":  "condition one Appointment not confirmed, please select a new slot.", 
+                logger.debug({"message":  "condition one Appointment not confirmed, please select a new slot.", 
                     "select_slots": True})
                 return Response({
                     "message": "Appointment not confirmed, please select a new slot.", 
@@ -1042,7 +1042,7 @@ def ConfirmAppointment(appointment_id =None, pretransaction_id =None, is_admin =
                     "Customer must select a new slot."
                 )
                 appointment.save()
-                print({"message": "Appointment not confirmed, please select a new slot.", 
+                logger.debug({"message": "Appointment not confirmed, please select a new slot.", 
                     "select_slots": True})
                 return Response({
                     "message": "Appointment not confirmed, please select a new slot.",
@@ -1052,7 +1052,7 @@ def ConfirmAppointment(appointment_id =None, pretransaction_id =None, is_admin =
         # Step 3: Perform confirmation actions
         appointment.payment_done = True
         appointment.appointment_status = 'confirmed'
-        print("appointmrnt_status" , appointment.appointment_status)
+        logger.debug("appointmrnt_status" , appointment.appointment_status)
 
         # Step 4: Create/Update DoctorAppointment
         if not doctor_appointment:
@@ -1120,16 +1120,16 @@ def ConfirmAppointment(appointment_id =None, pretransaction_id =None, is_admin =
         appointment_routine_notifications(appointment_id)
 
         # Step 9: Return success response ONLY AFTER all operations are complete
-        print("✅ Appointment confirmed successfully")
-        print(appointment.appointment_status , appointment_id , appointment.appointment_id)
-        print({"message": "Appointment confirmed successfully.", "select_slots": False, "add_partner": False})
+        logger.debug("✅ Appointment confirmed successfully")
+        logger.debug(appointment.appointment_status , appointment_id , appointment.appointment_id)
+        logger.debug({"message": "Appointment confirmed successfully.", "select_slots": False, "add_partner": False})
         return Response({"message": "Appointment confirmed successfully.", "select_slots": False, "add_partner": False}, status=200)
 
     except Exception as e:
         # Generic error handling for the confirmation process
         import traceback
-        traceback.print_exc()
-        print({"error": f"An error occurred during confirmation: {str(e)}"})
+        traceback.logger.debug_exc()
+        logger.debug({"error": f"An error occurred during confirmation: {str(e)}"})
         return Response({"error": f"An error occurred during confirmation: {str(e)}"}, status=500)
 
 
@@ -1147,7 +1147,7 @@ from general.notification_controller import send_appointment_confirmation_notifi
 
 
 def appointment_routine_notifications(appointment_id):
-    print("inside_routine notifications")
+    logger.debug("inside_routine notifications")
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
