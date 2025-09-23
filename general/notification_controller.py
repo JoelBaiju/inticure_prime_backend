@@ -33,7 +33,7 @@ def send_appointment_confirmation_notification(appointment_id):
         appointment = AppointmentHeader.objects.get(appointment_id = appointment_id)
         logger.debug(appointment.customer.confirmation_method)
         if appointment.customer.confirmation_method in  ['email' ,"Email" , "both" ]:
-            (f"send_appointment_confirmation_notification for appointment id {appointment_id} email")
+            logger.debug(f"send_appointment_confirmation_notification for appointment id {appointment_id} email")
             if appointment.customer.completed_first_analysis:
                 send_appointment_confirmation_customer_email(appointment_id)
             else : 
