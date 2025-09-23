@@ -94,7 +94,8 @@ def get_meet_details_with_meet_id(request):
         )
 
     try:
-        tracker = Meeting_Tracker.objects.get(customer_1_meeting_id=meet_id)    
+        tracker = Meeting_Tracker.objects.get(customer_1_meeting_id=meet_id) 
+           
     except Exception as e:
         return Response(
             {"error": "Meeting not found."}, 

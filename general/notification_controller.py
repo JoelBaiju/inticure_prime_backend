@@ -535,3 +535,12 @@ def schedule_reminder_to_book_appointment(appointment_id=None, referral_id=None)
                 )
         
 
+
+
+
+
+
+@shared_task
+def send_doctor_replied_to_patient_notifiaction(to_phone , name , specialist_name):
+
+    logger.debug(send_wa_specialist_reply_notification_to_patient(to_phone , name , specialist_name))

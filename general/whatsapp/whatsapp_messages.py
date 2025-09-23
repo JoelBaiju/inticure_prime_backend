@@ -100,7 +100,8 @@ def send_wa_appointment_confirmation(appointment_id):
             "text": str(meet_code) 
         }
     ]
-    return whatsapp_api_handler(to_phone, "appointment_confirmation", parameters ,button_parameters)
+    # return whatsapp_api_handler(to_phone, "appointment_confirmation", parameters ,button_parameters)
+    return whatsapp_api_handler(to_phone, "appointment_confirmation_2", parameters ,button_parameters)
 
 
 
@@ -518,9 +519,10 @@ def send_wa_patient_chat_notification_to_specialist (to_phone, specialist_name):
     return whatsapp_api_handler(to_phone, "patient_chat_notification_to_specialist", parameters)
 
 
-def send_wa_specialist_reply_notification_to_patient (to_phone , specialist_name):
+def send_wa_specialist_reply_notification_to_patient (to_phone ,name, specialist_name):
     parameters = [
         {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
+        {"type": "text", "parameter_name": "name", "text": name},
     ]
       
     return whatsapp_api_handler(to_phone, "specialist_reply_notification_to_patient", parameters)
