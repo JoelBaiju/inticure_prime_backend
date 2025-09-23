@@ -1145,36 +1145,35 @@ from general.notification_controller import send_appointment_confirmation_notifi
 
 
 
-
 def appointment_routine_notifications(appointment_id):
     logger.debug("inside_routine notifications")
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+    except AppointmentHeader.DoesNotExist:
+        logger.error("Appointment not found for the given appointment ID.")
+        return  # ✅ Exit early
+
+    try:
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
     except Meeting_Tracker.DoesNotExist:
-        logger.error("error :Meeting tracker not found for the given appointment ID.")
-    except AppointmentHeader.DoesNotExist:
-        logger.error ("error : Appointment not found for the given appointment ID.")
-    
-    if appointment.customer.completed_first_analysis:
-            
-      pass
-    else:
+        logger.error("Meeting tracker not found for the given appointment ID.")
+        return  # ✅ Exit early
+
+    if not appointment.customer.completed_first_analysis:
         appointment.customer.completed_first_analysis = True
         appointment.customer.save()
-    
-    send_appointment_confirmation_notification.delay(
-        appointment_id
-    )
+
+    logger.debug("sending appointment confirmation notification")
+    send_appointment_confirmation_notification.delay(appointment_id)  # ✅ Will now execute
 
     task = monitor_appointment.apply_async(
         args=[appointment.appointment_id],
-        eta=appointment.start_time,        
+        eta=appointment.start_time,
     )
 
     meeting_tracker.monitor_task_id = task.id
 
     schedule_all_reminders(appointment_id)
-    
+
     meeting_tracker.reminder_task_id = task.id
     meeting_tracker.save()
