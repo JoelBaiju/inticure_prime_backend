@@ -1147,6 +1147,9 @@ from general.notification_controller import send_appointment_confirmation_notifi
 
 def appointment_routine_notifications(appointment_id):
     logger.debug("inside_routine notifications")
+
+    send_appointment_confirmation_notification.delay(appointment_id)  # ✅ Will now execute
+
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
     except AppointmentHeader.DoesNotExist:
@@ -1164,7 +1167,6 @@ def appointment_routine_notifications(appointment_id):
         appointment.customer.save()
 
     logger.debug("sending appointment confirmation notification")
-    send_appointment_confirmation_notification.delay(appointment_id)  # ✅ Will now execute
 
     task = monitor_appointment.apply_async(
         args=[appointment.appointment_id],
