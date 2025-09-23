@@ -202,5 +202,5 @@ def get_meet_details_with_meet_id(request):
         return Response(data)
 
     except Exception as e:
-        logger.exception("Error fetching meeting details")
+        logger.exception("Error fetching meeting details {e}")
         return Response({"error": "Meeting not found."}, status=404)
