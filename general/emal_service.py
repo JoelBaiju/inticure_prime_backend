@@ -277,6 +277,7 @@ def send_appointment_rescheduled_email(
 
 def send_reschedule_request_email(appointment_id):
     try:
+        logger.debug("inside send_reschedule_request_email , got called ")
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         appointment_customers = Appointment_customers.objects.filter(appointment=appointment)
     except AppointmentHeader.DoesNotExist:

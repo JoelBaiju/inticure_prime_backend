@@ -210,7 +210,7 @@ def send_wa_consultation_rescheduled_by_specialist(appointment_id):
         logger.debug(whatsapp_api_handler(f"{customer.customer.country_code}{customer.customer.whatsapp_number}", "consultation_rescheduled_by_specialist", parameters))
 
     except Exception as e:
-        print(f"Error in send_wa_consultation_rescheduled_by_specialist.for id {appointment_id}. Error {e}")
+        logger.debug(f"Error in send_wa_consultation_rescheduled_by_specialist.for id {appointment_id}. Error {e}")
         return f"Error in send_wa_consultation_rescheduled_by_specialist. {e}"
 
 
