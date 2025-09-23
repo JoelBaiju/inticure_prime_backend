@@ -284,7 +284,7 @@ class Map_Meetings(APIView):
             }
 
            
-        elif Meeting_Tracker.objects.filter(
+        if Meeting_Tracker.objects.filter(
                 customer_2_meeting_id = attendee_meeting_id
             ).exists():
 
@@ -315,7 +315,7 @@ class Map_Meetings(APIView):
         if Meeting_Tracker.objects.filter(
             doctor_meeting_id = attendee_meeting_id
             ).exists():
-            
+
             meeting_tracker = Meeting_Tracker.objects.filter(
             doctor_meeting_id = attendee_meeting_id
             ).first()
