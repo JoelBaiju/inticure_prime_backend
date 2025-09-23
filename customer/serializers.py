@@ -190,7 +190,7 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                                 if appt.doctor else "N/A",
                 "status": appt.appointment_status,
                 "specialization": appt.specialization.specialization if appt.specialization else "N/A",
-                "specialization": appt.specialization.specialization_id if appt.specialization else "N/A",
+                "specialization_id": appt.specialization.specialization_id if appt.specialization else "N/A",
                 "type_booking": "Couples" if appt.is_couple else "Individual",
                 "actions": Appointment_actions(appt.appointment_id),
                 "booked_by": appt.booked_by,
@@ -293,6 +293,8 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                 "is_couple": refer.is_couple,
                 "id": refer.id,
                 "salutation": refer.doctor.salutation,
+                "salutation_2nd_doctor": refer.referred_doctor.salutation
+                
             })
         return result
 
@@ -359,6 +361,7 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                                 if appt.doctor else "N/A",
                 "status": appt.appointment_status,
                 "specialization": appt.specialization.specialization if appt.specialization else "N/A",
+                "specialization_id": appt.specialization.specialization_id if appt.specialization else "N/A",
                 "type_booking": "Couples" if appt.is_couple else "Individual",
                 "booked_by": appt.booked_by,
                 "actions": Appointment_actions(appt.appointment_id),
