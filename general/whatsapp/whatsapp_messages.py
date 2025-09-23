@@ -100,8 +100,8 @@ def send_wa_appointment_confirmation(appointment_id):
             "text": str(meet_code) 
         }
     ]
-    return whatsapp_api_handler(to_phone, "appointment_confirmation", parameters ,button_parameters)
-    # return whatsapp_api_handler(to_phone, "appointment_confirmation_2", parameters ,button_parameters)
+    # return whatsapp_api_handler(to_phone, "appointment_confirmation", parameters ,button_parameters)
+    return whatsapp_api_handler(to_phone, "appointment_confirmation_2", parameters ,button_parameters)
 
 
 
