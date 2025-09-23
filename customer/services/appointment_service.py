@@ -20,6 +20,9 @@ from general.notification_controller import send_appointment_cancel_notification
 
 from general.notification_controller import send_appointment_reshceduled_notification
 
+import logging 
+logger = logging.getLogger(__name__)
+
 class AppointmentService:
     @staticmethod
     def find_next_available_slot(doctor_id, available_dates, timezone_str, is_couple):
@@ -134,7 +137,7 @@ class AppointmentService:
     @staticmethod
     def cancel_appointment(appointment, reason, is_admin=False):
         """Cancel appointment and handle refund"""
-       
+        logger.debug(f"cancel_appointment for appointment id {appointment.appointment_id}")
         # Delete doctor appointment and update status
         
         appointment.appointment_status = 'cancelled_by_customer'
@@ -146,9 +149,11 @@ class AppointmentService:
             appointment.referral.save()
             
         appointment.save()
+        logger.debug(f"cancel_appointment for appointment id {appointment.appointment_id} saved")
 
         # Create cancellation history
         Cancel_history.objects.create(appointment=appointment, reason=reason)
+        logger.debug(f"cancel_appointment for appointment id {appointment.appointment_id} cancellation history created")
 
         # Calculate and create refund
         if not appointment.package_used:
@@ -162,10 +167,13 @@ class AppointmentService:
                     refund_status='pending',
                     request_date=timezone.now()
                 )
+                logger.debug(f"cancel_appointment for appointment id {appointment.appointment_id} refund created")
 
         # Send cancellation notification
         # send_appointment_cancellation_email_task.delay(appointment_id=appointment.appointment_id)
+        logger.debug(f"cancel_appointment for appointment id {appointment.appointment_id} send_appointment_cancel_notification.delay")
         send_appointment_cancel_notification.delay(appointment_id = appointment.appointment_id)
+        logger.debug(f"cancel_appointment for appointment id {appointment.appointment_id} send_appointment_cancel_notification.delay sent")
         # Revoke background tasks
         try:
             doctor_appointment = DoctorAppointment.objects.get(appointment=appointment)
