@@ -310,7 +310,7 @@ def initiate_chat_doctor_patient(request):
                 description=f"Doctor chat with patient for appointment id: {appointment_id}",
                 expires_at=appointment.start_time + timedelta(hours=24)  # Session expires in 7 days
             )
-            if request.user.is_staff and appointment.doctor.whatsapp_number:
+            if not request.user.is_staff and customer_user.whatsapp_number:
                 send_wa_patient_chat_notification_to_specialist(f"{appointment.doctor.whatsapp_country_code}{appointment.doctor.whatsapp_number}" , f"{appointment.doctor.salutation}. {appointment.doctor.first_name}")
 
             session_user = SessionUser.objects.create(
