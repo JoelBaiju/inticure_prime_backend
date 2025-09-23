@@ -102,6 +102,7 @@ def get_meet_details_with_meet_id(request):
     try:
         
         try:
+            logger.debug
             tracker = Meeting_Tracker.objects.get(customer_1_meeting_id=target_id) 
             is_customer_1 = True
         except Meeting_Tracker.DoesNotExist:
