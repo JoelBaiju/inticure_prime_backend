@@ -102,17 +102,19 @@ def get_meet_details_with_meet_id(request):
     try:
         
         try:
-            tracker = Meeting_Tracker.objects.get(customer_1_meeting_id=meet_id)
+            # Try to find the tracker for customer_1
+            tracker = Meeting_Tracker.objects.filter(customer_1_meeting_id=meet_id).first()
             is_customer_1 = True
-        except Meeting_Tracker.DoesNotExist:
-            try :
-                tracker = Meeting_Tracker.objects.get(customer_2_meeting_id = meet_id)
+
+            if not tracker:
+                # If not found for customer_1, try for customer_2
+                tracker = Meeting_Tracker.objects.filter(customer_2_meeting_id=meet_id).first()
                 is_customer_1 = False
-            except Meeting_Tracker.DoesNotExist:
-                return Response(
-                    {"error": "Meeting not found."}, 
-                    status=404
-                )
+        except Meeting_Tracker.DoesNotExist:
+            return Response(
+                {"error": "Meeting not found."}, 
+                status=404
+            )
   
         if not tracker:
             return Response({"error": "Meeting not found."}, status=404)
@@ -141,7 +143,7 @@ def get_meet_details_with_meet_id(request):
 
     except Exception as e:
         return Response(
-            {"error": "Meeting not found."}, 
+            {f"error Meeting not found.{e}"}, 
             status=404
         )
 
