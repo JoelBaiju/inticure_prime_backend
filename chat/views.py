@@ -13,7 +13,8 @@ from rest_framework.permissions import IsAuthenticated
 from .models import ChatSession
 from general.whatsapp.whatsapp_messages import send_wa_patient_chat_notification_to_specialist 
 
-
+import logging
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 # @login_required
@@ -311,7 +312,7 @@ def initiate_chat_doctor_patient(request):
                 expires_at=appointment.start_time + timedelta(hours=24)  # Session expires in 7 days
             )
             if not request.user.is_staff and appointment.doctor.whatsapp_number:
-                send_wa_patient_chat_notification_to_specialist(f"{appointment.doctor.whatsapp_country_code}{appointment.doctor.whatsapp_number}" , f"{appointment.doctor.salutation}. {appointment.doctor.first_name}")
+                logger.debug(send_wa_patient_chat_notification_to_specialist(f"{appointment.doctor.whatsapp_country_code}{appointment.doctor.whatsapp_number}" , f"{appointment.doctor.salutation}. {appointment.doctor.first_name}"))
 
             session_user = SessionUser.objects.create(
                 session=chat_session,
