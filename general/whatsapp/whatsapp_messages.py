@@ -77,6 +77,8 @@ def send_wa_appointment_confirmation(appointment_id):
         meet_link       = Meeting_Tracker.objects.get(appointment=appointment).customer_1_meeting_link
         # to_phone        = appointment.customer.country_code + appointment.customer.whatsapp_number
         to_phone        = appointment.customer.country_code + appointment.customer.whatsapp_number
+        meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
+        meet_code       = meeting_tracker.customer_1_meeting_id
         # country_code    = str(appointment.customer.country_code)
     except AppointmentHeader.DoesNotExist:
         print(f"Appointment does not exist.for id {appointment_id}")
@@ -89,7 +91,15 @@ def send_wa_appointment_confirmation(appointment_id):
         {"type": "text", "parameter_name": "date_time", "text": date_time},
         {"type": "text", "parameter_name": "meet_link", "text": meet_link},
     ]
-    return whatsapp_api_handler(to_phone, "appointment_confirmation", parameters)
+
+    
+    button_parameters = [
+        {
+            "type": "text", 
+            "text": meet_code 
+        }
+    ]
+    return whatsapp_api_handler(to_phone, "appointment_confirmation", parameters ,button_parameters)
 
 
 
