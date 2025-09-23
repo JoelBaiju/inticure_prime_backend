@@ -328,7 +328,7 @@ class Map_Meetings(APIView):
                 "date":meeting_tracker.appointment.start_time.date(),
                 'specialization':meeting_tracker.appointment.specialization.specialization,
             }
-            
+
 
         if context:
 
@@ -344,8 +344,8 @@ class Map_Meetings(APIView):
             #     f"&meetingId={context['meet_code']}"
             #     f"{specialization}"
             # )
-
-            return redirect(meeting_tracker.meeting_link)
+            if meeting_tracker.appointment.start_time-timedelta(seconds=30)<=timezone.now():
+                return redirect(meeting_tracker.meeting_link)
 
         return Response({
             'message': 'Meeting not found'
