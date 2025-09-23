@@ -133,8 +133,8 @@ class PhoneNumberOrEmailVerificationView(APIView):
             return Response({'error': 'Phone number or email and OTP are required.'}, status=HTTP_400_BAD_REQUEST)
         logger.debug(otp)
         user = None
-        logger.debug('hereeeeeeeee user not found yet',user)
-        logger.debug('phone number:',phone_number,'here')
+        logger.debug(f'hereeeeeeeee user not found yet {user}')
+        logger.debug(f'phone number: {phone_number} here')
 
 
 
@@ -172,7 +172,7 @@ class PhoneNumberOrEmailVerificationView(APIView):
                 customer_profile = customer
                 customer_profile.time_zone = timezone if timezone else 'UTC'
                 customer_profile.save()
-                logger.debug("Customer Profile found:", customer_profile)
+                logger.debug(f"Customer Profile found: {customer_profile}")
                 if customer_profile.completed_first_analysis :
                     exists = True
                 elif  customer_profile.partner:
@@ -184,8 +184,8 @@ class PhoneNumberOrEmailVerificationView(APIView):
             except CustomerProfile.DoesNotExist:
                 exists = False
 
-            logger.debug("User found:", user.username)
-            logger.debug('user exists ', exists)
+            logger.debug(f"User found: {user.username}")
+            logger.debug(f'user exists {exists}')
             
             # Existing user
             refresh = RefreshToken.for_user(user)
@@ -218,13 +218,13 @@ class PhoneNumberOrEmailVerificationView(APIView):
                 completed_first_analysis=False,
                 email = email if email else None,
             )
-            logger.debug("New user created:", user.username)
-            logger.debug("Customer Profile created:", customer_profile)
+            logger.debug(f"New user created: {user.username}")
+            logger.debug(f"Customer Profile created: {customer_profile}")
             customer_profile.time_zone = timezone if timezone else 'UTC'
             customer_profile.save()
 
             refresh = RefreshToken.for_user(user)
-            logger.debug("New user created:", user.username)
+            logger.debug(f"New user created: {user.username}")
             return Response({
                 "country":customer_profile.country_details.country_name if customer_profile.country_details else None,
                 'user_exists': False,
@@ -283,7 +283,7 @@ class SubmitGenderCategoryView(APIView):
                 return Response({'error': 'Category does not exist'}, status=400)
 
         session.save()
-        logger.debug(category_id,gender)
+        logger.debug(f"Category ID: {category_id}, Gender: {gender}")
         # Now fetch questionnaire based on gender (and optionally category)
         filter = {}
         # Use the correct field name as per your Questionnaire model
@@ -297,7 +297,7 @@ class SubmitGenderCategoryView(APIView):
 
         try:
             questionnaire = Questionnaire.objects.filter(customer_gender = gender )
-            logger.debug("Questionnaire:", questionnaire)
+            logger.debug(f"Questionnaire: {questionnaire}")
             questionnaire_serialized = QuestionnaireSerializer(questionnaire, many=True).data
 
             for question in questionnaire_serialized:
@@ -309,7 +309,7 @@ class SubmitGenderCategoryView(APIView):
             return Response({'error': 'Category does not exist'}, status=400)
         except ValidationError as ve:
             return Response({'error': str(ve)}, status=400)
-        logger.debug("Questionnaire data:", questionnaire_serialized)
+        logger.debug(f"Questionnaire data: {questionnaire_serialized}")
         return Response({
             'response_code': 200,
             'status': 'Ok',
@@ -408,7 +408,7 @@ class SlotsBooking(APIView):
 
         logger.debug(country )
         logger.debug(timeZone)
-        logger.debug("recieved date", preferred_date)
+        logger.debug(f"recieved date {preferred_date}")
         if first_analysis:
             if not token:
                 return Response({"error": "Missing analysis_token"}, status=400)
@@ -461,8 +461,8 @@ class SlotsBooking(APIView):
             logger.debug('no Specialization')
             specializations= Specializations.objects.filter(specialization = "No Specialization").first()
             specialization_id =specializations.specialization_id
-        logger.debug("\n preferred_dt_start", preferred_dt_start)
-        logger.debug("\n preferred_dt_end", preferred_dt_end)
+        logger.debug(f"\n preferred_dt_start {preferred_dt_start}")
+        logger.debug(f"\n preferred_dt_end {preferred_dt_end}")
         slot_data = get_available_slots(
             specialization_id=specialization_id,
             date_time_start=preferred_dt_start,
@@ -481,7 +481,7 @@ class SlotsBooking(APIView):
              slot_data["slots"]
         except:
             return Response({"error": "No slots available"}, status=400)
-        logger.debug("slots_data",slot_data)
+        logger.debug(f"slots_data {slot_data}")
         return Response({   
             "slots": slot_data["slots"],
             "matched_preferences": slot_data["matched_preferences"],
@@ -507,19 +507,19 @@ def get_multiple_doctor_profiles(request):
             specialization = Specializations.objects.get(specialization = "No Specialization")
         else:
             specialization = Specializations.objects.get(specialization_id =specialization_id)
-        logger.debug(specialization)
-        logger.debug("\n\nfsafasf",customer_id,"fsfsaas")
-        logger.debug("\n\ncountry",country)
+        logger.debug(f"specialization {specialization}")
+        logger.debug(f"\n\nfsafasf {customer_id} fsfsaas")
+        logger.debug(f"\n\ncountry {country}")
         if customer_id:
             try:
                 country = CustomerProfile.objects.get(id = customer_id).country_details.country_name
-                logger.debug(country)
+                logger.debug(f"country {country}")
             except:
                 pass
         country_available = DoctorPaymentRules.objects.filter(country__country_name = country , specialization__specialization =specialization.specialization).exists()
-        logger.debug("\n\ncountry_available",country , specialization ,country_available)
+        logger.debug(f"\n\ncountry_available {country} {specialization} {country_available}")
         if not country_available:
-            logger.debug("\n\ninside payment  in country not available")
+            logger.debug(f"\n\ninside payment  in country not available {country}")
             country = "United States"
         
     except Specializations.DoesNotExist:
@@ -541,12 +541,12 @@ def get_multiple_doctor_profiles(request):
     response_data = serialized.data  # list
     a_country=country
     for doc in response_data:
-        logger.debug(f"\n\nis prescription allowed for doc {doc['name']}",doc["is_prescription_allowed"])
+        logger.debug(f"\n\nis prescription allowed for doc {doc['name']} {doc['is_prescription_allowed']}")
         if doc['is_prescription_allowed'] :
             a_country = "India"  
-            logger.debug("\n\ninside condition changed to india" , country)
+            logger.debug(f"\n\ninside condition changed to india {a_country}")
         else:
-            logger.debug("\n\ninside condition no prescription " , country)
+            logger.debug(f"\n\ninside condition no prescription {a_country}")
             a_country=country
         rule = DoctorPaymentRules.objects.filter(
             doctor__doctor_profile_id=doc['doctor_profile_id'],
@@ -555,13 +555,13 @@ def get_multiple_doctor_profiles(request):
         ).first()
 
         if rule:
-            logger.debug("\n\n rule . country",rule.country)
-            logger.debug("\n\n rule country spec doc" ,rule,country,specialization,doc['doctor_profile_id'])
+            logger.debug(f"\n\n rule . country {rule.country}")
+            logger.debug(f"\n\n rule country spec doc {rule.country} {specialization} {doc['doctor_profile_id']}")
         
             if is_couple:
                 doc['final_price'] = rule.get_effective_payment()['custom_user_total_fee_couple'] if rule else None
             else:
-                logger.debug(rule.get_effective_payment)
+                logger.debug(f"\n\n rule get_effective_payment {rule.get_effective_payment()}")
                 doc['final_price'] = rule.get_effective_payment()['custom_user_total_fee_single'] if rule else None
             doc['country']=rule.country.country_name
             doc['currency']=rule.country.currency
@@ -672,7 +672,7 @@ class FinalSubmit(CreateAPIView):
                 session.status = "final_submitted"
                 session.save()
                 logger.debug("First Analysis Completed")
-                logger.debug("Category:", category , "gender_pref" , gender_pref , "language_pref", language_pref, "specialization", specialization, "is_couple", is_couple)
+                logger.debug(f"Category: {category} gender_pref {gender_pref} language_pref {language_pref} specialization {specialization} is_couple {is_couple}")
          
             # --- First Analysis Completed ---
             else:
@@ -685,7 +685,7 @@ class FinalSubmit(CreateAPIView):
                 is_couple = bool(data.get("is_couple"))
                 timeZone = get_customer_timezone(user)  # Get user's timezone
                 logger.debug("First Analysis Already Completed")
-                logger.debug("Category:", category,gender_pref, language_pref)
+                logger.debug(f"Category: {category} gender_pref {gender_pref} language_pref {language_pref} specialization {specialization} is_couple {is_couple}")
             # --- Slot Processing ---
             slot = data.get("slot", {})
             start_str = slot.get("start")
@@ -747,8 +747,8 @@ class FinalSubmit(CreateAPIView):
 
             # --- Create Appointment ---
             # logger.debug(session.gender_preference , session.language_preference , session.category)
-            logger.debug(gender_pref , language_pref , category)
-            logger.debug(package,include_package,payment_rule)
+            logger.debug(f"gender_pref {gender_pref} language_pref {language_pref} category {category}")
+            logger.debug(f"package {package} include_package {include_package} payment_rule {payment_rule}")
             appointment = AppointmentHeader.objects.create(
                 customer=customer_profile,
                 category=category,
