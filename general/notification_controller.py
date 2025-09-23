@@ -4,6 +4,11 @@ from .emal_service import *
 from .whatsapp.whatsapp_messages import *
 from analysis.models import AppointmentHeader
 
+import logging
+logger = logging.getLogger(__name__)
+
+
+
 @shared_task
 def send_appointment_cancel_notification(appointment_id):
 
