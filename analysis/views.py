@@ -607,6 +607,7 @@ class FinalSubmit(CreateAPIView):
             try:
                 customer_profile = CustomerProfile.objects.get(user=user)
             except CustomerProfile.DoesNotExist:
+                logger.debug("error Customer profile not found")
                 return Response({"error": "Customer profile not found"}, status=400)
 
             # Shared variables
@@ -625,11 +626,13 @@ class FinalSubmit(CreateAPIView):
                 try:
                     country = Countries.objects.get(country_name=data.get("country"))
                 except Countries.DoesNotExist:
+                    logger.debug("Invalid country")
                     return Response({"error": "Invalid country"}, status=400)
 
                 try:
                     session = AnalysisSession.objects.get(token=token)
                 except AnalysisSession.DoesNotExist:
+                    logger.debug("Invalid analysis_token")
                     return Response({"error": "Invalid analysis_token"}, status=400)
 
                 # Update profile
@@ -702,6 +705,7 @@ class FinalSubmit(CreateAPIView):
             try:
                 doctor = DoctorProfiles.objects.get(doctor_profile_id=data.get("doctor_id"))
             except DoctorProfiles.DoesNotExist:
+                logger.debug("Doctor not found")
                 return Response({"error": "Doctor not found"}, status=404)
 
             # --- Check Overlap (UTC-aware) ---
