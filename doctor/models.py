@@ -12,7 +12,7 @@ class DoctorProfiles(models.Model):
     doctor_profile_id       = models.BigAutoField(primary_key=True)
     first_name              = models.CharField(max_length=50 , null=True)
     last_name               = models.CharField(max_length=50 , null=True)
-    user                    = models.ForeignKey(User, on_delete=models.CASCADE, related_name='doctor_profile',null=True)
+    user                    = models.OneToOneField(User, on_delete=models.CASCADE, related_name='doctor_profile',null=True)
     country                 = models.ForeignKey(Countries , on_delete=models.CASCADE ,related_name='doctor_profile' , null = True)
     time_zone               = models.CharField(max_length=50, null=True, blank=True)
     doctor_flag             = models.CharField(max_length=10,null=True)
