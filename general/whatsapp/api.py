@@ -127,9 +127,8 @@ def whatsapp_api_handler(to_phone, template_name, body_parameters, button_parame
     logger.info(payload)
     try:
         response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()
         logger.info(response.json())
-        logger.info("could not print json")
+        response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
         logger.error(str(e))
