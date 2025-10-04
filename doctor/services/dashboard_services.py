@@ -73,13 +73,14 @@ def get_doctor_info(doctor):
     specialization_names = ", ".join(
         [spec.specialization.specialization for spec in specialization_qs]
     ) if specialization_qs else "no specialization"
-
     return {
         "name": f"{doctor.salutation}. {doctor.first_name} {doctor.last_name}",
         "specialization": specialization_names,
         "experience": doctor.experience if doctor.experience else "N/A",
         "rating": 4.9,  # TODO: Replace placeholder
         "email": doctor.email_id,
+        "bio":doctor.doctor_bio,
+        "profile_pic":doctor.profile_pic.url
     }
 
 
