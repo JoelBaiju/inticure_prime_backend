@@ -20,7 +20,8 @@ urlpatterns = [
     path('doc/<int:pk>/reject/', DoctorRejectAPIView.as_view(), name='doctor-reject'),
     path('doc/available_dates/', Available_dates.as_view(), name='available_dates'),
     path('doc/available_hours/', DoctorAvailableHoursView.as_view(), name='available_hours'),
-   
+    path("doc/edit_available_hours/" , edit_available_hours_view , name="edit_available_hours"),
+
     path('specializations/', specializations_list_create, name='specializations-list-create'),
     path('specializations/<int:pk>/', specialization_detail, name='specialization-detail'),
 
@@ -64,9 +65,4 @@ urlpatterns = [
     path('payouts/', get_payout_view, name='get_payout_view'),
     path('complete_payout/', complete_payout, name='complete_payout'),
     path('update_refund_status/', update_refund_status, name='update_refund_status'),
-
-
-
-
-
 ]

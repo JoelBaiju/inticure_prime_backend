@@ -129,3 +129,22 @@ class Available_dates(APIView):
         )
         return Response({'available_dates':list(unique_dates) , "doctor_max_session_duration":doctor_max_session_duration + timedelta(minutes=10)}, status=status.HTTP_200_OK)
 
+
+
+
+from doctor.services.availability_services import edit_availability_block
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def edit_available_hours_view(request):
+    try:
+        did = request.data.get('did')
+        doctor = DoctorProfiles.objects.get(doctor_profile_id=did)
+        request.data["doctor_id"] = doctor.doctor_profile_id
+        data = edit_availability_block(request.data)
+        return Response(data, status=200)
+    except DoctorProfiles.DoesNotExist:
+        return Response({"error": "Doctor not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
