@@ -417,3 +417,13 @@ class Suggest_package(APIView):
 
 
 
+from ..serializers import DoctorProfileCreateSerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import UpdateAPIView
+
+class Profile_Edit(UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = DoctorProfileCreateSerializer
+    queryset = DoctorProfiles.objects.all()
+    def get_object(self):
+        return self.request.user.doctor_profile
