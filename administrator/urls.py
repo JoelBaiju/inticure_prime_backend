@@ -18,6 +18,8 @@ urlpatterns = [
 
     path('doc/<int:pk>/accept/', DoctorAcceptAPIView.as_view(), name='doctor-accept'),
     path('doc/<int:pk>/reject/', DoctorRejectAPIView.as_view(), name='doctor-reject'),
+    path('doc/available_dates/', Available_dates.as_view(), name='available_dates'),
+    path('doc/available_hours/', DoctorAvailableHoursView.as_view(), name='available_hours'),
    
     path('specializations/', specializations_list_create, name='specializations-list-create'),
     path('specializations/<int:pk>/', specialization_detail, name='specialization-detail'),
