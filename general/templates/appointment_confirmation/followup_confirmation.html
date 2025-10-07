@@ -245,7 +245,7 @@
       <div class="doctor-bio">
         <div class="doctor-bio-header">
           {% if profile_pic %}
-          <img src="{{backend_url}}/media/whyus-doctors-2.png" alt="Dr. {{doctor_name}}" class="doctor-image-small">
+          <img src="{{backend_url}}{{profile_pic}}" alt="Dr. {{doctor_name}}" class="doctor-image-small">
           {% else %}
           <img src="{{backend_url}}/media/icons/patient_consulting_doctor_online.png" alt="Dr. {{doctor_name}}" class="doctor-image-small">
           {% endif %}

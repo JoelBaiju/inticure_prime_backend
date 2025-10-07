@@ -121,7 +121,7 @@ def send_followup_confirmation_email(
         'backend_url':BACKEND_URL,  
     }
     for app_customer in appointment_customers:
-        meetlink = meeting_tracker.customer_1_meeting_link if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_link
+        meetlink = f"https://care.inticure.com/join-meeting?meetingId={meeting_tracker.customer_1_meeting_id if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_id}"
         context['meet_link'] = meetlink
         context['name'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
         html_content = render_to_string("appointment_confirmation/followup_confirmation.html", context)
@@ -156,7 +156,7 @@ def send_first_appointment_confirmation_email(appointment_id):
     for app_customer in appointment_customers:
         if not app_customer.customer.completed_first_analysis:
                 
-            meetlink = meeting_tracker.customer_1_meeting_link if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_link
+            meetlink =  f"https://care.inticure.com/join-meeting?meetingId={meeting_tracker.customer_1_meeting_id if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_id}"
             context['name'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
             context['meet_link']=meetlink
             html_content = render_to_string("appointment_confirmation/first_appointment_confirmation_email.html", context)
@@ -196,7 +196,7 @@ def send_appointment_confirmation_customer_email(appointment_id,):
 
     for app_customer in appointment_customers:
         context['name'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
-        meetlink = meeting_tracker.customer_1_meeting_link if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_link
+        meetlink =  f"https://care.inticure.com/join-meeting?meetingId={meeting_tracker.customer_1_meeting_id if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_id}"
         context['meet_link']=meetlink
         html_content = render_to_string("appointment_confirmation/appointment_confirmation_customer.html", context)
         send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
@@ -245,7 +245,7 @@ def send_appointment_rescheduled_email(
     subject = "Appointment Rescheduled - Inticure"
     
     for customer in appointment_customers:
-        meetlink = meeting_tracker.customer_1_meeting_link if customer.customer == meeting_tracker.customer_1 else meeting_tracker.customer_2_meeting_link
+        meetlink =  f"https://care.inticure.com/join-meeting?meetingId={meeting_tracker.customer_1_meeting_id if customer.customer == meeting_tracker.customer_1 else meeting_tracker.customer_2_meeting_id}"
         context = {
             "name": customer.customer.user.first_name + ' ' + customer.customer.user.last_name,
             "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
@@ -335,7 +335,7 @@ def send_appointment_reminder_customer_email(appintment_id , message):
         appointment_customers = appointment.appointment_customers.all()
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
         for customer in appointment_customers:
-            meeting_link = meeting_tracker.customer_1_meeting_link if customer.customer == meeting_tracker.customer_1 else meeting_tracker.customer_2_meeting_link
+            meeting_link =  f"https://care.inticure.com/join-meeting?meetingId={meeting_tracker.customer_1_meeting_id if customer.customer == meeting_tracker.customer_1 else meeting_tracker.customer_2_meeting_id}"
 
             context = {
                 "message":message,
@@ -430,7 +430,7 @@ def send_appointment_started_reminder_customer_email(appointment_id):
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
         appt_customers = appointment.appointment_customers.all()
         for customer in appt_customers:
-            meeting_link = meeting_tracker.customer_1_meeting_link if customer.customer == meeting_tracker.customer_1 else meeting_tracker.customer_2_meeting_link
+            meeting_link =  f"https://care.inticure.com/join-meeting?meetingId={meeting_tracker.customer_1_meeting_id if customer.customer == meeting_tracker.customer_1 else meeting_tracker.customer_2_meeting_id}"
             context = {
                 "doctor_name": f"{appointment.doctor.first_name} {appointment.doctor.last_name}",
                 "patient_name": f"{customer.customer.user.first_name} {customer.customer.user.last_name}",
