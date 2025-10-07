@@ -84,7 +84,7 @@ def format_appointment(appt, doctor, include_meeting=False):
         "appointment_id": appt.appointment_id if appt else None,
         "name": customer_name,
         "type": appt_type,
-        "time": time_str,
+        "time": time_str.time(),
         "duration": duration,
         "specialization": specialization_name,
         "specialization_id": appt.specialization.specialization_id if appt.specialization else None,
