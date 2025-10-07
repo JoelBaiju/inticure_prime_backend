@@ -83,7 +83,13 @@ def get_doctor_info(doctor):
         "rating": 4.9,  # TODO: Replace placeholder
         "email": doctor.email_id,
         "bio":doctor.doctor_bio,
-        "profile_pic":doctor.profile_pic.url
+        "profile_pic":doctor.profile_pic.url,
+        "address":doctor.address,
+        "gender":doctor.gender,
+        "reg_year":doctor.registration_year ,
+        "dob" :doctor.dob,  
+        "whatsapp_number":doctor.whatsapp_number, 
+        "qualification":doctor.qualification 
     }
 
 
