@@ -65,6 +65,7 @@ MIDDLEWARE = [
 CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = [
     "https://api.inticure.com",
+    "http://api.inticure.com",
     "https://testapi.inticure.com",
     "https://devapi.inticure.com",
     "https://inticure.com",
