@@ -516,7 +516,7 @@ def get_multiple_doctor_profiles(request):
                 logger.debug(f"country {country}")
             except:
                 pass
-        country_available = DoctorPaymentRules.objects.filter(country__country_name = country , specialization__specialization =specialization.specialization).exists()
+        country_available = DoctorPaymentRules.objects.filter(country__country_name = country , specialization__specialization =specialization.specialization ,session_count = 1).exists()
         logger.debug(f"\n\ncountry_available {country} {specialization} {country_available}")
         if not country_available:
             logger.debug(f"\n\ninside payment  in country not available {country}")
