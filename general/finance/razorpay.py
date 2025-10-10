@@ -64,6 +64,8 @@ from django.http import JsonResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
 
+import logging
+logger = logging.getLogger(__name__)
 
 
 
@@ -76,34 +78,34 @@ from analysis.views import ConfirmAppointment
 @csrf_exempt
 def verify_payment(request):
     if request.method != "POST":
-        print("❌ Invalid request method:", request.method)
+        ("❌ Invalid request method:", request.method)
         return JsonResponse({"error": "Invalid request method"}, status=400)
 
     # Validate webhook secret exists
     webhook_secret = getattr(settings, 'RAZORPAY_WEBHOOK_SECRET', None)
     if not webhook_secret:
-        print("❌ Razorpay webhook secret not configured")
+        logger.debug("❌ Razorpay webhook secret not configured")
         return JsonResponse({"error": "Server configuration error"}, status=500)
 
     # Validate signature header exists
     received_signature = request.headers.get('X-Razorpay-Signature')
     if not received_signature:
-        print("❌ Missing X-Razorpay-Signature header")
+        logger.debug("❌ Missing X-Razorpay-Signature header")
         return JsonResponse({"error": "Missing signature header"}, status=400)
 
     # Validate request body exists
     try:
         request_body = request.body
         if not request_body:
-            print("❌ Empty request body")
+            logger.debug("❌ Empty request body")
             return JsonResponse({"error": "Empty request body"}, status=400)
             
         request_body = request_body.decode('utf-8')
     except UnicodeDecodeError as e:
-        print(f"❌ UnicodeDecodeError: {str(e)}")
+        logger.debug(f"❌ UnicodeDecodeError: {str(e)}")
         return JsonResponse({"error": "Invalid request body encoding"}, status=400)
     except Exception as e:
-        print(f"❌ Unexpected error decoding request body: {type(e).__name__}: {str(e)}")
+        logger.debug(f"❌ Unexpected error decoding request body: {type(e).__name__}: {str(e)}")
         return JsonResponse({"error": "Invalid request body"}, status=400)
 
     # Verify signature
@@ -113,14 +115,14 @@ def verify_payment(request):
             received_signature,
             webhook_secret
         )
-        print("✅ Signature verified")
+        logger.debug("✅ Signature verified")
         # Continue with payment processing...
         
     except razorpay.errors.SignatureVerificationError as e:
-        print(f"❌ SignatureVerificationError: {str(e)}")
+        logger.debug(f"❌ SignatureVerificationError: {str(e)}")
         return JsonResponse({"status": "failed", "message": "Signature verification failed"}, status=400)
     except Exception as e:
-        print(f"❌ Error during verification: {type(e).__name__}: {str(e)}")
+        logger.debug(f"❌ Error during verification: {type(e).__name__}: {str(e)}")
         return JsonResponse({"status": "failed", "message": "Error during verification"}, status=400)
     try:
         data = json.loads(request_body)
@@ -138,27 +140,27 @@ def verify_payment(request):
                 razorpay_payment_id=payment_id,
             )
             ConfirmAppointment(pretransaction_id=pretransaction_id, appointment_id=appointment_id)
-            print(f"✅ Payment captured: {pretransaction_id}, Amount: {appointment_id}")
+            logger.debug(f"✅ Payment captured: {pretransaction_id}, Amount: {appointment_id}")
             
         elif event == "payment.authorized":
-            print("🕓 Payment authorized, awaiting capture...")
+            logger.debug("🕓 Payment authorized, awaiting capture...")
 
         elif event == "payment.failed":
-            print("❌ Payment failed")
+            logger.debug("❌ Payment failed")
 
         else:
-            print(f"⚠️ Unhandled event type: {event}")
+            logger.debug(f"⚠️ Unhandled event type: {event}")
 
         return JsonResponse({"status": "success", "event": event})
 
     except json.JSONDecodeError as e:
-        print(f"❌ JSONDecodeError: {str(e)}")
+        logger.debug(f"❌ JSONDecodeError: {str(e)}")
         return JsonResponse({"error": "Invalid JSON"}, status=400)
     except KeyError as e:
-        print(f"❌ KeyError: {str(e)}")
+        logger.debug(f"❌ KeyError: {str(e)}")
         return JsonResponse({"error": f"Missing key in payload: {str(e)}"}, status=400)
     except Exception as e:
-        print(f"❌ Unexpected error: {type(e).__name__}: {str(e)}")
+        logger.debug(f"❌ Unexpected error: {type(e).__name__}: {str(e)}")
         return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=500)
     
 
@@ -212,9 +214,9 @@ def process_razorpay_refund(pretransaction_id, amount=None):
         refund_obj.refund_status = refund.get('status', 'failed')
         refund_obj.razorpay_refund_id = refund.get('id')
 
-        print(f"✅ Refund successful for {pretransaction_id}")
-        print(f"Refund ID: {refund.get('id')}")
-        print(f"Refund Status: {refund.get('status')}")
+        logger.debug(f"✅ Refund successful for {pretransaction_id}")
+        logger.debug(f"Refund ID: {refund.get('id')}")
+        logger.debug(f"Refund Status: {refund.get('status')}")
 
         return {
             "status": "success",
@@ -222,11 +224,11 @@ def process_razorpay_refund(pretransaction_id, amount=None):
         }
 
     except razorpay.errors.BadRequestError as e:
-        print(f"❌ Razorpay BadRequestError: {str(e)}")
+        logger.debug(f"❌ Razorpay BadRequestError: {str(e)}")
         return {"error": "Refund request invalid"}
     except razorpay.errors.ServerError as e:
-        print(f"❌ Razorpay ServerError: {str(e)}")
+        logger.debug(f"❌ Razorpay ServerError: {str(e)}")
         return {"error": "Razorpay server error"}
     except Exception as e:
-        print(f"❌ Unexpected error: {str(e)}")
+        logger.debug(f"❌ Unexpected error: {str(e)}")
         return {"error": "Something went wrong while processing refund"}
