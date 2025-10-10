@@ -1131,9 +1131,9 @@ def ConfirmAppointment(appointment_id =None, pretransaction_id =None, is_admin =
 
     except Exception as e:
         # Generic error handling for the confirmation process
-        import traceback
-        traceback.logger.debug_exc()
-        logger.debug({"error": f"An error occurred during confirmation: {str(e)}"})
+        
+        
+        logger.exception({"error": f"An error occurred during confirmation: {str(e)}"})
         return Response({"error": f"An error occurred during confirmation: {str(e)}"}, status=500)
 
 
