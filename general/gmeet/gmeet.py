@@ -13,7 +13,8 @@ from google_auth_httplib2 import AuthorizedHttp
 
 from decouple import config
 
-
+import logging
+logger = logging.getLogger(__name__)
 
 token_path = config('google_token_path', default='token.json')
 client_secret_path = config('google_client_secret_path', default='client_secret.json')
@@ -46,9 +47,9 @@ SCOPES = ['https://www.googleapis.com/auth/calendar']
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 def generate_google_meet(summary, description, start_time, end_time):
-    print("generate meet link functtion")
+    logger.debug("generate meet link functtion")
     try:
-        print("meeting link try block")
+        logger.debug("meeting link try block")
         creds = None
         if os.path.exists(str(os.path.join(BASE_DIR, token_path))):
             creds = Credentials.from_authorized_user_file(str(os.path.join(BASE_DIR, token_path)), SCOPES)
@@ -64,7 +65,7 @@ def generate_google_meet(summary, description, start_time, end_time):
             with open(str(os.path.join(BASE_DIR, token_path)), 'w') as token:
                 token.write(creds.to_json())
     except Exception as e:
-        print("exception meeting link", e)
+        logger.debug("exception meeting link", e)
         return 0
 
     try:
@@ -127,7 +128,7 @@ def generate_google_meet(summary, description, start_time, end_time):
         }
 
     except HttpError as error:
-        print('An error occurred: %s' % error)
+        logger.debug('An error occurred: %s' % error)
         return False
 
 
