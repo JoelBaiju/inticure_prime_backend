@@ -551,7 +551,8 @@ def get_multiple_doctor_profiles(request):
         rule = DoctorPaymentRules.objects.filter(
             doctor__doctor_profile_id=doc['doctor_profile_id'],
             country__country_name=a_country,
-            specialization = specialization
+            specialization = specialization,
+            session_count = 1
         ).first()
 
         if rule:
