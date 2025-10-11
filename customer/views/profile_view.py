@@ -271,3 +271,14 @@ class ConnectPartnersView(APIView):
                 return Response({"error": "Partner profile not found."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"error": "Partner ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def first_analysis_completed(request):
+    try:
+        customer_profile = CustomerProfile.objects.get(user=request.user)
+        return Response({"completed":customer_profile.completed_first_analysis }, status=status.HTTP_200_OK)
+    except CustomerProfile.DoesNotExist:
+        return Response({"error": "Customer profile not found."}, status=status.HTTP_404_NOT_FOUND)

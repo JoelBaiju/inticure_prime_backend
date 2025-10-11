@@ -21,16 +21,31 @@ def get_earnings(doctor):
     today = now.date()
     yesterday = today - timedelta(days=1)
 
-    earnings_today = PreTransactionData.objects.filter(
+    earnings_today_total = PreTransactionData.objects.filter(
         appointment__doctor=doctor,
         appointment__start_time__date=today,
         appointment__completed = True
     ).aggregate(total=Sum("total_amount"))["total"] or 0
 
-    earnings_yesterday = PreTransactionData.objects.filter(
+    earnings_today_vendor = PreTransactionData.objects.filter(
+        appointment__doctor=doctor,
+        appointment__start_time__date=today,
+        appointment__completed = True
+    ).aggregate(total=Sum("vendor_fee"))["total"] or 0
+
+    earnings_today = earnings_today_total - earnings_today_vendor
+
+    earnings_yesterday_total = PreTransactionData.objects.filter(
         appointment__doctor=doctor,
         appointment__start_time__date=yesterday
     ).aggregate(total=Sum("total_amount"))["total"] or 0
+
+    earnings_yesterday_vendor = PreTransactionData.objects.filter(
+        appointment__doctor=doctor,
+        appointment__start_time__date=yesterday
+    ).aggregate(total=Sum("vendor_fee"))["total"] or 0
+
+    earnings_yesterday = earnings_yesterday_total - earnings_yesterday_vendor
 
     earnings_change = (
         round(((earnings_today - earnings_yesterday) / earnings_yesterday) * 100, 2)

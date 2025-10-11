@@ -30,4 +30,5 @@ urlpatterns = [
     path('connect_partner/', ConnectPartnersView.as_view()),
     path('customer_files/', customer_files),
     path('meet_details_with_id/', get_meet_details_with_meet_id),
+    path("completed_first_analysis/", first_analysis_completed),
 ]
