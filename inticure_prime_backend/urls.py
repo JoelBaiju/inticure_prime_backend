@@ -29,21 +29,16 @@ from general.views import Map_Meetings
 from chat import urls as chat_urls
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('customer/', include(customer_urls)),
-    path('doctor/', include(doctor_urls)),
-    path('analysis/', include(analysis_urls)),
-    path('general/', include(general_urls)),
-    path('iadmin/', include(administrator_urls)),
+    path('admin/',admin.site.urls),
+    path('customer/',include(customer_urls)),
+    path('doctor/',include(doctor_urls)),
+    path('analysis/',include(analysis_urls)),
+    path('general/',include(general_urls)),
+    path('iadmin/',include(administrator_urls)),
     path('chat/',include(chat_urls)),
-
-
-    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-
-    path('meet/join/<str:attendee_meeting_id>/', Map_Meetings.as_view()),
-
-
+    path("api/token/",TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/",TokenRefreshView.as_view(), name="token_refresh"),
+    path('meet/join/<str:attendee_meeting_id>/',Map_Meetings.as_view()),
 ]
 
 

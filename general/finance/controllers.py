@@ -1,7 +1,8 @@
 from administrator.models import Countries
 from analysis.models import AppointmentHeader
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view , permission_classes
+from rest_framework.permissions import IsAuthenticated
 from .razorpay import initiate_razorpay_payment
 from general.models import PreTransactionData
 from .calculators import first_consultation_cost_calculator
@@ -9,10 +10,11 @@ from .calculators import first_consultation_cost_calculator
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from .stripe import initiate_stripe_payment , initiate_stripe_payment_link
-
-
+import logging
+logger = logging.getLogger(__name__)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def initiate_payment_controller(request):
     """
     Initiate payment for an appointment.
@@ -25,14 +27,14 @@ def initiate_payment_controller(request):
         return Response({"error": "Appointment ID is required"}, status=400)
     appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
     if not appointment:
-        return Response({"error": "Appointment not f                        ound"}, status=404)
+        return Response({"error": "Appointment not found"}, status=404)
     if appointment.is_couple:
         if not appointment.customer.partner:
             return Response({"error": "Partner details are required for couple appointments"}, status=400)
     country = appointment.customer.country_details 
     
     if appointment.doctor.is_prescription_allowed:
-        print("yeah got into doctor presatioprtion allowed")
+        logger.debug("yeah got into doctor presatioprtion allowed")
         country = Countries.objects.filter(country_name = 'India').first()
         cost_obj    = first_consultation_cost_calculator(appointment_id,country)   
     else:
@@ -52,6 +54,7 @@ def initiate_payment_controller(request):
         )
         payment_obj = initiate_razorpay_payment(pretransaction_id=temp_trans_obj.pretransaction_id , appointment_id=appointment_id)
         if 'error' in payment_obj:
+            logger.error(f"Error initiating Razorpay payment: {payment_obj['error']}")
             return Response({"error": payment_obj['error']}, status=400)
         
     else:
@@ -66,6 +69,7 @@ def initiate_payment_controller(request):
         )
         payment_obj = initiate_stripe_payment_link(pretransaction_id=temp_trans_obj.pretransaction_id , appointment_id=appointment_id)
     if 'error' in payment_obj:
+        logger.error(f"Error initiating Stripe payment: {payment_obj['error']}")
         return Response({"error": payment_obj['error']}, status=400)
         
 
