@@ -67,8 +67,8 @@ def doctor_count():
     total_count = DoctorProfiles.objects.filter(is_accepted=True).count()
     male_doctors = DoctorProfiles.objects.filter(gender='Male', is_accepted=True).count()
     female_doctors = DoctorProfiles.objects.filter(gender='Female', is_accepted=True).count()
-    junior_doctors = DoctorProfiles.objects.filter(is_junior=True, is_accepted=True).count()
-    senior_doctors = DoctorProfiles.objects.filter(is_junior=False, is_accepted=True).count()
+    junior_doctors = DoctorProfiles.objects.filter(doctor_flag='junior', is_accepted=True).count()
+    senior_doctors = DoctorProfiles.objects.filter(doctor_flag='senior', is_accepted=True).count()
     return {
         "doctors_total": total_count,
         "male_doctors": male_doctors,
