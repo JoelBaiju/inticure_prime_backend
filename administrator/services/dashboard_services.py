@@ -37,7 +37,7 @@ def get_revenue():
 def get_patient_count():
     total_count = CustomerProfile.objects.count()
     patients_today = CustomerProfile.objects.filter(
-                user_date_joined__date=timezone.now().date()
+                user__date_joined__date=timezone.now().date()
             ).count()
     male_patients = CustomerProfile.objects.filter(gender='Male').count()
     female_patients = CustomerProfile.objects.filter(gender ='Female').count()
@@ -85,7 +85,4 @@ def get_dashboard_data():
     data['total_appointments'] = AppointmentHeader.objects.count()
     data['revenue'] = get_revenue()
     data['appointments'] = appointments_coount()
-
-     
-
     return data
