@@ -473,11 +473,12 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
         print(obj.confirmation_method in ["Both", "both"])
         return "WhatsApp and Email" if obj.confirmation_method in ["Both", "both"] else obj.confirmation_method
 
+    
     class Meta:
         model = CustomerProfile
         fields = [
             'id', 'name', 'user', 'partner', 'gender', 'other_gender', 'address',
-            'date_of_birth', 'mobile_number', 'email', 'whatsapp_number', 
+            'date_of_birth','mob_country_code', 'mobile_number', 'email', 'whatsapp_number', 
             'country_details', 'height_unit', 'profile_pic', 'completed_first_analysis',
             'preferred_name', 'weight', 'weight_unit', 'height', 'time_zone', 
             'confirmation_method', 'customer_package', 'prescribed_medications' , 
