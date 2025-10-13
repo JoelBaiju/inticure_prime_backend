@@ -64,7 +64,7 @@ def appointments_coount():
 
 
 def doctor_count():
-    total_count = DoctorProfiles.objects.count(is_accepted=True)
+    total_count = DoctorProfiles.objects.filter(is_accepted=True).count()
     male_doctors = DoctorProfiles.objects.filter(gender='Male', is_accepted=True).count()
     female_doctors = DoctorProfiles.objects.filter(gender='Female', is_accepted=True).count()
     junior_doctors = DoctorProfiles.objects.filter(is_junior=True, is_accepted=True).count()
