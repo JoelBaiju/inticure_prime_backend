@@ -184,8 +184,8 @@ class PhoneNumberOrEmailVerificationView(APIView):
             except CustomerProfile.DoesNotExist:
                 exists = False
 
-            logger.debug(f"User found: {user.username}")
-            logger.debug(f'user exists {exists}')
+            # logger.debug(f"User found: {user.username}")
+            # logger.debug(f'user exists {exists}')
             
             # Existing user
             refresh = RefreshToken.for_user(user)

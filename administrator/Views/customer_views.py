@@ -29,8 +29,13 @@ class CustomerProfileView(APIView):
         if customer_id:
             try:
                 customer = CustomerProfile.objects.get(id=customer_id)
+                if customer and customer.partner:
+                    partner = customer.partner
+                    partner_data = CustomerProfileSerializer(partner).data
+                else:   
+                    partner_data = {}
                 serializer = CustomerProfileSerializer(customer)
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response({'patient':serializer.data,'partner':partner_data}, status=status.HTTP_200_OK)
             except CustomerProfile.DoesNotExist:
                 return Response({"error": "Customer profile not found"}, status=status.HTTP_404_NOT_FOUND)
         
