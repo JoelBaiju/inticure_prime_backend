@@ -5,6 +5,9 @@ admin.site.register(Phone_OTPs)
 admin.site.register(Email_OTPs)
 admin.site.register(PreTransactionData)
 admin.site.register(StripeTransactions)
+admin.site.register(RazorpayTransaction)
+admin.site.register(Transactions)
+admin.site.register(Reminder_Sent_History)
 
 class CommonFileUploaderAdmin(admin.ModelAdmin):
     list_display = ('customer', 'appointment', 'common_file' , 'uploaded_on' , 'file_name' , 'uploaded_by_doctor')

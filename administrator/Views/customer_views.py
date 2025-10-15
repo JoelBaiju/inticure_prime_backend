@@ -41,7 +41,7 @@ class CustomerProfileView(APIView):
         
         elif search_query:
             customers = CustomerProfile.objects.filter(
-                Q(user__first_name__icontains=search_query) |
+                Q(user__first_name__icontains=search_query)|
                 Q(user__last_name__icontains=search_query) |
                 Q(whatsapp_number__icontains=search_query) |
                 Q(email__icontains=search_query)
