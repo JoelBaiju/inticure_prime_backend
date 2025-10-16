@@ -106,7 +106,8 @@ class ProfileService:
             country_code=partner_data['country_code'],
             mob_country_code=partner_data['mob_country_code'],
             partner_id=partner_data['partners_id'] if partner_data['partners_id'] not in [0,'0',None,""," "] else None,
-            confirmation_method = "email" if partner_data['email'] else "phone"
+            confirmation_method = "email" if partner_data['email'] else "phone",
+            completed_first_analysis = True
         )
 
         if partner_data['partners_id'] not in [0,'0',None,""," "]:
