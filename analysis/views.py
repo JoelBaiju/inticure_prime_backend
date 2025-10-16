@@ -409,6 +409,7 @@ class SlotsBooking(APIView):
         logger.debug(country )
         logger.debug(timeZone)
         logger.debug(f"recieved date {preferred_date}")
+        logger.debug(f"first_analysis{first_analysis}")
         if first_analysis:
             if not token:
                 return Response({"error": "Missing analysis_token"}, status=400)
@@ -435,7 +436,9 @@ class SlotsBooking(APIView):
             try:
                 country = CustomerProfile.objects.get(id = customer_id).country_details.country_name
                 country_available = DoctorPaymentRules.objects.filter(country__country_name = country , specialization__specialization =specialization).exists()
+                logger.debug(f"\n\nInside country available analysis views 438  {country}: {country_available}")
                 if not country_available:
+                    logger.debug(f"\n\nInside country not found in analysis views 439  {country}: country changed to US")
                     country = "United States"
             except:
                 return Response({"error": "Invalid customer_id"}, status=400)
@@ -461,8 +464,10 @@ class SlotsBooking(APIView):
             logger.debug('no Specialization')
             specializations= Specializations.objects.filter(specialization = "No Specialization").first()
             specialization_id =specializations.specialization_id
-        logger.debug(f"\n preferred_dt_start {preferred_dt_start}")
-        logger.debug(f"\n preferred_dt_end {preferred_dt_end}")
+        if specialization_id:
+            specialization = Specializations.objects.filter(specialization_id = specialization_id).first().specialization
+        logger.debug(f"\n preferred_dt_start {preferred_dt_start} {country}")
+        logger.debug(f"\n preferred_dt_end {preferred_dt_end} {country} {specialization}")
         slot_data = get_available_slots(
             specialization_id=specialization_id,
             date_time_start=preferred_dt_start,

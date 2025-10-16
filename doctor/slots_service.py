@@ -580,6 +580,7 @@ def get_available_slots(
     Returns:
         Dictionary containing slots and metadata
     """
+    logger.debug(f"\nget_available_slots called with: specialization_id={specialization_id}, date_time_start={date_time_start}, date_time_end={date_time_end}, buffer={buffer}, is_couple={is_couple}, alignment_minutes={alignment_minutes}, is_junior={is_junior}, gender_info={gender_info}, language_info={language_info}, specialization={specialization}, country={country}, doctor_id={doctor_id}, timezone_str={timezone_str}\n")
     try:
         now_utc = django_timezone.now()
         min_allowed_start = now_utc + buffer
@@ -596,13 +597,13 @@ def get_available_slots(
         # Validate required parameters
         if not country:
             return {"error": "Country is required"}
-        print(country)
+        logger.debug(f"Inside get_available_slots line 600 country : {country} , specialization : {specialization} ")
 
         country_available = DoctorPaymentRules.objects.filter(country__country_name = country , specialization__specialization =specialization).exists()
         if not country_available:
             country = "United States"
 
-        print(country_available)
+        logger.debug(f"Inside get_available_slots line 606 country_available : {country_available} ")
         print(country)
         # Handle specialization-based lookup
         if not specialization_id:
@@ -699,6 +700,7 @@ def _handle_specialization_lookup(
     except Specializations.DoesNotExist:
         return {"error": "Specialization not found"}
     
+    logger.debug(f"handle specialization lookup Specialization found: {specialization_obj.specialization} , country : {country} , is_junior : {is_junior}   ,is_couple : {is_couple}     ")
     # Get session duration
     if is_junior:
         session_duration = JUNIOR_SESSION_DURATION
