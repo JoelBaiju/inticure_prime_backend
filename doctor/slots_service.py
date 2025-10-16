@@ -552,30 +552,53 @@ def _ensure_timezone_aware(dt: datetime) -> datetime:
 #     return dt.replace(hour=aligned_hour, minute=aligned_minute, second=0, microsecond=0)
 
 
+# def _align_to_boundary(dt: datetime, alignment_minutes: int) -> datetime:
+#     """Align datetime to the nearest boundary (not always next one)."""
+#     if alignment_minutes <= 0:
+#         return dt
+
+#     total_minutes = dt.hour * 60 + dt.minute
+#     remainder = total_minutes % alignment_minutes
+#     if remainder == 0:
+#         # Already aligned — no shift needed
+#         aligned_total = total_minutes
+#     else:
+#         aligned_total = ((total_minutes // alignment_minutes) + 1) * alignment_minutes
+
+#     # Handle day overflow
+#     if aligned_total >= 24 * 60:
+#         next_day = dt.date() + timedelta(days=1)
+#         overflow_minutes = aligned_total - 24 * 60
+#         return datetime.combine(next_day, datetime.min.time()).replace(
+#             minute=overflow_minutes, tzinfo=dt.tzinfo
+#         )
+
+#     aligned_hour = aligned_total // 60
+#     aligned_minute = aligned_total % 60
+#     return dt.replace(hour=aligned_hour, minute=aligned_minute, second=0, microsecond=0)
+
+
+
 def _align_to_boundary(dt: datetime, alignment_minutes: int) -> datetime:
-    """Align datetime to the nearest boundary (not always next one)."""
+    """Align datetime to nearest boundary without skipping valid start."""
     if alignment_minutes <= 0:
         return dt
 
     total_minutes = dt.hour * 60 + dt.minute
     remainder = total_minutes % alignment_minutes
+
+    # If exactly aligned, keep as is
     if remainder == 0:
-        # Already aligned — no shift needed
-        aligned_total = total_minutes
-    else:
-        aligned_total = ((total_minutes // alignment_minutes) + 1) * alignment_minutes
+        return dt.replace(second=0, microsecond=0)
 
-    # Handle day overflow
-    if aligned_total >= 24 * 60:
-        next_day = dt.date() + timedelta(days=1)
-        overflow_minutes = aligned_total - 24 * 60
-        return datetime.combine(next_day, datetime.min.time()).replace(
-            minute=overflow_minutes, tzinfo=dt.tzinfo
-        )
+    # If we're *within* availability, keep the original time (don’t push forward)
+    # This helps preserve partial blocks like 03:30–04:30 when alignment = 60
+    return dt.replace(second=0, microsecond=0)
 
-    aligned_hour = aligned_total // 60
-    aligned_minute = aligned_total % 60
-    return dt.replace(hour=aligned_hour, minute=aligned_minute, second=0, microsecond=0)
+
+
+
+
 
 
 
