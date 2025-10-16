@@ -69,6 +69,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://testapi.inticure.com",
     "https://devapi.inticure.com",
     "https://inticure.com",
+    "https://xbxm1951-8000.inc1.devtunnels.ms/"
 ]
 
 

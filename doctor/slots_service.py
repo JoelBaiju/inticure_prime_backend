@@ -399,6 +399,11 @@ def get_available_dates(
 
     return available_dates
 
+RED = "\033[31m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+BLUE = "\033[34m"
+RESET = "\033[0m"
 
 def generate_slots_for_doctors(
     doctors_queryset, 
@@ -428,6 +433,7 @@ def generate_slots_for_doctors(
     # Round boundaries to nearest 5 minutes
     target_dt_start = round_up_to_nearest_five(target_dt_start)
     target_dt_end = round_down_to_nearest_five(target_dt_end)
+
 
     session_duration_td = timedelta(minutes=session_duration)
     alignment_delta = timedelta(minutes=alignment_minutes)
@@ -471,13 +477,16 @@ def generate_slots_for_doctors(
             )
             for b in doctor.relevant_appointments
         ]
-
+        if len(availabilities)>0:
+            logger.debug(f"{GREEN}Doctor {doctor.doctor_profile_id} availabilities: {availabilities}, appointments: {appointments}{RESET}")
         # Generate slots for each availability period
         for avail_start, avail_end in availabilities:
             # Constrain to target range
             constrained_start = max(avail_start, target_dt_start)
             constrained_end = min(avail_end, target_dt_end)
             
+            logger.debug(f"{YELLOW}Doctor {doctor.doctor_profile_id} constrained start: {constrained_start} to  constrained_end {constrained_end}{RESET}")
+
             if constrained_start >= constrained_end:
                 continue
             
@@ -486,26 +495,30 @@ def generate_slots_for_doctors(
                 constrained_start, constrained_end, appointments
             )
             
+            logger.debug(f"{BLUE}Doctor {doctor.doctor_profile_id} free blocks after subtracting appointments: {free_blocks}{RESET}")
             # Generate aligned slots
             for block_start, block_end in free_blocks:
                 current_time = _align_to_boundary(block_start, alignment_minutes)
-                
+                logger.debug(f"{RED}Doctor {doctor.doctor_profile_id} aligned block start: {current_time} to block end {block_end}{RESET}")
                 # Ensure we don't start before the block or minimum allowed time
                 if current_time < block_start:
+                    logger.debug(f"{RED}Doctor {doctor.doctor_profile_id} current_time {current_time} < block_start {block_start}, realigning{RESET}")
                     current_time = _align_to_boundary(
                         block_start + alignment_delta, alignment_minutes
                     )
                 
                 if min_allowed_start and current_time < min_allowed_start:
+                    logger.debug(f"{RED}Doctor {doctor.doctor_profile_id} current_time {current_time} < min_allowed_start {min_allowed_start}, realigning{RESET}")
                     current_time = _align_to_boundary(min_allowed_start, alignment_minutes)
                 
                 # Generate slots in this block
+                logger.debug(f"{BLUE}Doctor {doctor.doctor_profile_id} generating slots starting at {current_time} until {block_end}{RESET}")
                 while current_time + session_duration_td <= block_end:
                     if min_allowed_start is None or current_time >= min_allowed_start:
                         slot_key = (current_time, current_time + session_duration_td)
                         temp_slot_pool[slot_key].add(doctor.doctor_profile_id)
                     
-                    current_time += alignment_delta
+                    current_time += alignment_delta 
 
     return {k: list(v) for k, v in temp_slot_pool.items()}
 
@@ -517,14 +530,41 @@ def _ensure_timezone_aware(dt: datetime) -> datetime:
     return dt
 
 
+# def _align_to_boundary(dt: datetime, alignment_minutes: int) -> datetime:
+#     """Align datetime to specified minute boundary"""
+#     if alignment_minutes <= 0:
+#         return dt
+    
+#     total_minutes = dt.hour * 60 + dt.minute
+#     aligned_total = ((total_minutes // alignment_minutes) + 1) * alignment_minutes
+    
+#     # Handle day overflow
+#     if aligned_total >= 24 * 60:
+#         next_day = dt.date() + timedelta(days=1)
+#         overflow_minutes = aligned_total - 24 * 60
+#         return datetime.combine(next_day, datetime.min.time()).replace(
+#             minute=overflow_minutes, tzinfo=dt.tzinfo
+#         )
+    
+#     aligned_hour = aligned_total // 60
+#     aligned_minute = aligned_total % 60
+    
+#     return dt.replace(hour=aligned_hour, minute=aligned_minute, second=0, microsecond=0)
+
+
 def _align_to_boundary(dt: datetime, alignment_minutes: int) -> datetime:
-    """Align datetime to specified minute boundary"""
+    """Align datetime to the nearest boundary (not always next one)."""
     if alignment_minutes <= 0:
         return dt
-    
+
     total_minutes = dt.hour * 60 + dt.minute
-    aligned_total = ((total_minutes // alignment_minutes) + 1) * alignment_minutes
-    
+    remainder = total_minutes % alignment_minutes
+    if remainder == 0:
+        # Already aligned — no shift needed
+        aligned_total = total_minutes
+    else:
+        aligned_total = ((total_minutes // alignment_minutes) + 1) * alignment_minutes
+
     # Handle day overflow
     if aligned_total >= 24 * 60:
         next_day = dt.date() + timedelta(days=1)
@@ -532,11 +572,11 @@ def _align_to_boundary(dt: datetime, alignment_minutes: int) -> datetime:
         return datetime.combine(next_day, datetime.min.time()).replace(
             minute=overflow_minutes, tzinfo=dt.tzinfo
         )
-    
+
     aligned_hour = aligned_total // 60
     aligned_minute = aligned_total % 60
-    
     return dt.replace(hour=aligned_hour, minute=aligned_minute, second=0, microsecond=0)
+
 
 
 def sort_slots_by_time(slots: List[Dict], local_tz: str) -> List[Dict]:

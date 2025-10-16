@@ -191,6 +191,7 @@ class PhoneNumberOrEmailVerificationView(APIView):
             refresh = RefreshToken.for_user(user)
             return Response({
                 "country":customer_profile.country_details.country_name if customer_profile.country_details else None,
+                "first_analysis_completed":customer_profile.completed_first_analysis,
                 'user_exists': exists,
                 'verified': True,
                 'message': 'Existing user Verified',
@@ -227,6 +228,7 @@ class PhoneNumberOrEmailVerificationView(APIView):
             logger.debug(f"New user created: {user.username}")
             return Response({
                 "country":customer_profile.country_details.country_name if customer_profile.country_details else None,
+                "first_analysis_completed":customer_profile.completed_first_analysis,
                 'user_exists': False,
                 'verified': True,
                 'message': 'New user created and verified',
