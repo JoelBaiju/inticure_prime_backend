@@ -5,12 +5,92 @@ from django.core.mail import EmailMultiAlternatives
 from analysis.models import Appointment_customers, Meeting_Tracker
 from general.sendgrid import send_email_via_sendgrid ,send_email_via_smtp
 from doctor.models import DoctorProfiles
-from inticure_prime_backend.settings import BACKEND_URL
+from inticure_prime_backend.settings import BACKEND_URL , ADMIN_CC_EMAILS
 from django.utils import timezone
 from analysis.models import AppointmentHeader
 
 import logging
 logger = logging.getLogger(__name__)
+
+def send_appointment_confirmation_email_to_admin(appointment_id):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+    except AppointmentHeader.DoesNotExist:
+        logger.debug('Sending appointment email failed appointment id invalid')
+        return False
+
+    subject = "New Appointment Confirmed - Inticure"
+    doctor_salutation = appointment.doctor.salutation
+
+    context = {
+        "date":appointment.start_time.date(),
+        "time":appointment.start_time.time(),    
+        'specialization':appointment.specialization.specialization,
+        'doctor_name':appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
+        'name' :appointment.customer.user.first_name + ' ' + appointment.customer.user.last_name,
+        'backend_url':BACKEND_URL,  
+        'salutation':doctor_salutation,
+        'appointment_id': appointment_id,
+    }
+    for admin_email in ADMIN_CC_EMAILS:
+        html_content = render_to_string("appointment_confirmation/appointment_confirmation_admin.html", context)
+        send_email_via_sendgrid(subject, html_content, admin_email)
+
+def send_appointment_cancellation_email_to_admin(appointment_id):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+    except AppointmentHeader.DoesNotExist:
+        logger.debug('Sending appointment email failed appointment id invalid')
+        return False
+
+    subject = "Appointment Cancelled - Inticure"
+    doctor_salutation = appointment.doctor.salutation
+
+    context = {
+        "date":appointment.start_time.date(),
+        "time":appointment.start_time.time(),    
+        'specialization':appointment.specialization.specialization,
+        'doctor_name':appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
+        'backend_url':BACKEND_URL,  
+        'salutation':doctor_salutation,
+        'appointment_id': appointment_id,
+        'username' :appointment.customer.user.first_name + ' ' + appointment.customer.user.last_name,
+    }
+    for admin_email in ADMIN_CC_EMAILS:
+        html_content = render_to_string("appointment_cancelled/appointment_cancelled_admin.html", context)
+        send_email_via_sendgrid(subject, html_content, admin_email)
+    
+
+def send_appointment_rescheduled_email_admin(
+    appointment_id , previous_date,previous_time,new_date,new_time
+):
+
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+    except AppointmentHeader.DoesNotExist:
+            return False
+    subject = "Appointment Rescheduled - Inticure"
+    
+    for admin in ADMIN_CC_EMAILS:
+        context = {
+            "name": appointment.customer.user.first_name + ' ' + appointment.customer.user.last_name,
+            "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
+            "specialization": appointment.specialization.specialization,
+            "appointment_id": appointment_id,
+            "previous_date":previous_date,
+            "previous_time":previous_time,
+            "new_date":new_date,
+            "new_time":new_time,
+            'backend_url':BACKEND_URL,  
+            'salutation':appointment.doctor.salutation,
+        }
+        html_content = render_to_string("appointment_rescheduled_admin.html", context)
+        send_email_via_sendgrid(subject, html_content, admin)
+
+
+
+
+
 
 
 
@@ -47,8 +127,6 @@ def send_appointment_cancellation_email(appointment_id):
         html_content = render_to_string("appointment_cancelled/appointment_cancellation.html", context)
         send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
     return True
-
-
 
 
 

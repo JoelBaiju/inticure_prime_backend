@@ -20,7 +20,9 @@ def send_appointment_cancel_notification(appointment_id):
         if appointment.customer.confirmation_method in  ['whatsapp' ,"Whatsapp" , "both"]:
             logger.debug(f"send_appointment_cancellation_email for appointment id {appointment_id} whatsapp")
             logger.debug(send_wa_patient_requested_cancellation(appointment_id))
-
+        
+        logger.debug(f"send_appointment_cancellation_email_to_admin for appointment id {appointment_id}")
+        logger.debug(send_appointment_cancellation_email_to_admin(appointment_id))
         logger.debug(f"send_appointment_cancellation_email_to_specialist for appointment id {appointment_id}")
         logger.debug(send_appointment_cancellation_email_to_specialist(appointment_id))
         logger.debug(f"send_wa_consultation_canceled_by_patient_to_specialist for appointment id {appointment_id}")
@@ -60,6 +62,7 @@ def send_appointment_confirmation_notification(appointment_id):
 
         send_wa_consultation_confirmation_to_specialist(appointment_id)
         send_appointment_confirmation_doctor_email(appointment_id)
+        send_appointment_confirmation_email_to_admin(appointment_id)
 
     except AppointmentHeader.DoesNotExist:
         logger.debug(f"Appointment does not exist.for id {appointment_id}")
@@ -87,6 +90,7 @@ def send_appointment_reshceduled_notification(appointment_id,old_date_time , new
 
         send_wa_consultation_rescheduled_by_patient_to_specialist(appointment_id , old_date_time, new_date_time)
 
+        send_appointment_rescheduled_email_admin(appointment_id,old_date_time.date(),old_date_time.time(),new_date_time.date() , new_date_time.time())
     except AppointmentHeader.DoesNotExist:
         logger.debug(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
