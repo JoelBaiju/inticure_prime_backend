@@ -13,7 +13,7 @@ admin.site.register(LanguagesKnown, LanguagesKnownAdmin)
 
 
 class CountriesAdmin(admin.ModelAdmin):
-    list_display = ( 'country_name', 'currency', 'country_code')
+    list_display = ( 'country_name', 'currency', 'country_code','currency_symbol' , 'representation')
 
 admin.site.register(Countries, CountriesAdmin)
 
