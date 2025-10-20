@@ -437,6 +437,7 @@ class SlotsBooking(APIView):
         else:
             try:
                 country = CustomerProfile.objects.get(id = customer_id).country_details.country_name
+                specialization = Specializations.objects.filter(specialization_id = specialization_id).first().specialization
                 logger.debug(f"\n\nInside customer profile country fetch analysis views 440  {country} {specialization}")
                 country_available = DoctorPaymentRules.objects.filter(country__country_name = country , specialization__specialization =specialization).exists()
                 logger.debug(f"\n\nInside country available analysis views 438  {country}: {country_available}")
