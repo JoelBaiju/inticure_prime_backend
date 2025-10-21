@@ -299,10 +299,12 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
         return result
 
     def get_rescheduled_appointments(self, obj):
+        now = timezone.now()
         rescheduled = (
             AppointmentHeader.objects.filter(
                 Q(appointment_customers__customer=obj) | Q(customer=obj),
-                appointment_status__in=['rescheduled_by_customer', 'rescheduled_by_doctor']
+                appointment_status__in=['rescheduled_by_customer', 'rescheduled_by_doctor'],
+                end_time__gte=now
             )
             .select_related("doctor", "specialization")
             .order_by("-start_time")
