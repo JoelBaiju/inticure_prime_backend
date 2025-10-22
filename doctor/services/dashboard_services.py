@@ -118,7 +118,7 @@ def get_upcoming_appointments(doctor, limit=3):
         appointment_status="confirmed",
         completed=False
     ).filter(
-        Q(start_time__gte=now) | Q(start_time__date__gt=today)
+        Q(end_time__gte=now) | Q(start_time__date__gt=today)
     ).order_by("start_time")[:limit]
 
     upcoming = []
