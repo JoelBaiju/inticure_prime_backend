@@ -470,8 +470,8 @@ class SlotsBooking(APIView):
             specialization_id =specializations.specialization_id
         if specialization_id:
             specialization = Specializations.objects.filter(specialization_id = specialization_id).first().specialization
-        logger.debug(f"\n preferred_dt_start {preferred_dt_start} {country}")
-        logger.debug(f"\n preferred_dt_end {preferred_dt_end} {country} {specialization}")
+        logger.debug(f"\n\n\n preferred_dt_start {preferred_dt_start} {country}")
+        logger.debug(f"\n\n\n preferred_dt_end {preferred_dt_end} {country} {specialization}")
         slot_data = get_available_slots(
             specialization_id=specialization_id,
             date_time_start=preferred_dt_start,
