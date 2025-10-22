@@ -187,6 +187,8 @@ class AppointmentDetailSerializer(serializers.ModelSerializer):
     def get_appointment_date(self, obj):
         return convert_utc_to_local_return_dt(obj.start_time, obj.doctor.time_zone).date()
     def get_doctor_meeting_link(self,obj):
+        if obj.appointment_status != "confirmed":
+            return None
         tracker = Meeting_Tracker.objects.get(appointment = obj)
         return tracker.doctor_meeting_link        
 
