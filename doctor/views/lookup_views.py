@@ -144,8 +144,10 @@ def get_available_slots_by_doctor(request):
         appointment = AppointmentHeader.objects.get(appointment_id = appointment_id)
         customer = appointment.customer
         country = customer.country_details.country_name
-    except CustomerProfile.DoesNotExist:
-        return Response({"error": "Customer not found"}, status=404)
+        if not specialization_id:
+            specialization_id = appointment.specialization.specialization_id
+    except AppointmentHeader.DoesNotExist:
+        return Response({"error": "Customer or appointment not found"}, status=404)
     try:
         results = fetch_available_slots(request.user, doctor_id,specialization_id, preferred_date,country)
         return Response({"slots": results}, status=200)
