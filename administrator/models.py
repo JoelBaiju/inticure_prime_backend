@@ -31,31 +31,6 @@ class LanguagesKnown(models.Model):
     def __str__(self):  
         return self.language
 
-class Payouts(models.Model):
-    payout_id=models.BigAutoField(primary_key=True)
-    appointment_id=models.IntegerField(null=True)
-    payout_date=models.DateField(auto_now=True)
-    payout_time=models.TimeField(auto_now=True)
-    accepted_date=models.DateField(null=True)
-    accepted_time=models.TimeField(null=True)
-    doctor_id=models.IntegerField(null=True)
-    base_amount=models.IntegerField(null=True)
-    inticure_fee=models.IntegerField(null=True)
-    payout_status=models.IntegerField(default=0)
-    payout_amount=models.IntegerField(null=True)
-   
-class TotalPayouts(models.Model):
-    payout_date=models.DateField(auto_now=True)
-    payout_time=models.TimeField(auto_now=True)
-    doctor_id=models.IntegerField(null=True)
-    total_payouts=models.IntegerField(null=True)
-
-class TotalEarnings(models.Model): 
-    doctor_id=models.BigIntegerField()
-    accepted_date=models.DateField(null=True)
-    accepted_time=models.TimeField(null=True)
-    total_earnings=models.IntegerField(null=True)
-
 
 class ReportCustomer(models.Model):
     appointment_id=models.IntegerField(null=True)

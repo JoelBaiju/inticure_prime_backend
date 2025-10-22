@@ -689,6 +689,10 @@ class RefundSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PayoutsSerializer(serializers.ModelSerializer):
+    doctor_name = serializers.SerializerMethodField()
     class Meta:
         model = Payouts
-        fields = '__all__'
+        fields = 'doctor', 'amount', 'currency' ,'currency_symbol' , 'initiated_at' , 'completed_at' , 'status'
+
+    def get_doctor_name(self, obj):
+        return f"{obj.doctor.salutation} {obj.doctor.first_name} {obj.doctor.last_name}" if obj.doctor else None
