@@ -59,7 +59,10 @@ class AppointmentService:
         Reschedule_history.objects.create(
             appointment=appointment, 
             reason=reason, 
-            initiated_by='customer'
+            initiated_by='customer',
+            previous_start_time=appointment.start_time,
+            previous_end_time=appointment.end_time,
+
         )
 
     @staticmethod
@@ -97,6 +100,10 @@ class AppointmentService:
             end_time=end_datetime_utc,
             appointment=appointment,
             confirmed=True
+        )
+        Reschedule_history.objects.filter(appointment=appointment ,previous_start_time=appointment.start_time).update(
+            new_start_time=start_datetime_utc,
+            new_end_time=end_datetime_utc
         )
 
         # Update appointment with new meeting details

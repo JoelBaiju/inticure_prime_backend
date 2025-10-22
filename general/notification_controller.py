@@ -37,7 +37,7 @@ def send_appointment_cancel_notification(appointment_id):
 
 
 
-# @shared_task
+@shared_task
 def send_appointment_confirmation_notification(appointment_id):
     logger.debug(f"send_appointment_confirmation_notification for appointment id {appointment_id}")
     try:

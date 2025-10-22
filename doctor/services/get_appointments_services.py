@@ -110,21 +110,21 @@ def get_appointments_data(doctor, limit=3):
         doctor=doctor,
         appointment_status="confirmed",
         completed=False,
-        start_time__gte=now
+        end_time__gte=now
     ).order_by("start_time")
 
     previous_qs = AppointmentHeader.objects.filter(
         doctor=doctor,
         appointment_status__in=["confirmed", "completed"],
         completed=True,
-        start_time__lte=now
+        end_time__lte=now
     ).order_by("-start_time")
 
     missed_qs = AppointmentHeader.objects.filter(
         doctor=doctor,
         appointment_status__in=["confirmed", "completed"],
         completed=False,
-        start_time__lte=now
+        end_time__lte=now
     ).order_by("-start_time")
 
     rescheduled_qs = AppointmentHeader.objects.filter(

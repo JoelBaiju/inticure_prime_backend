@@ -220,6 +220,13 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
         for appt in appointments:
             local_dt = convert_utc_to_local_return_dt(appt.start_time, obj.time_zone)
             tracker = Meeting_Tracker.objects.get(appointment = appt)
+            ttd = appt.temporary_transaction_data.first()
+            payment_id = None
+            if ttd:
+                if ttd.stripe_transactions.exists():
+                    payment_id = ttd.stripe_transactions.first().stripe_payment_intent_id
+                elif ttd.razorpay_transactions.exists():
+                    payment_id = ttd.razorpay_transactions.first().razorpay_payment_id
             result.append({
                 "appointment_id": appt.appointment_id,
                 "appointment_date": local_dt.date(),
@@ -236,6 +243,10 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                 "package_used": appt.package_used,
                 "appointments_left_in_package": appt.package.appointments_left if appt.package else 0,
                 "salutation": appt.doctor.salutation if appt.doctor else None,
+                "payment_amount": ttd.total_amount if ttd else None,
+                "currency": ttd.currency if ttd else None,
+                "gateway": ttd.gateway if ttd else None,
+                "payment_id": payment_id
             })
         return result
 

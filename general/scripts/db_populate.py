@@ -109,3 +109,8 @@ def populate_general_payment_rules_for_euro_countries():
 
     print(f"✅ Done! Created {created_count} new rules, skipped {skipped_count} duplicates.")
 
+
+
+from administrator.models import *
+from general.scripts.db_populate import populate_general_payment_rules_for_euro_countries
+populate_general_payment_rules_for_euro_countries()
