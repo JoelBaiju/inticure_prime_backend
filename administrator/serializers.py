@@ -692,7 +692,7 @@ class PayoutsSerializer(serializers.ModelSerializer):
     doctor_name = serializers.SerializerMethodField()
     class Meta:
         model = Payouts
-        fields = 'doctor', 'amount', 'currency' ,'currency_symbol' , 'initiated_at' , 'completed_at' , 'status'
+        fields = ['doctor', 'amount', 'currency' ,'currency_symbol' , 'initiated_at' , 'completed_at' , 'status' , 'doctor_name']
 
     def get_doctor_name(self, obj):
         return f"{obj.doctor.salutation} {obj.doctor.first_name} {obj.doctor.last_name}" if obj.doctor else None
