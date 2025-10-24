@@ -55,7 +55,7 @@ urlpatterns = [
     path('bank_account/',DoctorBankAccountView.as_view()),
     path('available_packages/',Available_packages.as_view()),
     path('suggest_package/',Suggest_package.as_view()),
-
+    
     path("patient_files/", Get_Doctor_uploaded_files.as_view(), name="common-files"),
     path("profile/", Profile_Edit.as_view(), name="profile-edit"),
 ]

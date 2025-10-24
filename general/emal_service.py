@@ -8,6 +8,8 @@ from doctor.models import DoctorProfiles
 from inticure_prime_backend.settings import BACKEND_URL , ADMIN_CC_EMAILS
 from django.utils import timezone
 from analysis.models import AppointmentHeader
+from .utils import convert_utc_to_local_return_dt
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -21,10 +23,10 @@ def send_appointment_confirmation_email_to_admin(appointment_id):
 
     subject = "New Appointment Confirmed - Inticure"
     doctor_salutation = appointment.doctor.salutation
-
+    start_time = convert_utc_to_local_return_dt(appointment.start_time , "Asia/Kolkata")
     context = {
-        "date":appointment.start_time.date(),
-        "time":appointment.start_time.time(),    
+        "date":start_time.date(),
+        "time":start_time.time(),    
         'specialization':appointment.specialization.specialization,
         'doctor_name':appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
         'name' :appointment.customer.user.first_name + ' ' + appointment.customer.user.last_name,
@@ -45,10 +47,10 @@ def send_appointment_cancellation_email_to_admin(appointment_id):
 
     subject = "Appointment Cancelled - Inticure"
     doctor_salutation = appointment.doctor.salutation
-
+    start_time = convert_utc_to_local_return_dt(appointment.start_time , "Asia/Kolkata")
     context = {
-        "date":appointment.start_time.date(),
-        "time":appointment.start_time.time(),    
+        "date":start_time.date(),
+        "time":start_time.time(),    
         'specialization':appointment.specialization.specialization,
         'doctor_name':appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
         'backend_url':BACKEND_URL,  
@@ -110,10 +112,7 @@ def send_appointment_cancellation_email(appointment_id):
 
     subject = "Appointment Cancellation Confirmation - Inticure"
     doctor_salutation = appointment.doctor.salutation
-
-    context = {
-        "date":appointment.start_time.date(),
-        "time":appointment.start_time.time(),    
+    context = {  
         'specialization':appointment.specialization.specialization,
         'doctor_name':appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
         "profile_pic":appointment.doctor.profile_pic.url,
@@ -123,7 +122,12 @@ def send_appointment_cancellation_email(appointment_id):
         'salutation':doctor_salutation,
     }
     for app_customer in appointment_customers:
+        start_time=convert_utc_to_local_return_dt(appointment.start_time , app_customer.customer.time_zone)
+        context['date']=start_time.date()
+        context['time']=start_time.time()
         context['username'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
+
+
         html_content = render_to_string("appointment_cancelled/appointment_cancellation.html", context)
         send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
     return True
@@ -146,9 +150,7 @@ def send_appointment_cancellation_email_to_specialist(appointment_id):
     subject = "Appointment Cancellation Confirmation - Inticure"
     doctor_salutation = appointment.doctor.salutation
 
-    context = {
-        "date":appointment.start_time.date(),
-        "time":appointment.start_time.time(),    
+    context = { 
         'specialization':appointment.specialization.specialization,
         'doctor_name':appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
         "profile_pic":appointment.doctor.profile_pic.url,
@@ -158,7 +160,10 @@ def send_appointment_cancellation_email_to_specialist(appointment_id):
         'salutation':doctor_salutation,
     }
     for app_customer in appointment_customers:
+        start_time = convert_utc_to_local_return_dt(appointment.start_time , app_customer.customer.time_zone)
         context['username'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
+        context['date']=start_time.date()
+        context['time']=start_time.time()
         html_content = render_to_string("appointment_cancelled/appointment_cancelled_to_specialist.html", context)
         send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
     return True
@@ -187,8 +192,6 @@ def send_followup_confirmation_email(
     subject = "Follow-up Appointment Confirmation - Inticure"
 
     context = {
-        "date": appointment.start_time.date(),
-        "time": appointment.start_time.time(),
         "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
         "specialization": appointment.specialization.specialization,
         "profile_pic": appointment.doctor.profile_pic.url,
@@ -199,9 +202,12 @@ def send_followup_confirmation_email(
         'backend_url':BACKEND_URL,  
     }
     for app_customer in appointment_customers:
+        start_time = convert_utc_to_local_return_dt(appointment.start_time , app_customer.customer.time_zone)
         meetlink = f"https://care.inticure.com/join-meeting?meetingId={meeting_tracker.customer_1_meeting_id if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_id}"
         context['meet_link'] = meetlink
         context['name'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
+        context['date'] = start_time.date()
+        context['time'] = start_time.time()
         html_content = render_to_string("appointment_confirmation/followup_confirmation.html", context)
         send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
     
@@ -222,8 +228,7 @@ def send_first_appointment_confirmation_email(appointment_id):
     subject = "Appointment Confirmation - Inticure"
 
     context = {
-        "date": appointment.start_time.date(),
-        "time": appointment.start_time.time(),
+      
         "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
         'specialization':appointment.specialization.specialization,
         'salutation':appointment.doctor.salutation,
@@ -233,10 +238,12 @@ def send_first_appointment_confirmation_email(appointment_id):
 
     for app_customer in appointment_customers:
         if not app_customer.customer.completed_first_analysis:
-                
+            start_time = convert_utc_to_local_return_dt(appointment.start_time , app_customer.customer.time_zone)
             meetlink =  f"https://care.inticure.com/join-meeting?meetingId={meeting_tracker.customer_1_meeting_id if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_id}"
             context['name'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
             context['meet_link']=meetlink
+            context['date']=start_time.date()
+            context['time']=start_time.time()
             html_content = render_to_string("appointment_confirmation/first_appointment_confirmation_email.html", context)
             send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
 
@@ -260,9 +267,7 @@ def send_appointment_confirmation_customer_email(appointment_id,):
     subject = f"Your Consultation with {appointment.specialization.specialization} {appointment.doctor.first_name + ' ' + appointment.doctor.last_name} is Confirmed"
 
     
-    context = {
-        "date": appointment.start_time.date(),
-        "time": appointment.start_time.time(),  
+    context = { 
         "specialization": appointment.specialization.specialization,
         "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
         "profile_pic": appointment.doctor.profile_pic.url,
@@ -273,9 +278,12 @@ def send_appointment_confirmation_customer_email(appointment_id,):
     }
 
     for app_customer in appointment_customers:
+        start_time = convert_utc_to_local_return_dt(appointment.start_time , app_customer.customer.time_zone)
         context['name'] = app_customer.customer.user.first_name + ' ' + app_customer.customer.user.last_name
         meetlink =  f"https://care.inticure.com/join-meeting?meetingId={meeting_tracker.customer_1_meeting_id if meeting_tracker.customer_1 == app_customer.customer else meeting_tracker.customer_2_meeting_id}"
         context['meet_link']=meetlink
+        context['date']=start_time.date()
+        context['time']=start_time.time()
         html_content = render_to_string("appointment_confirmation/appointment_confirmation_customer.html", context)
         send_email_via_sendgrid(subject, html_content, app_customer.customer.email)
     return True
@@ -288,10 +296,10 @@ def send_appointment_confirmation_doctor_email(appointment_id,):
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
-
+        start_time = convert_utc_to_local_return_dt(appointment.start_time , appointment.doctor.time_zone)
         context = {
-            "date": appointment.start_time.date(),
-            "time": appointment.start_time.time(),
+            "date": start_time.date(),
+            "time": start_time.time(),
             "specialization": appointment.specialization.specialization,
             "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
             'backend_url':BACKEND_URL,  
@@ -363,15 +371,16 @@ def send_reschedule_request_email(appointment_id):
     subject = "Doctor Emergency – Please Reschedule Your Appointment"
 
     context = {
-        "date": appointment.start_time.date(),
-        "time": appointment.start_time.time(),
         "doctor_name": appointment.doctor.first_name + ' ' + appointment.doctor.last_name,
         "salutation": appointment.doctor.salutation, 
         "year": timezone.now().year,
         'backend_url':BACKEND_URL,  
     }
     for customer in appointment_customers:
+        start_time = convert_utc_to_local_return_dt(appointment.start_time , customer.customer.time_zone)
         context['name'] = customer.customer.user.first_name + ' ' + customer.customer.user.last_name
+        context['date']=start_time.date()
+        context['time']=start_time.time()
         html_content = render_to_string("reschedule_request.html", context)
 
         send_email_via_sendgrid(subject, html_content, customer.customer.email)
@@ -414,13 +423,13 @@ def send_appointment_reminder_customer_email(appintment_id , message):
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
         for customer in appointment_customers:
             meeting_link =  f"https://care.inticure.com/join-meeting?meetingId={meeting_tracker.customer_1_meeting_id if customer.customer == meeting_tracker.customer_1 else meeting_tracker.customer_2_meeting_id}"
-
+            start_time = convert_utc_to_local_return_dt(appointment.start_time , customer.customer.time_zone)
             context = {
                 "message":message,
                 "c_name": customer.customer.user.first_name,
-                "date" : appointment.start_time.strftime("%B %d, %Y"),
-                "weekday" : appointment.start_time.strftime("%A"),
-                "time" : appointment.start_time.strftime("%I:%M %p"),
+                "date" : start_time.strftime("%B %d, %Y"),
+                "weekday" : start_time.strftime("%A"),
+                "time" : start_time.strftime("%I:%M %p"),
                 "meeting_link": meeting_link,
                 "year": timezone.now().year,
                 'doctor_name':f"{appointment.doctor.first_name} {appointment.doctor.last_name}",
@@ -441,14 +450,14 @@ def send_appointment_reminder_doctor_email(appointment_id , message):
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
-        
+        start_time = convert_utc_to_local_return_dt(appointment.start_time , appointment.doctor.time_zone)
         context = {
             "message":message,
             "patient_1_name": f"{meeting_tracker.customer_1.user.first_name} {meeting_tracker.customer_2.user.last_name}",
             "patient_2_name": f"{meeting_tracker.customer_2.user.first_name} {meeting_tracker.customer_2.user.last_name}",
-            "date" : appointment.start_time.strftime("%B %d, %Y"),
-            "weekday" : appointment.start_time.strftime("%A"),
-            "time" : appointment.start_time.strftime("%I:%M %p"),
+            "date" : start_time.strftime("%B %d, %Y"),
+            "weekday" : start_time.strftime("%A"),
+            "time" : start_time.strftime("%I:%M %p"),
             "meeting_link": meeting_tracker.doctor_meeting_link,
             "year": timezone.now().year,
             'doctor_name':f"{appointment.doctor.first_name} {appointment.doctor.last_name}",
@@ -473,15 +482,15 @@ def send_appointment_started_reminder_doctor_email(appointment_id):
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
         doctor = appointment.doctor
-
+        start_time = convert_utc_to_local_return_dt(appointment.start_time , appointment.doctor.time_zone)
         context = {
             "doctor_name": f"{doctor.first_name} {doctor.last_name}",
             'salutation':doctor.salutation,
             "patient_1_name": f"{meeting_tracker.customer_1.user.first_name} {meeting_tracker.customer_1.user.last_name}",
             "patient_2_name": f"{meeting_tracker.customer_2.user.first_name} {meeting_tracker.customer_2.user.last_name}",
-            "date": appointment.start_time.strftime("%B %d, %Y"),
-            "weekday": appointment.start_time.strftime("%A"),
-            "time": appointment.start_time.strftime("%I:%M %p"),
+            "date": start_time.strftime("%B %d, %Y"),
+            "weekday": start_time.strftime("%A"),
+            "time": start_time.strftime("%I:%M %p"),
             "specialization": appointment.specialization.specialization,
             "meeting_link": meeting_tracker.doctor_meeting_link,
             "year": timezone.now().year,
@@ -508,14 +517,15 @@ def send_appointment_started_reminder_customer_email(appointment_id):
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
         appt_customers = appointment.appointment_customers.all()
         for customer in appt_customers:
+            start_time = convert_utc_to_local_return_dt(appointment.start_time , customer.customer.time_zone)
             meeting_link =  f"https://care.inticure.com/join-meeting?meetingId={meeting_tracker.customer_1_meeting_id if customer.customer == meeting_tracker.customer_1 else meeting_tracker.customer_2_meeting_id}"
             context = {
                 "doctor_name": f"{appointment.doctor.first_name} {appointment.doctor.last_name}",
                 "patient_name": f"{customer.customer.user.first_name} {customer.customer.user.last_name}",
                 'salutation':appointment.doctor.salutation,
-                "date": appointment.start_time.strftime("%B %d, %Y"),
-                "weekday": appointment.start_time.strftime("%A"),
-                "time": appointment.start_time.strftime("%I:%M %p"),
+                "date": start_time.strftime("%B %d, %Y"),
+                "weekday": start_time.strftime("%A"),
+                "time": start_time.strftime("%I:%M %p"),
                 "specialization": appointment.specialization.specialization,
                 "meeting_link": meeting_link,
                 "year": timezone.now().year,

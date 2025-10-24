@@ -313,6 +313,7 @@ class AppointmentService:
         if appointment.appointment_status == 'completed':
             raise ValueError("Appointment already completed")
         appointment.appointment_status = 'completed'
+        appointment.completed = True
         appointment.save()
         return True
 
