@@ -266,7 +266,7 @@ class Map_Meetings(APIView):
         
         if meeting_tracker:
             # if join:
-            if  meeting_tracker.appointment.start_time-timedelta(minutes=5) <= timezone.now() :
+            if  meeting_tracker.appointment.start_time-timedelta(minutes=11) <= timezone.now() :
                 meeting_tracker.customer_1_joined = True
                 meeting_tracker.save()
                 return redirect(meeting_tracker.meeting_link)
