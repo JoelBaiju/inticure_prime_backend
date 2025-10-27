@@ -15,3 +15,22 @@ class Admin_dashboard(APIView):
             return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+
+
+
+
+
+
+
+class All_Appointments(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get(self, request):
+        try:
+            from administrator.services.dashboard_services import get_all_appointments_data
+            data = get_all_appointments_data()
+            return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

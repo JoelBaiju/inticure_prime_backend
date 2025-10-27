@@ -563,13 +563,15 @@ def schedule_reminder_to_book_appointment(appointment_id=None, referral_id=None)
 
             if appointment.customer.confirmation_method in ["WhatsApp" , "whatsapp" , "both"]:
                 if appointment.start_time - timedelta(hours=47) > timezone.now():
+                    # send_wa_consultation_reminder_not_yet_scheduled(
+                    #     patient_name=f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}",
+                    #     salutation=appointment.doctor.salutation,
+                    #     specialist_name=f"{appointment.doctor.first_name} {appointment.doctor.last_name}",
+                    #     to_phone=f"{appointment.customer.country_code}{appointment.customer.whatsapp_number}"
+                    # )
                     send_wa_consultation_reminder_not_yet_scheduled(
-                        patient_name=f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}",
-                        salutation=appointment.doctor.salutation,
-                        specialist_name=f"{appointment.doctor.first_name} {appointment.doctor.last_name}",
-                        to_phone=f"{appointment.customer.country_code}{appointment.customer.whatsapp_number}"
+                        appointment
                     )
-
                 elif appointment.start_time - timedelta(hours=24) > timezone.now():
                     send_wa_final_consultation_reminder_not_yet_scheduled(
                         patient_name=f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}",

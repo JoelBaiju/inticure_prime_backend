@@ -114,6 +114,10 @@ class Reminder_Sent_History(models.Model):
     body = models.CharField(max_length=500)
     sent_at = models.DateTimeField(auto_now_add=True)
 
+    
+    message_id = models.CharField(max_length=100)
+    provider_response = models.TextField(null=True)
+    status = models.CharField(max_length=50)
 
 
 

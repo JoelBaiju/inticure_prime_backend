@@ -291,7 +291,7 @@ def update_appointment_status(appointment_id: str, completed: bool, reason: str 
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
     except AppointmentHeader.DoesNotExist:
         return Response("invalid appointment id", status=status.HTTP_400_BAD_REQUEST)
-    if not timezone.now() > appointment.start_time + timezone.timedelta(minutes=15):
+    if not timezone.now() > appointment.start_time + timezone.timedelta(minutes=10):
         return Response("You can update appointment status only after 10 minutes of appointment start time", status=status.HTTP_400_BAD_REQUEST)
     
     if not Observation_Notes.objects.filter(appointment=appointment).exists() :

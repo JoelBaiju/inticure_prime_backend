@@ -6,6 +6,7 @@ from analysis.models import Appointment_customers, Meeting_Tracker
 from general.sendgrid import send_email_via_sendgrid ,send_email_via_smtp
 from doctor.models import DoctorProfiles
 from inticure_prime_backend.settings import BACKEND_URL , ADMIN_CC_EMAILS
+from general.models import Reminder_Sent_History
 from django.utils import timezone
 from analysis.models import AppointmentHeader
 from .utils import convert_utc_to_local_return_dt
@@ -417,6 +418,7 @@ def send_doctor_status_email(doctor_id):
 from datetime import datetime
 
 def send_appointment_reminder_customer_email(appintment_id , message):
+    """Send and track appointment reminder email to customer"""
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appintment_id)
         appointment_customers = appointment.appointment_customers.all()
@@ -866,6 +868,18 @@ def send_user_banned_email(to_email):
 
 from django.template.loader import render_to_string
 from datetime import datetime
+
+def track_email_reminder(user, appointment, email, subject, body, user_is_customer=False):
+    """Helper function to track email reminders"""
+    Reminder_Sent_History.objects.create(
+        user=user,
+        user_is_customer=user_is_customer,
+        appointment=appointment,
+        whatsapp_number="",  # Not used for email reminders
+        email=email,
+        subject=subject,
+        body=body
+    )
 
 def send_user_confirmation_email(to_email):
     """

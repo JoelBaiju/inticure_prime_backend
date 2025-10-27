@@ -235,6 +235,7 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                                 if appt.doctor else "N/A",
                 "status": appt.appointment_status,
                 "specialization": appt.specialization.specialization if appt.specialization else "N/A",
+                "specialization_id": appt.specialization.specialization_id if appt.specialization else "N/A",
                 "meeting_link": tracker.customer_1_meeting_id if tracker.customer_1 == obj else tracker.customer_2_meeting_id if tracker.customer_2 == obj else None,
                 "type_booking": "Couples" if appt.is_couple else "Individual",
                 "booked_by": appt.booked_by,
