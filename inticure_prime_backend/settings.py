@@ -239,7 +239,7 @@ from celery.schedules import crontab
 CELERY_BEAT_SCHEDULE = {
     "close-expired-chat-sessions": {
         "task": "chat.tasks.close_expired_chat_sessions",  # replace with your app name
-        "schedule": 120.0,  # every 120 seconds (2 minutes)
+        "schedule": 900.0,  # every 120 seconds (2 minutes)
     },
 }
 

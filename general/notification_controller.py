@@ -142,13 +142,60 @@ from datetime import timedelta
 
 
 
+# @shared_task
+# def send_reminder(appointment_id, reminder_type):
+   
+#     appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+#     if appointment.appointment_status != "confirmed":
+#         return
+   
+#     reminder_messages = {
+#         "one_week": "Your consultation is in one week.",
+#         "three_days": "Your consultation is in three days.",
+#         "one_day": "Your consultation is in 24 hours.",
+#         "one_hour": "Your consultation starts in one hour.",
+#         "on_time": "Your consultation has started. Please join now.",
+#     }
+
+#     message = reminder_messages.get(reminder_type, "Appointment Reminder")
+
+#     if appointment.customer.confirmation_method in  ['email' ,"Email" , "both" ]:
+#         if appointment.start_time >= timezone.now(): 
+#             send_appointment_started_reminder_customer_email(appointment_id , message)
+
+#         send_appointment_reminder_customer_email(appointment_id , message)
+         
+#     if appointment.customer.confirmation_method in  ['whatsapp' ,"WhatsApp" , "both"]:
+#         if reminder_type == "one_hour":
+#             send_wa_consultation_reminder_1_hour_before
+#         elif reminder_type =="one_day":
+#             send_wa_consultation_reminder_24_hours_before
+    
+
+
+    
+#     if appointment.start_time >= timezone.now(): 
+#         send_appointment_started_reminder_doctor_email(appointment_id , message)
+#     send_appointment_reminder_doctor_email(appointment_id , message)
+    
+#     if reminder_type == "one_hour":
+#         send_wa_specialist_reminder_1_hour_before
+#     elif reminder_type =="one_day":
+#         """
+#             missing have to add 
+#         """
+    
+    
+
+#     send_appointment_reminder_doctor_email( appointment_id , message )
+
 @shared_task
 def send_reminder(appointment_id, reminder_type):
-   
     appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+
     if appointment.appointment_status != "confirmed":
         return
-   
+
     reminder_messages = {
         "one_week": "Your consultation is in one week.",
         "three_days": "Your consultation is in three days.",
@@ -159,48 +206,70 @@ def send_reminder(appointment_id, reminder_type):
 
     message = reminder_messages.get(reminder_type, "Appointment Reminder")
 
-    if appointment.customer.confirmation_method in  ['email' ,"Email" , "both" ]:
-        if appointment.start_time >= timezone.now(): 
-            send_appointment_started_reminder_customer_email(appointment_id , message)
+    # EMAIL: Customer
+    if appointment.customer.confirmation_method.lower() in ["email", "both"]:
+        if reminder_type == "on_time":
+            send_appointment_started_reminder_customer_email(appointment_id, message)
+        else:
+            send_appointment_reminder_customer_email(appointment_id, message)
 
-        send_appointment_reminder_customer_email(appointment_id , message)
-         
-    if appointment.customer.confirmation_method in  ['whatsapp' ,"WhatsApp" , "both"]:
+    # WHATSAPP: Customer
+    if appointment.customer.confirmation_method.lower() in ["whatsapp", "both"]:
         if reminder_type == "one_hour":
-            send_wa_consultation_reminder_1_hour_before
-        elif reminder_type =="one_day":
-            send_wa_consultation_reminder_24_hours_before
-    
+            send_wa_consultation_reminder_1_hour_before(appointment_id)
+        elif reminder_type == "one_day":
+            send_wa_consultation_reminder_24_hours_before(appointment_id)
 
+    # DOCTOR - Email
+    if reminder_type == "on_time":
+        send_appointment_started_reminder_doctor_email(appointment_id, message)
+    else:
+        send_appointment_reminder_doctor_email(appointment_id, message)
 
-    
-    if appointment.start_time >= timezone.now(): 
-        send_appointment_started_reminder_doctor_email(appointment_id , message)
-    send_appointment_reminder_doctor_email(appointment_id , message)
-    
+    # WHATSAPP: Doctor (if needed later)
     if reminder_type == "one_hour":
-        send_wa_specialist_reminder_1_hour_before
-    elif reminder_type =="one_day":
-        """
-            missing have to add 
-        """
-    
-    
+        send_wa_specialist_reminder_1_hour_before(appointment_id)
+    # Placeholder for one_day in future
 
-    send_appointment_reminder_doctor_email( appointment_id , message )
+
+
+
+# @shared_task
+# def schedule_all_reminders(appointment_id):
+#     """
+#     Schedule all valid reminders for an appointment based on the current time gap.
+#     """
+#     appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+
+#     start_time = appointment.start_time
+#     now = timezone.now()
+
+#     # Define reminder times in descending order
+#     reminder_offsets = [
+#         ("one_week", timedelta(days=7)),
+#         ("three_days", timedelta(days=3)),
+#         ("one_day", timedelta(days=1)),
+#         ("one_hour", timedelta(hours=1)),
+#         ("on_time", timedelta(seconds=0)),
+#     ]
+
+#     for reminder_name, offset in reminder_offsets:
+#         reminder_time = start_time - offset
+#         if reminder_time > now:
+#             # Schedule only future reminders
+#             send_reminder.apply_async(
+#                 (appointment_id, reminder_name),
+#                 eta=reminder_time
+#             )
 
 
 @shared_task
 def schedule_all_reminders(appointment_id):
-    """
-    Schedule all valid reminders for an appointment based on the current time gap.
-    """
     appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
 
     start_time = appointment.start_time
     now = timezone.now()
 
-    # Define reminder times in descending order
     reminder_offsets = [
         ("one_week", timedelta(days=7)),
         ("three_days", timedelta(days=3)),
@@ -212,13 +281,10 @@ def schedule_all_reminders(appointment_id):
     for reminder_name, offset in reminder_offsets:
         reminder_time = start_time - offset
         if reminder_time > now:
-            # Schedule only future reminders
             send_reminder.apply_async(
                 (appointment_id, reminder_name),
                 eta=reminder_time
             )
-
-
             
 
 

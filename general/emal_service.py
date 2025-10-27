@@ -292,7 +292,7 @@ def send_appointment_confirmation_customer_email(appointment_id,):
 
 
 
-def send_appointment_confirmation_doctor_email(appointment_id,):
+def send_appointment_confirmation_doctor_email(appointment_id):
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
@@ -454,7 +454,7 @@ def send_appointment_reminder_doctor_email(appointment_id , message):
         context = {
             "message":message,
             "patient_1_name": f"{meeting_tracker.customer_1.user.first_name} {meeting_tracker.customer_2.user.last_name}",
-            "patient_2_name": f"{meeting_tracker.customer_2.user.first_name} {meeting_tracker.customer_2.user.last_name}",
+            "patient_2_name": f"{meeting_tracker.customer_2.user.first_name} {meeting_tracker.customer_2.user.last_name}" if meeting_tracker.customer_2 else " ",
             "date" : start_time.strftime("%B %d, %Y"),
             "weekday" : start_time.strftime("%A"),
             "time" : start_time.strftime("%I:%M %p"),
@@ -487,7 +487,7 @@ def send_appointment_started_reminder_doctor_email(appointment_id):
             "doctor_name": f"{doctor.first_name} {doctor.last_name}",
             'salutation':doctor.salutation,
             "patient_1_name": f"{meeting_tracker.customer_1.user.first_name} {meeting_tracker.customer_1.user.last_name}",
-            "patient_2_name": f"{meeting_tracker.customer_2.user.first_name} {meeting_tracker.customer_2.user.last_name}",
+            "patient_2_name": f"{meeting_tracker.customer_2.user.first_name} {meeting_tracker.customer_2.user.last_name}" if meeting_tracker.customer_2 else " ",
             "date": start_time.strftime("%B %d, %Y"),
             "weekday": start_time.strftime("%A"),
             "time": start_time.strftime("%I:%M %p"),
