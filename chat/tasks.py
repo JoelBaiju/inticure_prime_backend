@@ -3,16 +3,23 @@ from django.utils import timezone
 from .models import ChatSession
 
 
+
 @shared_task
 def close_expired_chat_sessions():
     now = timezone.now()
     BATCH_SIZE = 1000
+    
     while True:
-        expired = ChatSession.objects.filter(expires_at__lt=now, is_open=True)[:BATCH_SIZE]
-        if not expired: 
+        ids = list(
+            ChatSession.objects
+            .filter(expires_at__lt=now, is_open=True)
+            .values_list("id", flat=True)[:BATCH_SIZE]
+        )
+        
+        if not ids:
             break
-        expired.update(is_open=False)
-
-
-    print( f"Closed  expired chat sessions.")
-    return f"Closed  expired chat sessions."
+        
+        ChatSession.objects.filter(id__in=ids).update(is_open=False)
+    
+    print("Closed expired chat sessions.")
+    return "Closed expired chat sessions."
