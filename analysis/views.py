@@ -811,6 +811,14 @@ class FinalSubmit(CreateAPIView):
                 (appointment.appointment_id,),
                 countdown=900
             )
+            if not payment_required:  
+                # Payment not required, so confirm 
+                ConfirmAppointment(
+                    appointment_id=appointment.appointment_id,
+                    pretransaction_id=None,
+                    is_admin=True 
+                )
+
 
             return Response({
                 "message": "Appointment successfully booked",
