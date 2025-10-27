@@ -781,6 +781,7 @@ class FinalSubmit(CreateAPIView):
                 package_used=True if package else False,
                 payment_rule=payment_rule,
                 package_included=bool(include_package),
+                package = package if package else None,
             )
 
             Appointment_customers.objects.create(
