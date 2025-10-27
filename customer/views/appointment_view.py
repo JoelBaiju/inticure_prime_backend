@@ -19,7 +19,7 @@ from doctor.slots_service import get_available_slots
 from ..services.appointment_service import AppointmentService
 from ..services.notification_services import NotificationService
 from ..utils.validators import AppointmentValidator
-
+from analysis.views import appointment_routine_notifications
 
 class DoctorAvailabilityView(APIView):
     permission_classes = [IsAuthenticated]
@@ -156,7 +156,7 @@ def add_appointment_slot(request):
         customer = CustomerProfile.objects.get(user=request.user)
     
     AppointmentService.book_appointment_slot(appointment, slot, customer)
-    NotificationService.send_appointment_confirmation(appointment)
+    appointment_routine_notifications(appointment.appointment_id)
     
     return Response('Successfully booked appointment', status=status.HTTP_200_OK)
     # except (CustomerProfile.DoesNotExist, AppointmentHeader.DoesNotExist) as e:

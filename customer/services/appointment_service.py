@@ -206,7 +206,7 @@ class AppointmentService:
     def     book_appointment_slot(appointment, slot_data, customer , is_admin=False):
         """-/*Book appointment slot for customer"""
         if DoctorAppointment.objects.filter(appointment=appointment).exists():
-            raise ValueError("Slot already booked.")
+            raise ValueError("A doctor slot has already beed added to this appointment.")
 
         if is_admin:
             time_zone = 'Asia/Calcutta'
