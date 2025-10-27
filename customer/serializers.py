@@ -256,7 +256,8 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
         appointments = (
             AppointmentHeader.objects.filter(
                 Q(appointment_customers__customer=obj) | Q(customer=obj),
-                Q(appointment_status__in=['completed', 'cancelled'])| Q(end_time__lt=now),
+                appointment_status__in=['completed', 'cancelled'],
+                end_time__lt=now,
             )
             .select_related("doctor", "specialization")
             .order_by("-start_time")
