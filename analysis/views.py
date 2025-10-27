@@ -598,7 +598,6 @@ def get_multiple_doctor_profiles(request):
 # ========API : 7========= submitting personal data along with the selected slot language selected  ========================//
 # ========URL : ==========/analysis/submit_personal_data/ ========================//
 
-
 class FinalSubmit(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CustomerProfileSerializer
@@ -608,86 +607,88 @@ class FinalSubmit(CreateAPIView):
         try:
             user = request.user
             data = request.data
-            token = data.get("analysis_token")
-            package_id = request.data.get('package_id')
-            include_package = request.data.get('include_package')
-            
 
-            # --- Get Customer Profile ---
+            token = data.get("analysis_token")
+            package_id = data.get("package_id")
+            include_package = data.get("include_package")
+            referral_id = data.get("referal_id")
+
+            # Initialize shared variables
+            category = None
+            gender_pref = None
+            language_pref = None
+            specialization = None
+            is_couple = False
+
+            package = None
+            payment_rule = None
+            payment_required = True
+            payment_done = False
+
+            # Fetch customer profile
             try:
                 customer_profile = CustomerProfile.objects.get(user=user)
             except CustomerProfile.DoesNotExist:
                 logger.debug("error Customer profile not found")
                 return Response({"error": "Customer profile not found"}, status=400)
 
-            # Shared variables
-            category = None
-            gender_pref = None
-            language_pref = None
-            specialization = None
-            is_couple = False
-            referral_id = data.get("referal_id")
-
-            # --- First Analysis Not Completed ---
+            # ====== FIRST ANALYSIS HANDLING ======
             if not customer_profile.completed_first_analysis:
                 if not token:
                     return Response({"error": "Missing analysis_token"}, status=400)
 
+                # Get country
                 try:
                     country = Countries.objects.get(country_name=data.get("country"))
                 except Countries.DoesNotExist:
                     logger.debug("Invalid country")
                     return Response({"error": "Invalid country"}, status=400)
 
+                # Get analysis session
                 try:
                     session = AnalysisSession.objects.get(token=token)
                 except AnalysisSession.DoesNotExist:
                     logger.debug("Invalid analysis_token")
                     return Response({"error": "Invalid analysis_token"}, status=400)
 
-                # Update profile
-                # customer_profile.gender = session.gender
-                customer_profile.gender = data.get('gender')
+                # Update profile fields
+                customer_profile.gender = data.get("gender")
                 customer_profile.date_of_birth = data.get("dob")
                 customer_profile.preferred_name = data.get("preferred_name")
                 customer_profile.country_details = country
                 customer_profile.completed_first_analysis = True
                 customer_profile.whatsapp_number = data.get("whatsapp_number")
-                customer_profile.mobile_number = data.get('mobile_number')
+                customer_profile.mobile_number = data.get("mobile_number")
                 customer_profile.mob_country_code = data.get("mob_country_code")
                 customer_profile.country_code = data.get("country_code")
                 customer_profile.email = data.get("email")
-                customer_profile.confirmation_method = data.get('confirmation_method')
-                customer_profile.guardian_first_name = data.get('guardian_first_name')
-                customer_profile.guardian_last_name = data.get('guardian_last_name')
+                customer_profile.confirmation_method = data.get("confirmation_method")
+                customer_profile.guardian_first_name = data.get("guardian_first_name")
+                customer_profile.guardian_last_name = data.get("guardian_last_name")
                 customer_profile.guardian_relation = data.get("guardian_relation")
                 customer_profile.guardian_phone_number = data.get("guardian_phone_number")
                 customer_profile.save()
 
-                # Update user
                 user.first_name = data.get("first_name")
                 user.last_name = data.get("last_name")
                 user.save()
 
+                # Set analysis data
                 category = session.category
                 gender_pref = session.gender_preference
                 language_pref = session.language_preference
                 specialization = session.specialization
                 is_couple = session.is_couple
-                timeZone = get_customer_timezone(user)  # Get user's timezone
-                
-                # Attach Q&A answers
+
+                # Attach answers
                 AppointmentQuestionsAndAnswers.objects.filter(
                     tempsession=session
                 ).update(customer=customer_profile)
 
-                # Mark session submitted
                 session.status = "final_submitted"
                 session.save()
+
                 logger.debug("First Analysis Completed")
-                logger.debug(f"Category: {category} gender_pref {gender_pref} language_pref {language_pref} specialization {specialization} is_couple {is_couple}")
-         
-            # --- First Analysis Completed ---
             else:
                 category = Category.objects.get(id=data.get("category")) if data.get("category") else None
                 gender_pref = data.get("gender_pref")
@@ -696,10 +697,13 @@ class FinalSubmit(CreateAPIView):
                     specialization_id=data.get("specialization")
                 ) if data.get("specialization") else None
                 is_couple = bool(data.get("is_couple"))
-                timeZone = get_customer_timezone(user)  # Get user's timezone
+
                 logger.debug("First Analysis Already Completed")
-                logger.debug(f"Category: {category} gender_pref {gender_pref} language_pref {language_pref} specialization {specialization} is_couple {is_couple}")
-            # --- Slot Processing ---
+
+            # Customer timezone
+            timeZone = get_customer_timezone(user)
+
+            # ====== SLOT VALIDATION ======
             slot = data.get("slot", {})
             start_str = slot.get("start")
             end_str = slot.get("end")
@@ -707,18 +711,17 @@ class FinalSubmit(CreateAPIView):
             if not all([start_str, end_str]):
                 return Response({"error": "Missing slot start/end"}, status=400)
 
-            # Convert to UTC datetimes
             start_datetime_utc = convert_local_dt_to_utc(start_str, timeZone)
             end_datetime_utc = convert_local_dt_to_utc(end_str, timeZone)
 
-            # --- Get Doctor ---
+            # Doctor
             try:
                 doctor = DoctorProfiles.objects.get(doctor_profile_id=data.get("doctor_id"))
             except DoctorProfiles.DoesNotExist:
                 logger.debug("Doctor not found")
                 return Response({"error": "Doctor not found"}, status=404)
 
-            # --- Check Overlap (UTC-aware) ---
+            # Check for overlap
             overlap_exists = DoctorAppointment.objects.filter(
                 doctor=doctor,
                 start_time__lt=end_datetime_utc,
@@ -726,43 +729,37 @@ class FinalSubmit(CreateAPIView):
             ).exists()
 
             if overlap_exists:
-                return Response({"error": "The selected time slot overlaps with an existing appointment."}, status=409)
+                return Response(
+                    {"error": "The selected time slot overlaps with an existing appointment."},
+                    status=409
+                )
 
-            # ----Check payment required ----
-
-          
+            # ====== PAYMENT / PACKAGE HANDLING ======
             try:
                 package = Customer_Package.objects.filter(
-                    customer = customer_profile,
-                    specialization = specialization,
-                    doctor = doctor,
-                    is_couple = is_couple,
-                    appointments_left__gt = 0
+                    customer=customer_profile,
+                    specialization=specialization,
+                    doctor=doctor,
+                    is_couple=is_couple,
+                    appointments_left__gt=0
                 ).first()
+
                 if package:
                     payment_required = False
                     payment_done = True
-                    package.appointments_left-=1
+                    package.appointments_left -= 1
                     package.save()
                 else:
-                    payment_done= False
-                    payment_required = True
-              
-            except:
-                payment_required =True
-                payment_done = False
+                    if include_package:
+                        payment_rule = DoctorPaymentRules.objects.get(id=package_id)
 
-            if not package:
-                payment_rule = None
-                package = None
-                if include_package:
-                    logger.debug(package_id)
-                    payment_rule = DoctorPaymentRules.objects.get(id=package_id)
+            except Exception as e:
+                logger.error(f"Error checking package: {e}")
 
-            # --- Create Appointment ---
-            # logger.debug(session.gender_preference , session.language_preference , session.category)
+            # ====== CREATE APPOINTMENT ======
             logger.debug(f"gender_pref {gender_pref} language_pref {language_pref} category {category}")
             logger.debug(f"package {package} include_package {include_package} payment_rule {payment_rule}")
+
             appointment = AppointmentHeader.objects.create(
                 customer=customer_profile,
                 category=category,
@@ -779,20 +776,20 @@ class FinalSubmit(CreateAPIView):
                 referral=Referral.objects.get(id=referral_id) if referral_id else None,
                 is_referred=bool(referral_id),
                 booked_by="customer",
-                payment_required = payment_required,
+                payment_required=payment_required,
                 payment_done=payment_done,
-                package_used = True if package else False,
-                payment_rule=payment_rule if include_package else None,
-                package_included=include_package if include_package else False,
-
+                package_used=True if package else False,
+                payment_rule=payment_rule,
+                package_included=bool(include_package),
             )
 
             Appointment_customers.objects.create(
-                customer = customer_profile,
-                appointment = appointment,
+                customer=customer_profile,
+                appointment=appointment,
             )
-            if appointment.is_couple:
-                if  customer_profile.partner:
+
+            if is_couple:
+                if customer_profile.partner:
                     Appointment_customers.objects.get_or_create(
                         customer=customer_profile.partner,
                         appointment=appointment,
@@ -801,7 +798,6 @@ class FinalSubmit(CreateAPIView):
             if referral_id:
                 Referral.objects.filter(id=referral_id).update(converted_to_appointment=True)
 
-            # --- Save Doctor Appointment ---
             DoctorAppointment.objects.create(
                 doctor=doctor,
                 specialization=appointment.specialization,
@@ -810,27 +806,24 @@ class FinalSubmit(CreateAPIView):
                 appointment=appointment,
             )
 
-            # customer_profile.gender
-
-            # --- Schedule Auto-Cancel ---
             from .tasks import delete_unpaid_appointment
-            delete_unpaid_appointment.apply_async((appointment.appointment_id,), countdown=900)
+            delete_unpaid_appointment.apply_async(
+                (appointment.appointment_id,),
+                countdown=900
+            )
 
             return Response({
                 "message": "Appointment successfully booked",
-                'payment_required':payment_required,
+                'payment_required': payment_required,
                 "appointment": AppointmentHeaderSerializer(appointment).data,
-                "is_couple"             :appointment.is_couple,
-                "doctor_qualification" : appointment.doctor.qualification,
-                "patient_country"       :appointment.customer.country_details.country_name
-                
+                "is_couple": appointment.is_couple,
+                "doctor_qualification": appointment.doctor.qualification,
+                "patient_country": appointment.customer.country_details.country_name
             }, status=201)
 
         except Exception as e:
             logger.debug(f"Error in FinalSubmit: {str(e)}")
             return Response({"error": str(e)}, status=400)
-
-
 
 
 
