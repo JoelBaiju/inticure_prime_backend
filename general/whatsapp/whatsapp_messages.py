@@ -609,7 +609,7 @@ def send_wa_consultation_canceled_by_patient_to_specialist(appointment_id):
         date_time       = convert_datetime_to_words_in_local_tz(appointment.start_time , appointment.doctor.time_zone)
         to_phone        = appointment.doctor.whatsapp_country_code + appointment.doctor.whatsapp_number
     except AppointmentHeader.DoesNotExist:
-        print(f"Appointment does not exist.for id {appointment_id}")
+        logger.error(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
 
     parameters = [
@@ -640,7 +640,7 @@ def send_wa_patient_requested_cancellation (appointment_id):
         to_phone        = appointment.customer.country_code + appointment.customer.whatsapp_number
 
     except AppointmentHeader.DoesNotExist:
-        print(f"Appointment does not exist.for id {appointment_id}")
+        logger.error(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
     parameters = [
         {"type": "text", "parameter_name": "patient_name", "text": patient_name},
@@ -697,7 +697,7 @@ def send_wa_appointment_confirmation(appointment_id):
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
         meet_code       = meeting_tracker.customer_1_meeting_id
     except AppointmentHeader.DoesNotExist:
-        print(f"Appointment does not exist.for id {appointment_id}")
+        logger.error(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
 
     parameters = [
@@ -742,7 +742,7 @@ def send_wa_first_consultation_confirmation(appointment_id):
         meet_code       = meeting_tracker.customer_1_meeting_id
 
     except AppointmentHeader.DoesNotExist:
-        print(f"Appointment does not exist.for id {appointment_id}")
+        logger.error(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
 
     parameters = [
@@ -781,7 +781,7 @@ def send_wa_consultation_confirmation_to_specialist(appointment_id):
 
 
     except AppointmentHeader.DoesNotExist:
-        print(f"Appointment does not exist.for id {appointment_id}")
+        logger.error(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
 
     parameters = [
