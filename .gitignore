@@ -5,6 +5,9 @@ general/gmeet/token.json
 
 general/gmeet/client_secret.json
 general/gmeet/inticure-382312-bd3b5ca5916f.json
+__pycache__/
+*.pyc
+*.pyo
 
 logs/*
 !.gitignore

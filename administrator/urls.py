@@ -4,7 +4,7 @@ from .views import *
 from .Views.customer_views import *
 from .Views.doctor_view import *
 from .Views.finance_views import *
-from .Views.dashboard_views import Admin_dashboard
+from .Views.dashboard_views import Admin_dashboard , AdminAppointmentListView
 
 urlpatterns = [
    
@@ -61,6 +61,7 @@ urlpatterns = [
     path('appointments/<int:appointment_id>/complete/', CompleteAppointment.as_view(), name='complete-appointment'),
     path('create_appointment/', CreateAppointment.as_view(), name='create-appointment'),
 
+    path('appointments/', AdminAppointmentListView.as_view(), name='appointments-list'),
 
     path('refunds/', get_refunds_view, name='get_refunds_view'),
     path('payouts/', get_payout_view, name='get_payout_view'),
@@ -69,4 +70,5 @@ urlpatterns = [
 
 
     path('dashboard/', Admin_dashboard.as_view(), name='admin_dashboard'),
+    
 ]
