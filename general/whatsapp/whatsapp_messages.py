@@ -1362,7 +1362,7 @@ def track_whatsapp_reminder(user, appointment, whatsapp_number, template_name, p
         user_is_customer=user_is_customer,
         appointment=appointment,
         whatsapp_number=whatsapp_number,
-        email="",  # Not used for WhatsApp reminders
+        email="",  # Not u sed for WhatsApp reminders
         subject=template_name,
         body=body
     )
