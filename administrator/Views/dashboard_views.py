@@ -35,7 +35,7 @@ from ..services.appointment_services import (
 
 
 class AdminAppointmentListView(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     pagination_class = StandardPagination
 
     def get_queryset(self):
