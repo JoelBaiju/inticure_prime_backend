@@ -98,6 +98,7 @@ class CustomerPreviousAppointmentsSerializer(serializers.ModelSerializer):
 
 
 from general.finance.calculators import first_consultation_cost_calculator
+from inticure_prime_backend.settings import ADMIN_TIME_ZONE
 
 
 class CustomerDashboardSerializer(serializers.ModelSerializer):
@@ -182,10 +183,14 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
         result = []
         for appt in appointments:
             local_dt = convert_utc_to_local_return_dt(appt.start_time, obj.time_zone)
+            ist_dt   = convert_utc_to_local_return_dt(appt.start_time, ADMIN_TIME_ZONE)
             result.append({
                 "appointment_id": appt.appointment_id,
                 "appointment_date": local_dt.date(),
                 "appointment_time": local_dt.time(),
+                "appointment_time_admin": ist_dt.time(),
+                "appointment_date_admin": ist_dt.date(),
+                "patient_time_zone": obj.time_zone,
                 "doctor_name": f" {appt.doctor.first_name} {appt.doctor.last_name}".strip()
                                 if appt.doctor else "N/A",
                 "status": appt.appointment_status,
@@ -219,6 +224,7 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
         result = []
         for appt in appointments:
             local_dt = convert_utc_to_local_return_dt(appt.start_time, obj.time_zone)
+            ist_dt   = convert_utc_to_local_return_dt(appt.start_time, ADMIN_TIME_ZONE)
             tracker = Meeting_Tracker.objects.get(appointment = appt)
             ttd = appt.temporary_transaction_data.first()
             payment_id = None
@@ -231,6 +237,9 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                 "appointment_id": appt.appointment_id,
                 "appointment_date": local_dt.date(),
                 "appointment_time": local_dt.time(),
+                "appointment_time_admin": ist_dt.time(),
+                "appointment_date_admin": ist_dt.date(),
+                "patient_time_zone": obj.time_zone,
                 "doctor_name": f" {appt.doctor.first_name} {appt.doctor.last_name}".strip()
                                 if appt.doctor else "N/A",
                 "status": appt.appointment_status,
@@ -266,10 +275,17 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
         result = []
         for appt in appointments:
             local_dt = convert_utc_to_local_return_dt(appt.start_time, obj.time_zone)
+            ist_dt   = convert_utc_to_local_return_dt(appt.start_time, ADMIN_TIME_ZONE)
+            meeting_tracker = Meeting_Tracker.objects.filter(appointment=appt).first()
             result.append({
                 "appointment_id": appt.appointment_id,
                 "appointment_date": local_dt.date(),
                 "appointment_time": local_dt.time(),
+                "appointment_time_admin": ist_dt.time(),
+                "appointment_date_admin": ist_dt.date(),
+                "patient_time_zone": obj.time_zone,
+                "patient_joined" : meeting_tracker.customer_1_joined if meeting_tracker else False,
+                "doctor_joined" : meeting_tracker.doctor_joined if meeting_tracker else False,
                 "doctor_name": f" {appt.doctor.first_name} {appt.doctor.last_name}".strip()
                                 if appt.doctor else "N/A",
                 "status": appt.appointment_status,
@@ -327,10 +343,14 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
         for appt in rescheduled:
             latest_reschedule = appt.reschedule_history.order_by("-initiated_on").first()
             local_dt = convert_utc_to_local_return_dt(appt.start_time, obj.time_zone)
+            ist_dt   = convert_utc_to_local_return_dt(appt.start_time, ADMIN_TIME_ZONE)
             result.append({
                 "appointment_id": appt.appointment_id,
                 "appointment_date": local_dt.date(),
                 "appointment_time": local_dt.time(),
+                "appointment_time_admin": ist_dt.time(),
+                "appointment_date_admin": ist_dt.date(),
+                "patient_time_zone": obj.time_zone,
                 "doctor_name": f"{appt.doctor.first_name} {appt.doctor.last_name}".strip()
                                 if appt.doctor else "N/A",
                 "status": appt.appointment_status,
@@ -368,10 +388,14 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
         result = []
         for appt in followup_appointments:
             local_dt = convert_utc_to_local_return_dt(appt.start_time, obj.time_zone)
+            ist_dt   = convert_utc_to_local_return_dt(appt.start_time, ADMIN_TIME_ZONE)
             result.append({
                 "appointment_id": appt.appointment_id,
                 "appointment_date": local_dt.date(),
                 "appointment_time": local_dt.time(),
+                "appointment_time_admin": ist_dt.time(),
+                "appointment_date_admin": ist_dt.date(),
+                "patient_time_zone": obj.time_zone,
                 "doctor_name": f" {appt.doctor.first_name} {appt.doctor.last_name}".strip()
                                 if appt.doctor else "N/A",
                 "status": appt.appointment_status,
@@ -404,10 +428,14 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
         result = []
         for appt in cancelled_appointments:
             local_dt = convert_utc_to_local_return_dt(appt.start_time, obj.time_zone)
+            ist_dt   = convert_utc_to_local_return_dt(appt.start_time, ADMIN_TIME_ZONE)
             result.append({
                 "appointment_id": appt.appointment_id,
                 "appointment_date": local_dt.date(),
                 "appointment_time": local_dt.time(),
+                "appointment_time_admin": ist_dt.time(),
+                "appointment_date_admin": ist_dt.date(),
+                "patient_time_zone": obj.time_zone,
                 "doctor_name": f" {appt.doctor.first_name} {appt.doctor.last_name}".strip()
                                 if appt.doctor else "N/A",
                 "status": appt.appointment_status,
