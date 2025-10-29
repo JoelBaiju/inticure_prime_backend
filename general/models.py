@@ -111,7 +111,7 @@ class Reminder_Sent_History(models.Model):
     whatsapp_number = models.CharField(max_length=100)
     email = models.CharField(max_length=100)
     subject = models.CharField(max_length=100)
-    body = models.CharField(max_length=500)
+    body = models.TextField(null=True)
     sent_at = models.DateTimeField(auto_now_add=True)
 
     
