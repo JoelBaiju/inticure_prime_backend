@@ -1368,10 +1368,10 @@ def send_doctor_status_email(doctor_id):
 # ---------------------------------------------------------------------
 # Reminder emails (customer/doctor)
 # ---------------------------------------------------------------------
-def send_appointment_reminder_customer_email(appintment_id, message):
+def send_appointment_reminder_customer_email(appointment_id, message):
     """Send and track appointment reminder email to customer"""
     try:
-        appointment = AppointmentHeader.objects.get(appointment_id=appintment_id)
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         appointment_customers = appointment.appointment_customers.all()
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
         for customer in appointment_customers:
