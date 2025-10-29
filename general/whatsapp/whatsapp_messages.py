@@ -1457,6 +1457,7 @@ def send_wa_consultation_rescheduled_admin_notification(appointment_id):
 def send_wa_consultation_confirmation_to_admin(appointment_id ):
 
     try:
+        logger.debug(f"sending admin wa for appointment id {appointment_id}")
         appointment     = AppointmentHeader.objects.get(appointment_id=appointment_id)
         patient_name    = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
         specialist_name = appointment.doctor.first_name
@@ -1476,6 +1477,7 @@ def send_wa_consultation_confirmation_to_admin(appointment_id ):
         ]
 
         for number in ADMIN_WA_NUMBERS:
+            logger.debug(f"sending admin wa to number {number} ")
             send_and_track(
                 to_phone=number,
                 template_name="appointment_confirmation_to_admin",

@@ -1021,7 +1021,7 @@ def send_appointment_confirmation_email_to_admin(appointment_id):
     except AppointmentHeader.DoesNotExist:
         logger.debug('fun name: send_appointment_confirmation_email_to_admin in email service Sending appointment confirmation email failed appointment id invalid')
         return False
-
+    logger.info(f"Sending appointment confirmation email to admin for appointment_id: {appointment_id}")
     subject = "New Appointment Confirmed - Inticure"
     doctor_salutation = appointment.doctor.salutation
     start_time = convert_utc_to_local_return_dt(appointment.start_time, "Asia/Kolkata")
