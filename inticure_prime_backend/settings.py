@@ -310,7 +310,8 @@ DEFAULT_FROM_EMAIL = 'wecare@inticure.com'  # Default from email (can be your Gm
 
 # ADMIN_CC_EMAILS = ['wecare@inticure.com']
 ADMIN_CC_EMAILS = ['joelbaiju98@gmail.com','nikhilappu112@gmail.com']
-
+# ADMIN_WA_NUMBERS = ['+917483963192','+919562512875']
+ADMIN_WA_NUMBERS = ['+918891268078']
 
 
 

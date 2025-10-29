@@ -23,6 +23,8 @@ def send_appointment_cancel_notification(appointment_id):
         
         logger.debug(f"send_appointment_cancellation_email_to_admin for appointment id {appointment_id}")
         logger.debug(send_appointment_cancellation_email_to_admin(appointment_id))
+        logger.debug(f"send_wa_consultation_cancelled_to_admin for appointment id {appointment_id}")
+        logger.debug(send_wa_consultation_cancelled_to_admin(appointment_id))
         logger.debug(f"send_appointment_cancellation_email_to_specialist for appointment id {appointment_id}")
         logger.debug(send_appointment_cancellation_email_to_specialist(appointment_id))
         logger.debug(f"send_wa_consultation_canceled_by_patient_to_specialist for appointment id {appointment_id}")
@@ -63,6 +65,7 @@ def send_appointment_confirmation_notification(appointment_id):
         send_wa_consultation_confirmation_to_specialist(appointment_id)
         send_appointment_confirmation_doctor_email(appointment_id)
         send_appointment_confirmation_email_to_admin(appointment_id)
+        send_wa_consultation_confirmation_to_admin(appointment_id)
 
     except AppointmentHeader.DoesNotExist:
         logger.debug(f"Appointment does not exist.for id {appointment_id}")
@@ -91,6 +94,7 @@ def send_appointment_reshceduled_notification(appointment_id,old_date_time , new
         send_wa_consultation_rescheduled_by_patient_to_specialist(appointment_id , old_date_time, new_date_time)
 
         send_appointment_rescheduled_email_admin(appointment_id,old_date_time.date(),old_date_time.time(),new_date_time.date() , new_date_time.time())
+        send_wa_consultation_rescheduled_admin_notification(appointment_id)
     except AppointmentHeader.DoesNotExist:
         logger.debug(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
@@ -217,7 +221,7 @@ def send_reminder(appointment_id, reminder_type):
     if appointment.customer.confirmation_method.lower() in ["whatsapp", "both"]:
         if reminder_type == "one_hour":
             send_wa_consultation_reminder_1_hour_before(appointment_id)
-        elif reminder_type == "one_day":
+        else:
             send_wa_consultation_reminder_24_hours_before(appointment_id)
 
     # DOCTOR - Email
@@ -229,7 +233,8 @@ def send_reminder(appointment_id, reminder_type):
     # WHATSAPP: Doctor (if needed later)
     if reminder_type == "one_hour":
         send_wa_specialist_reminder_1_hour_before(appointment_id)
-    # Placeholder for one_day in future
+    else:
+        send_wa_specialist_reminder_1_hour_before(appointment_id)
 
 
 

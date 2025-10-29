@@ -1394,8 +1394,8 @@ def send_appointment_reminder_customer_email(appointment_id, message):
             _render_and_send_email("appointment_reminder/appointment_reminder_customer.html", subject, customer.customer.email, context, user=customer.customer.user, appointment=appointment, user_is_customer=True)
 
     except Exception as e:
-        logger.debug(f"appointment_reminder_customer Email not sent error{e}")
-        return f"appointment_reminder_customer Email not sent error{e}"
+        logger.debug(f"appointment_reminder_customer appointment_id = {appointment_id} Email not sent error{e}")
+        return f"appointment_reminder_customer appointment_id = {appointment_id} Email not sent error{e}"
 
 
 def send_appointment_reminder_doctor_email(appointment_id, message):
@@ -1423,8 +1423,8 @@ def send_appointment_reminder_doctor_email(appointment_id, message):
         return send_email_and_track(appointment.doctor.email_id, subject, html_content, user=None, appointment=appointment, user_is_customer=False)
 
     except Exception as e:
-        logger.debug(f"appointment_reminder_doctor Email not sent error{e}")
-        return f"appointment_reminder_doctor Email not sent error{e}"
+        logger.debug(f"appointment_reminder_doctor appointment_id = {appointment_id} Email not sent error{e}")
+        return f"appointment_reminder_doctor appointment_id = {appointment_id}  Email not sent error{e}"
 
 
 def send_appointment_started_reminder_doctor_email(appointment_id):
