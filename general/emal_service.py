@@ -926,13 +926,13 @@ from analysis.models import Appointment_customers, Meeting_Tracker, AppointmentH
 from doctor.models import DoctorProfiles
 from general.models import Reminder_Sent_History
 from general.sendgrid import send_email_via_sendgrid, send_email_via_smtp
-from inticure_prime_backend.settings import BACKEND_URL, ADMIN_CC_EMAILS
+from inticure_prime_backend.settings import BACKEND_URL, ADMIN_CC_EMAILS ,FRONT_END_URL
 from .utils import convert_utc_to_local_return_dt
 
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------
-# Helpers (do not change template parameters or context keys used by templates)
+# Helpers 
 # ---------------------------------------------------------------------
 def track_email_reminder(user, appointment, email, subject, body, user_is_customer=False):
     """Helper function to track email reminders"""
@@ -941,7 +941,7 @@ def track_email_reminder(user, appointment, email, subject, body, user_is_custom
             user=user,
             user_is_customer=user_is_customer,
             appointment=appointment,
-            whatsapp_number="",  # Not used for email reminders
+            whatsapp_number="",  
             email=email,
             subject=subject,
             body=body
@@ -956,10 +956,8 @@ def send_email_and_track(to_email, subject, html_content, user=None, appointment
     Returns whatever the underlying send function returns (to preserve existing behavior).
     """
     try:
-        # send via SendGrid as before
         response = send_email_via_sendgrid(subject, html_content, to_email)
 
-        # Track, but do not raise on tracking errors
         try:
             track_email_reminder(
                 user=user,
@@ -999,7 +997,6 @@ def get_meeting_link_for_customer(meeting_tracker, customer):
     This preserves the exact meetingId values that templates receive today.
     """
     try:
-        # Keep the exact logic used in your file (comparing model instances)
         meeting_id = None
         if hasattr(meeting_tracker, "customer_1") and meeting_tracker.customer_1 == customer:
             meeting_id = getattr(meeting_tracker, "customer_1_meeting_id", None)
@@ -1007,16 +1004,16 @@ def get_meeting_link_for_customer(meeting_tracker, customer):
             meeting_id = getattr(meeting_tracker, "customer_2_meeting_id", None)
 
         if meeting_id:
-            return f"{BACKEND_URL}/join-meeting?meetingId={meeting_id}"
+            return f"{FRONT_END_URL}/join-meeting?meetingId={meeting_id}"
         else:
-            return f"{BACKEND_URL}/join-meeting"
+            return f"{FRONT_END_URL}/join-meeting"
     except Exception as e:
         logger.exception(f"Error building meeting link for customer {customer}: {e}")
-        return f"{BACKEND_URL}/join-meeting"
+        return f"{FRONT_END_URL}/join-meeting"
 
 
 # ---------------------------------------------------------------------
-# Email functions (preserve parameter names and templates exactly)
+# Email functions
 # ---------------------------------------------------------------------
 def send_appointment_confirmation_email_to_admin(appointment_id):
     try:
@@ -1119,7 +1116,6 @@ def send_appointment_cancellation_email(appointment_id):
 
     for app_customer in appointment_customers:
         start_time = convert_utc_to_local_return_dt(appointment.start_time, app_customer.customer.time_zone)
-        # build a fresh context per iteration to avoid accidental cross-iteration mutation
         context = dict(base_context)
         context['date'] = start_time.date()
         context['time'] = start_time.time()

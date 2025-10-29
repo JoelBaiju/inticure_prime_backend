@@ -413,22 +413,19 @@ class Email_tester(APIView):
     
 
 
-class Email_tester2(APIView):
+class Email_testerfor_ishaq(APIView):
     def get(self, request):
-        subject = "Verify Your Email - Inticure"
-
-        context = {
-            "name": "joel",
-            "otp": '123456',
-            'year':timezone.now().year,
-            'backend_url':BACKEND_URL,  
-        }
-
-        html_content = render_to_string("email_otp.html", context)
-
-        send_email_via_sendgrid(subject, html_content, "joelbaiju98@gmail.com")
-
-        return Response("ssfs")
+        try:
+        
+            send_appointment_reminder_customer_email(
+                appointment_id=197,
+                message="Reminder: Your Consultation is Scheduled is about to start.",
+            )
+            logger.info("Appointment reminder email sent successfully for appointment ID %s", 108)
+        except Exception as e:  
+            logger.error("Error sending email: %s", str(e))
+            return Response("Error sending email", status=500)
+        return Response("Sent")
 
 
 

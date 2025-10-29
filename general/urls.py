@@ -15,7 +15,7 @@ urlpatterns = [
     path('create-google-meet/', GoogleMeetBackendView.as_view()),
     path('get-google-meet-logs/', Get_logs.as_view()),
     path('email/', Email_tester.as_view()),
-    path('email2/', Email_tester2.as_view()),
+    path('email2/', Email_testerfor_ishaq.as_view()),
     path('whatsapp_callback/',whatsapp_callback),
     path('me/',meeting_waiting_room),
     path('swtm/',swtm_view),

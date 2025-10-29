@@ -1368,6 +1368,65 @@ def track_whatsapp_reminder(user, appointment, whatsapp_number, template_name, p
     )
 
 
+
+
+
+
+
+# for admin notification ======================================================
+
+
+
+
+
+def send_wa_consultation_rescheduled_admin_notification(to_phone, initiated_by, doctor_name, username, appointment_id, prev_date_ist, prev_time_ist, prev_date_local, prev_time_local, new_date_ist, new_time_ist, new_date_local, new_time_local, patient_timezone):
+    parameters = [  
+        {"type": "text", "parameter_name": "initiated_by", "text": initiated_by},
+        {"type": "text", "parameter_name": "doctor_name", "text": doctor_name},
+        {"type": "text", "parameter_name": "username", "text": username},
+        {"type": "text", "parameter_name": "appointment_id", "text": appointment_id},
+        {"type": "text", "parameter_name": "prev_date_ist", "text": prev_date_ist},
+        {"type": "text", "parameter_name": "prev_time_ist", "text": prev_time_ist},
+        {"type": "text", "parameter_name": "prev_date_local", "text": prev_date_local},
+        {"type": "text", "parameter_name": "prev_time_local", "text": prev_time_local},
+        {"type": "text", "parameter_name": "new_date_ist", "text": new_date_ist},
+        {"type": "text", "parameter_name": "new_time_ist", "text": new_time_ist},
+        {"type": "text", "parameter_name": "new_date_local", "text": new_date_local},
+        {"type": "text", "parameter_name": "new_time_local", "text": new_time_local},
+        {"type": "text", "parameter_name": "patient_timezone", "text": patient_timezone},
+    ]
+    return send_and_track(
+        to_phone=to_phone,
+        template_name="appointment_rescheduled_admin",
+        parameters=parameters,
+        button_parameters=None,
+        user=None,
+        appointment=None,
+        user_is_customer=False
+    )
+
+
+def send_wa_consultation_confirmation_to_admin(to_phone, patient_name, specialist_name, date_time_ist , date_time_patient_tz , appointment_id ,patient_timezone):
+    parameters = [
+        {"type": "text", "parameter_name": "patient_name", "text": patient_name},
+        {"type": "text", "parameter_name": "specialist_name", "text": specialist_name},
+        {"type": "text", "parameter_name": "date_ist", "text": date_time_ist.date()}, 
+        {"type": "text", "parameter_name": "time_ist", "text": date_time_ist.time()}, 
+        {"type": "text", "parameter_name": "patient_timezone", "text": patient_timezone},
+        {"type": "text", "parameter_name": "date_local", "text": date_time_patient_tz.date()}, 
+        {"type": "text", "parameter_name": "time_local", "text": date_time_patient_tz.time()},
+    ]
+
+    return send_and_track(
+        to_phone=to_phone,
+        template_name="consultation_missed_specialist_noshow",
+        parameters=parameters,
+        button_parameters=None,
+        user=None,
+        appointment=None,
+        user_is_customer=False
+    )
+
 # -------------------------------------------------------------------------
 # Helper: centralised send + track (keeps parameter/template names unchanged)
 # -------------------------------------------------------------------------
@@ -1409,3 +1468,17 @@ def send_and_track(to_phone, template_name, parameters, button_parameters=None, 
     except Exception as e:
         logger.exception(f"Error sending whatsapp template {template_name} to {to_phone}: {e}")
         return None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
