@@ -233,6 +233,7 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                     payment_id = ttd.stripe_transactions.first().stripe_payment_intent_id
                 elif ttd.razorpay_transactions.exists():
                     payment_id = ttd.razorpay_transactions.first().razorpay_payment_id
+            meeting_tracker = Meeting_Tracker.objects.filter(appointment=appt).first()
             result.append({
                 "appointment_id": appt.appointment_id,
                 "appointment_date": local_dt.date(),
@@ -242,6 +243,8 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
                 "patient_time_zone": obj.time_zone,
                 "doctor_name": f" {appt.doctor.first_name} {appt.doctor.last_name}".strip()
                                 if appt.doctor else "N/A",
+                "patient_joined" : meeting_tracker.customer_1_joined if meeting_tracker else False,
+                "doctor_joined" : meeting_tracker.doctor_joined if meeting_tracker else False,
                 "status": appt.appointment_status,
                 "specialization": appt.specialization.specialization if appt.specialization else "N/A",
                 "specialization_id": appt.specialization.specialization_id if appt.specialization else "N/A",
