@@ -1036,7 +1036,7 @@ def send_appointment_confirmation_email_to_admin(appointment_id):
         'appointment_id': appointment_id,
     }
     for admin_email in ADMIN_CC_EMAILS:
-        _render_and_send_email("appointment_confirmation/appointment_confirmation_admin.html", subject, admin_email, context)
+        _render_and_send_email("appointment_confirmation/appointment_confirmation_admin.html", subject, admin_email, context ,None , appointment , False)
     return True
 
 
