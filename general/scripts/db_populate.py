@@ -7,7 +7,7 @@ def populate_general_payment_rules_for_euro_countries():
     # Define your 5 base payment rules (for cloning)
     base_rules = [
         {
-            "specialization_id": 4,
+            "specialization_id": 5,
             "doctor_flag": "senior",
             "experience": "high",
             "doctor_fee_couple": 800,
@@ -20,7 +20,7 @@ def populate_general_payment_rules_for_euro_countries():
             "actual_price_single": None,
         },
         {
-            "specialization_id": 4,
+            "specialization_id": 5,
             "doctor_flag": "senior",
             "experience": "high",
             "doctor_fee_couple": 3570,
@@ -33,7 +33,7 @@ def populate_general_payment_rules_for_euro_countries():
             "actual_price_single": 150,
         },
         {
-            "specialization_id": 4,
+            "specialization_id": 5,
             "doctor_flag": "senior",
             "experience": "high",
             "doctor_fee_couple": 7145,
@@ -46,7 +46,7 @@ def populate_general_payment_rules_for_euro_countries():
             "actual_price_single": 300,
         },
         {
-            "specialization_id": 4,
+            "specialization_id": 5,
             "doctor_flag": "senior",
             "experience": "high",
             "doctor_fee_couple": 10720,
@@ -59,7 +59,7 @@ def populate_general_payment_rules_for_euro_countries():
             "actual_price_single": 450,
         },
         {
-            "specialization_id": 4,
+            "specialization_id": 5,
             "doctor_flag": "senior",
             "experience": "high",
             "doctor_fee_couple": 14295,

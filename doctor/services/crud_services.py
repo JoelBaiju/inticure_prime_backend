@@ -173,6 +173,10 @@ def create_new_appointment_service(data):
     doctor = DoctorProfiles.objects.get(doctor_profile_id=doctor_id)
     
     # Convert slot times to UTC
+    # Here the customer's time zone is used to interpret the slot times because the slots were 
+    # originally presented to the doctor based on the customer's time zone.
+    # This ensures that the appointment is scheduled correctly according to the customer's local time.
+
     start_datetime_utc = convert_local_dt_to_utc(slot.get("start"), customer.time_zone)
     end_datetime_utc = convert_local_dt_to_utc(slot.get("end"), customer.time_zone)
 
