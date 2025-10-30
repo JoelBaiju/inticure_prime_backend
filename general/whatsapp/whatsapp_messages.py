@@ -1484,7 +1484,7 @@ def send_wa_consultation_confirmation_to_admin(appointment_id ):
                 parameters=parameters,
                 button_parameters=None,
                 user=None,
-                appointment=None,
+                appointment=appointment,
                 user_is_customer=False
             )
     except Exception as e:
@@ -1522,7 +1522,7 @@ def send_wa_consultation_cancelled_to_admin(appointment_id):
                 parameters=parameters,
                 button_parameters=None,
                 user=None,
-                appointment=None,
+                appointment=appointment,
                 user_is_customer=False
             )
     except Exception as e:
