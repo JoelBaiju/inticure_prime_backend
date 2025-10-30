@@ -106,7 +106,7 @@ from general.utils import (
 from ..slots_service import get_available_slots
 
 
-def fetch_available_slots(user, doctor_id ,specialization_id, preferred_date=None,country=None):
+def fetch_available_slots(user, doctor_id ,specialization_id, preferred_date=None,country=None , timezone_str=None):
     # Validate doctor
     doctor = DoctorProfiles.objects.get(doctor_profile_id=doctor_id)
 
@@ -114,7 +114,9 @@ def fetch_available_slots(user, doctor_id ,specialization_id, preferred_date=Non
     if user.is_superuser:
         timezone_str = "Asia/Calcutta"
     else:
-        timezone_str = get_doctor_timezone_from_user(user)
+        # timezone_str = get_doctor_timezone_from_user(user)
+        timezone_str = timezone_str
+
     if not timezone_str:
         raise Exception("Doctor time zone not set")
 

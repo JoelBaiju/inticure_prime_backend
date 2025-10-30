@@ -171,10 +171,10 @@ def create_new_appointment_service(data):
 
     # Doctor
     doctor = DoctorProfiles.objects.get(doctor_profile_id=doctor_id)
-
+    
     # Convert slot times to UTC
-    start_datetime_utc = convert_local_dt_to_utc(slot.get("start"), doctor.time_zone)
-    end_datetime_utc = convert_local_dt_to_utc(slot.get("end"), doctor.time_zone)
+    start_datetime_utc = convert_local_dt_to_utc(slot.get("start"), customer.time_zone)
+    end_datetime_utc = convert_local_dt_to_utc(slot.get("end"), customer.time_zone)
 
     # Overlap check
     overlapping = DoctorAppointment.objects.filter(

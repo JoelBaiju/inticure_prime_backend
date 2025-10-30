@@ -149,7 +149,7 @@ def get_available_slots_by_doctor(request):
     except AppointmentHeader.DoesNotExist:
         return Response({"error": "Customer or appointment not found"}, status=404)
     try:
-        results = fetch_available_slots(request.user, doctor_id,specialization_id, preferred_date,country)
+        results = fetch_available_slots(request.user, doctor_id,specialization_id, preferred_date,country , timezone_str=customer.time_zone)
         return Response({"slots": results}, status=200)
     except DoctorProfiles.DoesNotExist:
         return Response({"error": "Doctor not found"}, status=404)
