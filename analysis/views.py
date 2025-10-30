@@ -1171,7 +1171,7 @@ def appointment_routine_notifications(appointment_id):
     logger.debug("inside_routine notifications")
     logger.debug("inside_routine notifications")
 
-    send_appointment_confirmation_notification.delay(appointment_id)  
+    send_appointment_confirmation_notification(appointment_id)  
 
     logger.debug("inside_routine notifications")
     logger.debug("inside_routine notifications")
