@@ -1417,22 +1417,29 @@ def send_wa_consultation_rescheduled_admin_notification(appointment_id):
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         rescheduler = Reschedule_history.objects.filter(appointment=appointment).first()
-        specialist_name = f"{ appointment.doctor.first_name} { appointment.doctor.last_name}"
+        specialist_name = f"{appointment.doctor.first_name} {appointment.doctor.last_name}"
         salutation = appointment.doctor.salutation
-        tracker = Meeting_Tracker.objects.get(appointment = appointment)
-        parameters = [  
+        tracker = Meeting_Tracker.objects.get(appointment=appointment)
+
+        # Convert previous and new datetimes for both IST and patient timezone
+        prev_ist = convert_utc_to_local_return_dt(rescheduler.previous_start_time, ADMIN_TIME_ZONE)
+        prev_local = convert_utc_to_local_return_dt(rescheduler.previous_start_time, appointment.customer.time_zone)
+        new_ist = convert_utc_to_local_return_dt(rescheduler.new_start_time, ADMIN_TIME_ZONE)
+        new_local = convert_utc_to_local_return_dt(rescheduler.new_start_time, appointment.customer.time_zone)
+
+        parameters = [
             {"type": "text", "parameter_name": "initiated_by", "text": rescheduler.initiated_by},
             {"type": "text", "parameter_name": "doctor_name", "text": specialist_name},
             {"type": "text", "parameter_name": "username", "text": f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"},
-            {"type": "text", "parameter_name": "appointment_id", "text": appointment_id},
-            {"type": "text", "parameter_name": "prev_date_ist", "text": convert_utc_to_local_return_dt(rescheduler.previous_start_time,ADMIN_TIME_ZONE).date()},
-            {"type": "text", "parameter_name": "prev_time_ist", "text": convert_utc_to_local_return_dt(rescheduler.previous_start_time,ADMIN_TIME_ZONE).time()},
-            {"type": "text", "parameter_name": "prev_date_local", "text": convert_utc_to_local_return_dt(rescheduler.previous_start_time,appointment.customer.time_zone).date()},
-            {"type": "text", "parameter_name": "prev_time_local", "text": convert_utc_to_local_return_dt(rescheduler.previous_start_time,appointment.customer.time_zone).time()},
-            {"type": "text", "parameter_name": "new_date_ist", "text": convert_utc_to_local_return_dt(rescheduler.new_start_time,ADMIN_TIME_ZONE).date()},
-            {"type": "text", "parameter_name": "new_time_ist", "text": convert_utc_to_local_return_dt(rescheduler.new_start_time,ADMIN_TIME_ZONE).time()},
-            {"type": "text", "parameter_name": "new_date_local", "text": convert_utc_to_local_return_dt(rescheduler.new_start_time,appointment.customer.time_zone).date()},
-            {"type": "text", "parameter_name": "new_time_local", "text": convert_utc_to_local_return_dt(rescheduler.new_start_time,appointment.customer.time_zone).time()},
+            {"type": "text", "parameter_name": "appointment_id", "text": str(appointment_id)},
+            {"type": "text", "parameter_name": "prev_date_ist", "text": prev_ist.strftime("%Y-%m-%d")},
+            {"type": "text", "parameter_name": "prev_time_ist", "text": prev_ist.strftime("%H:%M")},
+            {"type": "text", "parameter_name": "prev_date_local", "text": prev_local.strftime("%Y-%m-%d")},
+            {"type": "text", "parameter_name": "prev_time_local", "text": prev_local.strftime("%H:%M")},
+            {"type": "text", "parameter_name": "new_date_ist", "text": new_ist.strftime("%Y-%m-%d")},
+            {"type": "text", "parameter_name": "new_time_ist", "text": new_ist.strftime("%H:%M")},
+            {"type": "text", "parameter_name": "new_date_local", "text": new_local.strftime("%Y-%m-%d")},
+            {"type": "text", "parameter_name": "new_time_local", "text": new_local.strftime("%H:%M")},
             {"type": "text", "parameter_name": "patient_timezone", "text": appointment.customer.time_zone},
         ]
 
@@ -1444,40 +1451,37 @@ def send_wa_consultation_rescheduled_admin_notification(appointment_id):
                 button_parameters=None,
                 user=None,
                 appointment=appointment,
-                user_is_customer=False
+                user_is_customer=False,
             )
-        
 
     except Exception as e:
-        logger.error(f"wa_consultation_rescheduled_admin_notification error{e}" )
+        logger.error(f"wa_consultation_rescheduled_admin_notification error for id {appointment_id}: {e}")
         return "Message not sent"
 
 
-
-def send_wa_consultation_confirmation_to_admin(appointment_id ):
-
+def send_wa_consultation_confirmation_to_admin(appointment_id):
     try:
         logger.debug(f"sending admin wa for appointment id {appointment_id}")
-        appointment     = AppointmentHeader.objects.get(appointment_id=appointment_id)
-        patient_name    = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        patient_name = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
         specialist_name = appointment.doctor.first_name
-        date_time_ist   = convert_utc_to_local_return_dt(appointment.start_time , ADMIN_TIME_ZONE)
-        date_time_patient_tz = convert_utc_to_local_return_dt(appointment.start_time , appointment.customer.time_zone)
+        date_time_ist = convert_utc_to_local_return_dt(appointment.start_time, ADMIN_TIME_ZONE)
+        date_time_patient_tz = convert_utc_to_local_return_dt(appointment.start_time, appointment.customer.time_zone)
         patient_timezone = appointment.customer.time_zone
 
         parameters = [
             {"type": "text", "parameter_name": "username", "text": patient_name},
             {"type": "text", "parameter_name": "doctor_name", "text": specialist_name},
-            {"type": "text", "parameter_name": "appointment_id", "text": appointment_id},
-            {"type": "text", "parameter_name": "date_ist", "text": date_time_ist.date()}, 
-            {"type": "text", "parameter_name": "time_ist", "text": date_time_ist.time()}, 
+            {"type": "text", "parameter_name": "appointment_id", "text": str(appointment_id)},
+            {"type": "text", "parameter_name": "date_ist", "text": date_time_ist.strftime("%Y-%m-%d")},
+            {"type": "text", "parameter_name": "time_ist", "text": date_time_ist.strftime("%H:%M")},
             {"type": "text", "parameter_name": "patient_timezone", "text": patient_timezone},
-            {"type": "text", "parameter_name": "date_local", "text": date_time_patient_tz.date()}, 
-            {"type": "text", "parameter_name": "time_local", "text": date_time_patient_tz.time()},
+            {"type": "text", "parameter_name": "date_local", "text": date_time_patient_tz.strftime("%Y-%m-%d")},
+            {"type": "text", "parameter_name": "time_local", "text": date_time_patient_tz.strftime("%H:%M")},
         ]
 
         for number in ADMIN_WA_NUMBERS:
-            logger.debug(f"sending admin wa to number {number} ")
+            logger.debug(f"sending admin wa to number {number}")
             send_and_track(
                 to_phone=number,
                 template_name="appointment_confirmation_to_admin",
@@ -1488,31 +1492,28 @@ def send_wa_consultation_confirmation_to_admin(appointment_id ):
                 user_is_customer=False
             )
     except Exception as e:
-        logger.error(f"could not sent wa message wa_consultation_confirmation_to_admin error for id {appointment_id} {e}" )
+        logger.error(f"could not send wa message wa_consultation_confirmation_to_admin error for id {appointment_id}: {e}")
         return "Message not sent"
 
 
-
-
 def send_wa_consultation_cancelled_to_admin(appointment_id):
-
     try:
-        appointment     = AppointmentHeader.objects.get(appointment_id=appointment_id)
-        patient_name    = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        patient_name = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
         specialist_name = appointment.doctor.first_name
-        date_time_ist   = convert_utc_to_local_return_dt(appointment.start_time , ADMIN_TIME_ZONE)
-        date_time_patient_tz = convert_utc_to_local_return_dt(appointment.start_time , appointment.customer.time_zone)
+        date_time_ist = convert_utc_to_local_return_dt(appointment.start_time, ADMIN_TIME_ZONE)
+        date_time_patient_tz = convert_utc_to_local_return_dt(appointment.start_time, appointment.customer.time_zone)
         patient_timezone = appointment.customer.time_zone
 
         parameters = [
             {"type": "text", "parameter_name": "username", "text": patient_name},
             {"type": "text", "parameter_name": "doctor_name", "text": specialist_name},
-            {"type": "text", "parameter_name": "appointment_id", "text": appointment_id},
-            {"type": "text", "parameter_name": "date_ist", "text": date_time_ist.date()}, 
-            {"type": "text", "parameter_name": "time_ist", "text": date_time_ist.time()}, 
+            {"type": "text", "parameter_name": "appointment_id", "text": str(appointment_id)},
+            {"type": "text", "parameter_name": "date_ist", "text": date_time_ist.strftime("%Y-%m-%d")},
+            {"type": "text", "parameter_name": "time_ist", "text": date_time_ist.strftime("%H:%M")},
             {"type": "text", "parameter_name": "patient_timezone", "text": patient_timezone},
-            {"type": "text", "parameter_name": "date_local", "text": date_time_patient_tz.date()}, 
-            {"type": "text", "parameter_name": "time_local", "text": date_time_patient_tz.time()},
+            {"type": "text", "parameter_name": "date_local", "text": date_time_patient_tz.strftime("%Y-%m-%d")},
+            {"type": "text", "parameter_name": "time_local", "text": date_time_patient_tz.strftime("%H:%M")},
         ]
 
         for number in ADMIN_WA_NUMBERS:
@@ -1525,10 +1526,10 @@ def send_wa_consultation_cancelled_to_admin(appointment_id):
                 appointment=appointment,
                 user_is_customer=False
             )
-    except Exception as e:
-        logger.error(f"could not sent wa message wa_consultation_cancelled_to_admin error for id {appointment_id} {e}" )
-        return "Message not sent"
 
+    except Exception as e:
+        logger.error(f"could not send wa message wa_consultation_cancelled_to_admin error for id {appointment_id}: {e}")
+        return "Message not sent"
 
 
 

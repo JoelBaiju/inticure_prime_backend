@@ -538,11 +538,11 @@ def swtm_view(request):
     #     date_time="2024-10-01 10:00 AM",
     #     meet_code="123654789"
     # )
-    logger.info("Creating meeting tracker for appointment %s", 109)
+    logger.info("Creating meeting tracker for appointment %s", 226)
 
 
     result = send_appointment_confirmation_notification(
-       appointment_id=109
+       appointment_id=226
     )
     logger.debug(result)
 

@@ -313,7 +313,7 @@ DEFAULT_FROM_EMAIL = 'wecare@inticure.com'  # Default from email (can be your Gm
 
 
 ADMIN_CC_EMAILS = ['joelbaiju98@gmail.com','nikhilappu112@gmail.com']
-ADMIN_WA_NUMBERS = ['+918891268078']
+ADMIN_WA_NUMBERS = ['+918891268078','+917034761676']
 
 
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
