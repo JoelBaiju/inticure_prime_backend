@@ -41,49 +41,8 @@ def send_appointment_cancel_notification(appointment_id):
 
 @shared_task
 def send_appointment_confirmation_notification(appointment_id):
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
+    
     logger.debug(f"send_appointment_confirmation_notification for appointment id {appointment_id}")
-    send_wa_consultation_confirmation_to_admin(appointment_id)
-    send_appointment_confirmation_email_to_admin(appointment_id)
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
-    logger.debug("inside send_appointment_confirmation_notification")
 
     try:
         appointment = AppointmentHeader.objects.get(appointment_id = appointment_id)
@@ -107,7 +66,9 @@ def send_appointment_confirmation_notification(appointment_id):
 
         send_wa_consultation_confirmation_to_specialist(appointment_id)
         send_appointment_confirmation_doctor_email(appointment_id)
-
+        send_wa_consultation_confirmation_to_admin(appointment_id)
+        send_appointment_confirmation_email_to_admin(appointment_id)
+    
     except AppointmentHeader.DoesNotExist:
         logger.debug(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."

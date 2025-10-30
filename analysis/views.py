@@ -1162,22 +1162,9 @@ from general.notification_controller import send_appointment_confirmation_notifi
 
 
 def appointment_routine_notifications(appointment_id):
-    logger.debug("inside_routine notifications")
-    logger.debug("inside_routine notifications")
-    logger.debug("inside_routine notifications")
-    logger.debug("inside_routine notifications")
-    logger.debug("inside_routine notifications")
-    logger.debug("inside_routine notifications")
-    logger.debug("inside_routine notifications")
-    logger.debug("inside_routine notifications")
+  
 
     send_appointment_confirmation_notification(appointment_id)  
-
-    logger.debug("inside_routine notifications")
-    logger.debug("inside_routine notifications")
-    logger.debug("inside_routine notifications")
-    logger.debug("inside_routine notifications")
-    logger.debug("inside_routine notifications")
 
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
