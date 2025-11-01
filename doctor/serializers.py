@@ -203,7 +203,7 @@ class ExtraQuestionsSerializer(serializers.ModelSerializer):
 
 class ObservationNotesSerializer(serializers.ModelSerializer):
     doctor = serializers.SerializerMethodField()
-    docid = serializers.StringRelatedField(source='doctor.doctor_profile_id', read_only=True)
+    docid = serializers.SerializerMethodField()
     class Meta:
         model = Observation_Notes
         fields = ['id' , 'note' , 'doctor' , 'date' , 'docid' ]
@@ -213,7 +213,8 @@ class ObservationNotesSerializer(serializers.ModelSerializer):
         last = obj.appointment.doctor.last_name
         salutation = obj.appointment.doctor.salutation
         return f"{salutation} {first} {last}".strip()
-    
+    def get_docid(self,obj):
+        return obj.appointment.doctor.doctor_profile_id
 
 class Followup_notes_serializer(serializers.ModelSerializer):
     doctor = serializers.SerializerMethodField()
