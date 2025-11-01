@@ -190,7 +190,7 @@ class Doctor_Suggested_Plans(models.Model):
 
 class Reschedule_history(models.Model):
     initiated_by        = models.CharField(max_length=50)
-    appointment         = models.ForeignKey(AppointmentHeader , on_delete=models.CASCADE , related_name='reschedule_history')
+    appointment         = models.ForeignKey(AppointmentHeader,null=True , on_delete=models.CASCADE , related_name='reschedule_history')
     reason              = models.CharField(max_length=200 , null=True , blank=True)
     initiated_on        = models.DateTimeField(auto_now=True)
     previous_start_time = models.DateTimeField(null=True)

@@ -104,7 +104,8 @@ def get_doctor_info(doctor):
         "reg_year":doctor.registration_year ,
         "dob" :doctor.dob,  
         "whatsapp_number":doctor.whatsapp_number, 
-        "qualification":doctor.qualification 
+        "qualification":doctor.qualification ,
+        "time_zone": doctor.time_zone,
     }
 
 

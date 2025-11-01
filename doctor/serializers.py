@@ -203,15 +203,16 @@ class ExtraQuestionsSerializer(serializers.ModelSerializer):
 
 class ObservationNotesSerializer(serializers.ModelSerializer):
     doctor = serializers.SerializerMethodField()
-
+    docid = serializers.StringRelatedField(source='doctor.doctor_profile_id', read_only=True)
     class Meta:
         model = Observation_Notes
-        fields = ['id' , 'note' , 'doctor' , 'date' ]
+        fields = ['id' , 'note' , 'doctor' , 'date' , 'docid' ]
     
     def get_doctor(self, obj):
         first = obj.appointment.doctor.first_name
         last = obj.appointment.doctor.last_name
-        return f"{first} {last}".strip()
+        salutation = obj.appointment.doctor.salutation
+        return f"{salutation} {first} {last}".strip()
     
 
 class Followup_notes_serializer(serializers.ModelSerializer):
@@ -277,15 +278,17 @@ class PrescribedTestsSerializer(serializers.ModelSerializer):
 
 class NotesForPatientSerializer(serializers.ModelSerializer):
     doctor = serializers.SerializerMethodField()
+    docid = serializers.StringRelatedField(source='doctor.doctor_profile_id', read_only=True)
 
     class Meta:
         model = Notes_for_patient
         fields = '__all__'
-        read_only_fields = ['id', 'created_at', 'updated_at' , 'doctor']
+        read_only_fields = ['id', 'created_at', 'updated_at' , 'doctor' , 'docid']
     def get_doctor(self, obj):
         first = obj.doctor.first_name
         last = obj.doctor.last_name
-        return f"{first} {last}".strip()
+        salutation = obj.doctor.salutation  
+        return f"{salutation} {first} {last}".strip()
 
 
 class PayoutsSerializer(serializers.ModelSerializer):
