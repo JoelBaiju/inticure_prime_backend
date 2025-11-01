@@ -255,9 +255,9 @@ from django.contrib.auth import login
 from general.whatsapp.whatsapp_messages import send_wa_patient_chat_notification_to_specialist
 
 
+# @rate_limit(rate='5/m')
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
-@rate_limit(rate='5/m')
 def initiate_chat_doctor_patient(request):
 
     try :
@@ -339,9 +339,8 @@ def initiate_chat_doctor_patient(request):
 
     
 
-
+# @rate_limit(rate='5/m')
 @api_view(['GET'])
-@rate_limit(rate='5/m')
 @permission_classes([IsAuthenticated])
 def initiate_chat_doctor_admin(request):
     try :
@@ -399,8 +398,8 @@ def initiate_chat_doctor_admin(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+# @rate_limit(rate='5/m')
 @api_view(['GET'])
-@rate_limit(rate='5/m')
 @permission_classes([IsAuthenticated])
 def initiate_chat_patient_admin(request):
     try :
