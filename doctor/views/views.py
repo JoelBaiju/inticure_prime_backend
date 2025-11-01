@@ -295,13 +295,7 @@ class Available_dates(APIView):
         doctor_max_session_duration = (
             Specializations.objects
             .filter(doctor_specializations__doctor=doctor)
-            .annotate(
-                max_duration=Greatest(
-                    F('single_session_duration'),
-                    F('double_session_duration')
-                )
-            )
-            .aggregate(overall_max=Max('max_duration'))['overall_max']
+            .aggregate(overall_max=Max('single_session_duration'))['overall_max']
             or timedelta(0)
         )
         return Response({'available_dates':list(unique_dates) , "doctor_max_session_duration":doctor_max_session_duration + timedelta(minutes=10)}, status=status.HTTP_200_OK)
