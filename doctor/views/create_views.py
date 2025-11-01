@@ -198,3 +198,34 @@ def add_prescription_validity(request):
     except Exception as e:
         return Response({"error": str(e)}, status=400)
     
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def delete_observation_notes(request):
+    note_id = request.data.get('note_id')
+    try:
+        note = Observation_Notes.objects.get(id=note_id)
+        if note.appointment.doctor.user != request.user:
+            return Response({"error": "You do not have permission to delete this note"}, status=403)
+        note.delete()
+        return Response({"message": "Observation note deleted successfully"}, status=200)
+    except Observation_Notes.DoesNotExist:
+        return Response({"error": "Observation note not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+    
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def delete_patient_notes(request):
+    note_id = request.data.get('note_id')
+    try:
+        note = Notes_for_patient.objects.get(id=note_id)
+        if note.doctor.user != request.user:
+            return Response({"error": "You do not have permission to delete this note"}, status=403)
+        note.delete()
+        return Response({"message": "Patient note deleted successfully"}, status=200)
+    except Notes_for_patient.DoesNotExist:
+        return Response({"error": "Patient note not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
