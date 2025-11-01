@@ -360,7 +360,7 @@ class SecureSupportConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def verify_session_access(self, session_id, token):
         """
-        Verify session access with token validation
+        Verify session access with token validation and optional auto-renewal.
         """
         logger.debug(f"verify_session_access() called with session_id={session_id}, token={token}")
         try:
@@ -373,7 +373,17 @@ class SecureSupportConsumer(AsyncWebsocketConsumer):
                 is_active=True
             )
             logger.debug("SessionUser query successful.")
+
+            # Auto-renew token if it's close to expiry or expired
+            now = datetime.now(timezone.utc)
+            if session_user.expires_at < now:
+                logger.warning(f"SessionUser token expired at {session_user.expires_at}, renewing expiry.")
+                session_user.expires_at = now + timedelta(hours=24)
+                session_user.save(update_fields=["expires_at"])
+                logger.info(f"Token renewed. New expiry: {session_user.expires_at}")
+
             return session_user.user, session_user
+
         except SessionUser.DoesNotExist:
             logger.warning("SessionUser.DoesNotExist - invalid session or token.")
             return None, None
@@ -601,14 +611,21 @@ class SecureSupportConsumer(AsyncWebsocketConsumer):
                 'is_typing': event['is_typing'],
             }))
 
+    # async def disconnect(self, close_code):
+    #     logger.info(f"WebSocket disconnected. Close code: {close_code}")
+    #     try:
+    #         if hasattr(self, 'session_group_name'):
+    #             await self.channel_layer.group_discard(
+    #                 self.session_group_name,
+    #                 self.channel_name
+    #             )
+    #             logger.debug(f"Removed from group: {self.session_group_name}")
+    #     except Exception as e:
+    #         logger.exception(f"Error during disconnect: {e}")
     async def disconnect(self, close_code):
-        logger.info(f"WebSocket disconnected. Close code: {close_code}")
-        try:
-            if hasattr(self, 'session_group_name'):
-                await self.channel_layer.group_discard(
-                    self.session_group_name,
-                    self.channel_name
-                )
-                logger.debug(f"Removed from group: {self.session_group_name}")
-        except Exception as e:
-            logger.exception(f"Error during disconnect: {e}")
+        logger.debug(f"WebSocket disconnected. Close code: {close_code}, channel_name: {self.channel_name}")
+        if hasattr(self, "session_group_name"):
+            logger.debug(f"Removing {self.channel_name} from group: {self.session_group_name}")
+            await self.channel_layer.group_discard(self.session_group_name, self.channel_name)
+        else:
+            logger.debug("disconnect() called before group assignment!")
