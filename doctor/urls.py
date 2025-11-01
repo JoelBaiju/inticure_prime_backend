@@ -42,8 +42,13 @@ urlpatterns = [
 
     path('obs_notes_add/', AddObservatioinNotesView.as_view(), name='obs_notes_add'),
     path('fp_notes_add/', AddFollowUpNotesView.as_view(), name='fp_notes_add'),
+    
     path('obs_notes_delete/', delete_observation_notes, name='obs_notes_delete'),
     path('patient_notes_delete/', delete_patient_notes, name='fp_notes_delete'),
+
+    path('observation_notes/edit/', EditObservationNotesView.as_view(), name='observation_notes_edit'),
+    path('patient_notes/edit/', EditPatientNotesView.as_view(), name='patient_notes_edit'),
+
     path('appointment_details/<int:appointment_id>/', AppointmentFullDetailsView.as_view(), name='appointment_full_details'),
     path('reschedule/' , AppointmentRescheduleView_Doctor.as_view() , name='appointment reschedule'),
     path('status_update/',Appointment_status_update.as_view()),
