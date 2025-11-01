@@ -575,68 +575,63 @@ def get_active_chat_sessions(request):
     - limit: (optional) Limit number of results, default=20
     """
     try:
-      
         include_closed = request.data.get('include_closed')
         limit = 200
         user = request.user
-        session_query = Q(session_users__user=user)
         appointment_id = request.data.get('appointment_id')
-        
+
+        # Base query for sessions involving the current user
+        session_query = Q(session_users__user=user)
+
+        # Exclude closed sessions unless requested
         if not include_closed:
             session_query &= Q(is_open=True)
-        
-        session_query &= Q(
-            Q(expires_at__gt=timezone.now())
-        )
-        print("\n\n time" , timezone.now())
-       
 
-        print("\n\nappointment_id", appointment_id)
+        # Ensure sessions are not expired
+        session_query &= Q(expires_at__gt=timezone.now())
+
+        appointment_users = None
         if appointment_id:
-            print("\n\ninside appointment id")
             try:
-                appointment = AppointmentHeader.objects.get(appointment_id = appointment_id)
-                appointment_users = [customer.customer.user for customer in  appointment.appointment_customers.all() ]
-                print("\n\nappointment_users", appointment_users)
-                session_query_users = Q(session_users__user__in=appointment_users)
-            except:
+                appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+                appointment_users = [c.customer.user for c in appointment.appointment_customers.all()]
+            except AppointmentHeader.DoesNotExist:
                 pass
 
-     
-
-        # print("\n\nsessions", sessions)
-        if appointment_id:
+        # Query sessions
+        if appointment_users:
             sessions = (
                 ChatSession.objects.filter(session_query)
-                .filter(session_users__user__in=appointment_users)  # filter first
+                .filter(session_users__user__in=appointment_users)
                 .distinct()
                 .annotate(last_message_time=Max('messages__timestamp'))
-                .order_by('-last_message_time', '-created_at')[:limit]  # then limit
+                .order_by('-last_message_time', '-created_at')[:limit]
             )
         else:
-            sessions = ChatSession.objects.filter(session_query).distinct().annotate(
-                last_message_time=Max('messages__timestamp')
-                ).order_by('-last_message_time', '-created_at')[:limit]
+            sessions = (
+                ChatSession.objects.filter(session_query)
+                .distinct()
+                .annotate(last_message_time=Max('messages__timestamp'))
+                .order_by('-last_message_time', '-created_at')[:limit]
+            )
 
-        print("\n\nsessions after filter", sessions)
-
-        sessions_data = []
-
-        admin_session = ChatSession.objects.filter(
-            session_users__user__is_superuser=True,
-            is_open=True
-        ).distinct()
+        # Include admin support session if not already present
+        admin_session = (
+            ChatSession.objects.filter(session_users__user__is_superuser=True, is_open=True)
+            .distinct()
+        )
         admin_session_with_user = admin_session.filter(session_users__user=user)
         if admin_session_with_user.exists() and admin_session_with_user.first() not in sessions:
             sessions = [admin_session_with_user.first()] + list(sessions)
-        
+
+        sessions_data = []
+
         for session in sessions:
-            # Get all participants in this session
             participants = []
             doctor_name = ''
-            customer_name= ''
+            customer_name = ''
             session_users = SessionUser.objects.filter(session=session).select_related('user')
-            
+
             for session_user in session_users:
                 participant_user = session_user.user
                 participant_info = {
@@ -646,64 +641,69 @@ def get_active_chat_sessions(request):
                     'is_active': session_user.is_active,
                     'joined_at': session_user.joined_at.isoformat() if session_user.joined_at else None
                 }
+
+                # Identify participant role and display name
                 if participant_user.is_superuser:
-                    participant_info['role'] = 'admin'
-                    participant_info['display_name'] = 'Inticure Support'
-                elif  DoctorProfiles.objects.filter(user=participant_user).exists():
+                    participant_info.update({
+                        'role': 'admin',
+                        'display_name': 'Inticure Support'
+                    })
+                elif DoctorProfiles.objects.filter(user=participant_user).exists():
                     doctor_profile = DoctorProfiles.objects.get(user=participant_user)
-                    participant_info['role'] = 'doctor'
-                    participant_info['display_name'] = doctor_profile.first_name or participant_user.username
-                    participant_info['doctor_id'] = doctor_profile.doctor_profile_id
+                    participant_info.update({
+                        'role': 'doctor',
+                        'display_name': doctor_profile.first_name or participant_user.username,
+                        'doctor_id': doctor_profile.doctor_profile_id
+                    })
                     doctor_name = f"{doctor_profile.salutation} {doctor_profile.first_name} {doctor_profile.last_name}"
                 elif CustomerProfile.objects.filter(user=participant_user).exists():
                     customer_profile = CustomerProfile.objects.get(user=participant_user)
-                    participant_info['role'] = 'patient'
-                    participant_info['display_name'] = participant_user.first_name or participant_user.username
-                    participant_info['customer_id'] = customer_profile.id
-                    customer_name=f"{customer_profile.user.first_name} {customer_profile.user.last_name}"
+                    participant_info.update({
+                        'role': 'patient',
+                        'display_name': participant_user.first_name or participant_user.username,
+                        'customer_id': customer_profile.id
+                    })
+                    customer_name = f"{customer_profile.user.first_name} {customer_profile.user.last_name}"
                 else:
-                    participant_info['role'] = 'user'
-                    participant_info['display_name'] = participant_user.get_full_name() or participant_user.username
+                    participant_info.update({
+                        'role': 'user',
+                        'display_name': participant_user.get_full_name() or participant_user.username
+                    })
                 
                 participants.append(participant_info)
-            
-            # Get last message
+
+            # Get last message for preview
             last_message = session.messages.order_by('-timestamp').first()
             last_message_data = None
             if last_message:
-                sender_display_name ="you" if last_message.sender == user else get_user_display_name(last_message.sender)
+                sender_display_name = "you" if last_message.sender == user else get_user_display_name(last_message.sender)
                 last_message_data = {
                     'id': last_message.id,
-                    'content': last_message.content[:100] + ('...' if len(last_message.content) > 100 else ''),  # Truncate for preview
+                    'content': last_message.content[:100] + ('...' if len(last_message.content) > 100 else ''),
                     'sender_id': last_message.sender.id,
                     'sender_name': sender_display_name,
                     'timestamp': last_message.timestamp.isoformat(),
                     'is_from_current_user': last_message.sender.id == user.id
                 }
-            
-            # Get unread message count for current user
-            unread_count = Message.objects.filter(
-                session=session,
-                is_read=False
-            ).exclude(sender=user).count()
-            
-            # Get current user's session token
-            current_user_session = SessionUser.objects.filter(
-                session=session, 
-                user=user
-            ).first()
 
-            
-            print("\n\n doctor_name" , doctor_name)
-            print("\n\n user.is_staff" , user.is_staff)
-            print("\n\n customer_name" , customer_name)
-            description = [parti['display_name'] for parti in participants if not parti['is_current_user']][0]
+            # Count unread messages for this user
+            unread_count = Message.objects.filter(session=session, is_read=False).exclude(sender=user).count()
+
+            # Get current user session token
+            current_user_session = SessionUser.objects.filter(session=session, user=user).first()
+
+            # ✅ Safe description fix
+            other_participants = [p['display_name'] for p in participants if not p['is_current_user']]
+            if other_participants:
+                description = other_participants[0]
+            elif len(participants) > 1:
+                description = "Group Chat"
+            else:
+                description = "You"
 
             session_data = {
                 'session_id': session.id,
-                # 'description': customer_name if user.is_staff and len(customer_name)>2 else  doctor_name  if user.is_superuser or not user.is_staff else "Inticure Support",
                 'description': description,
-
                 'created_at': session.created_at.isoformat(),
                 'closed_at': session.closed_at.isoformat() if session.closed_at else None,
                 'is_open': session.is_open,
@@ -714,14 +714,16 @@ def get_active_chat_sessions(request):
                 'last_message': last_message_data,
                 'unread_count': unread_count,
                 'user_token': str(current_user_session.token) if current_user_session else None,
-                'can_join': current_user_session and current_user_session.is_active and (
-                    not current_user_session.expires_at or current_user_session.expires_at > timezone.now()
+                'can_join': bool(
+                    current_user_session and current_user_session.is_active and (
+                        not current_user_session.expires_at or current_user_session.expires_at > timezone.now()
+                    )
                 ),
                 'chat_url': f'/chat/join/?session_id={session.id}&token={current_user_session.token}' if current_user_session else None
             }
-            
+
             sessions_data.append(session_data)
-        
+
         response_data = {
             'success': True,
             'user_id': user.id,
@@ -733,21 +735,15 @@ def get_active_chat_sessions(request):
                 'limit': limit
             }
         }
-        
+
         return JsonResponse(response_data, status=200)
-        
+
     except User.DoesNotExist:
-        return JsonResponse({
-            'error': 'User not found'
-        }, status=404)
+        return JsonResponse({'error': 'User not found'}, status=404)
     except ValueError as e:
-        return JsonResponse({
-            'error': f'Invalid parameter: {str(e)}'
-        }, status=400)
+        return JsonResponse({'error': f'Invalid parameter: {str(e)}'}, status=400)
     except Exception as e:
-        return JsonResponse({
-            'error': f'Internal server error: {str(e)}'
-        }, status=500)
+        return JsonResponse({'error': f'Internal server error: {str(e)}'}, status=500)
 
 
 def get_user_display_name(user):
