@@ -19,3 +19,13 @@ class CommonFileUploaderAdmin(admin.ModelAdmin):
     list_display = ('customer', 'appointment', 'common_file' , 'uploaded_on' , 'file_name' , 'uploaded_by_doctor')
 
 admin.site.register(CommonFileUploader, CommonFileUploaderAdmin)
+
+class AppointmentNotificationAdmin(admin.ModelAdmin):
+    list_display = ('confirmation_admin_whatsapp_sent',   
+                    'confirmation_customer_whatsapp_sent', 
+                    'confirmation_doctor_whatsapp_sent',   
+                    'confirmation_admin_email_sent',       
+                    'confirmation_customer_email_sent',    
+                    'confirmation_doctor_email_sent')
+
+admin.site.register(AppointmentNotifications, AppointmentNotificationAdmin)

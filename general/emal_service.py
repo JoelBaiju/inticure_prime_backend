@@ -927,6 +927,7 @@ from doctor.models import DoctorProfiles
 from general.models import Reminder_Sent_History
 from general.sendgrid import send_email_via_sendgrid, send_email_via_smtp
 from inticure_prime_backend.settings import BACKEND_URL, ADMIN_CC_EMAILS ,FRONT_END_URL
+from .models import AppointmentNotifications
 from .utils import convert_utc_to_local_return_dt
 
 logger = logging.getLogger(__name__)
@@ -1018,6 +1019,10 @@ def get_meeting_link_for_customer(meeting_tracker, customer):
 def send_appointment_confirmation_email_to_admin(appointment_id):
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_notifications ,created=AppointmentNotifications.objects.get_or_create(appointment=appointment)
+        if not created and  appointment_notifications.confirmation_admin_email_sent:
+            logger.debug('fun name: send_appointment_confirmation_email_to_admin in email service Appointment confirmation email to admin already sent')
+            return False
     except AppointmentHeader.DoesNotExist:
         logger.debug('fun name: send_appointment_confirmation_email_to_admin in email service Sending appointment confirmation email failed appointment id invalid')
         return False
@@ -1165,6 +1170,10 @@ def send_appointment_cancellation_email_to_specialist(appointment_id):
 def send_followup_confirmation_email(appointment_id):
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_notifications ,created=AppointmentNotifications.objects.get_or_create(appointment=appointment)
+        if not created and  appointment_notifications.confirmation_customer_email_sent:
+            logger.debug('fun name: send_followup_confirmation_email in email service Followup confirmation email already sent')
+            return False
         appointment_customers = appointment.appointment_customers.all()
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
     except AppointmentHeader.DoesNotExist:
@@ -1197,6 +1206,10 @@ def send_followup_confirmation_email(appointment_id):
 def send_first_appointment_confirmation_email(appointment_id):
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_notifications ,created=AppointmentNotifications.objects.get_or_create(appointment=appointment)
+        if not created and  appointment_notifications.confirmation_customer_email_sent:
+            logger.debug('fun name: send_first_appointment_confirmation_email in email service First appointment confirmation email already sent')
+            return False
         appointment_customers = appointment.appointment_customers.all()
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
     except AppointmentHeader.DoesNotExist:
@@ -1229,6 +1242,10 @@ def send_first_appointment_confirmation_email(appointment_id):
 def send_appointment_confirmation_customer_email(appointment_id):
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_notifications ,created=AppointmentNotifications.objects.get_or_create(appointment=appointment)
+        if not created and  appointment_notifications.confirmation_customer_email_sent:
+            logger.debug('fun name: send_appointment_confirmation_customer_email in email service Appointment confirmation email already sent')
+            return False
         appointment_customers = appointment.appointment_customers.all()
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
     except AppointmentHeader.DoesNotExist:
@@ -1262,6 +1279,10 @@ def send_appointment_confirmation_customer_email(appointment_id):
 def send_appointment_confirmation_doctor_email(appointment_id):
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_notifications ,created=AppointmentNotifications.objects.get_or_create(appointment=appointment)
+        if not created and  appointment_notifications.confirmation_doctor_email_sent:
+            logger.debug('fun name: send_appointment_confirmation_doctor_email in email service Appointment confirmation email to doctor already sent')
+            return False
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
         start_time = convert_utc_to_local_return_dt(appointment.start_time, appointment.doctor.time_zone)
         context = {

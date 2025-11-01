@@ -127,3 +127,14 @@ class CommonFileUploader(models.Model):
     file_name=models.CharField(max_length=100,null=True)
     uploaded_by_doctor = models.BooleanField(default=False)
 
+
+
+
+class AppointmentNotifications(models.Model):
+    appointment = models.ForeignKey("analysis.AppointmentHeader", on_delete=models.CASCADE, related_name='appointment_notifications')
+    confirmation_admin_whatsapp_sent    = models.BooleanField(default=False)
+    confirmation_customer_whatsapp_sent = models.BooleanField(default=False)
+    confirmation_doctor_whatsapp_sent   = models.BooleanField(default=False)
+    confirmation_admin_email_sent       = models.BooleanField(default=False)
+    confirmation_customer_email_sent    = models.BooleanField(default=False)
+    confirmation_doctor_email_sent      = models.BooleanField(default=False)

@@ -592,10 +592,10 @@
 
 
 from .api import whatsapp_api_handler
-from analysis.models import Appointment_customers, AppointmentHeader, Meeting_Tracker
+from analysis.models import Appointment_customers, AppointmentHeader, Meeting_Tracker 
 from ..utils import convert_datetime_to_words_in_local_tz , convert_utc_to_local_return_dt
 from inticure_prime_backend.settings import ADMIN_TIME_ZONE , ADMIN_WA_NUMBERS
-from ..models import Reminder_Sent_History
+from ..models import Reminder_Sent_History , AppointmentNotifications
 from analysis.models import Reschedule_history
 import logging
 logger = logging.getLogger(__name__)
@@ -690,6 +690,12 @@ def send_wa_welcome_to_inticure (to_phone, patient_name):
 def send_wa_appointment_confirmation(appointment_id):
     try:
         appointment     = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_notification ,  created = AppointmentNotifications.objects.get_or_create(appointment=appointment)
+        if not created:
+            if appointment_notification.confirmation_customer_whatsapp_sent:
+                logger.info(f"Appointment confirmation already sent for appointment id {appointment_id}")
+                return "Appointment confirmation already sent."
+
         patient_name    = appointment.customer.user.first_name
         specialist_name = appointment.doctor.first_name
         salutation      = appointment.doctor.salutation
@@ -734,6 +740,11 @@ def send_wa_appointment_confirmation(appointment_id):
 def send_wa_first_consultation_confirmation(appointment_id):
     try:
         appointment     = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_notification ,  created = AppointmentNotifications.objects.get_or_create(appointment=appointment)
+        if not created:
+            if appointment_notification.confirmation_customer_whatsapp_sent:
+                logger.info(f"First consultation confirmation already sent for appointment id {appointment_id}")
+                return "First consultation confirmation already sent."
         patient_name    = appointment.customer.user.first_name
         specialist_name = appointment.doctor.first_name
         salutation      = appointment.doctor.salutation
@@ -776,6 +787,11 @@ def send_wa_first_consultation_confirmation(appointment_id):
 def send_wa_consultation_confirmation_to_specialist(appointment_id):
     try:
         appointment     = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_notification ,  created = AppointmentNotifications.objects.get_or_create(appointment=appointment)
+        if not created:
+            if appointment_notification.confirmation_doctor_whatsapp_sent:
+                logger.info(f"Consultation confirmation to specialist already sent for appointment id {appointment_id}")
+                return "Consultation confirmation to specialist already sent."
         patient_name    = appointment.customer.user.first_name
         specialist_name = appointment.doctor.first_name
         date_time       = convert_datetime_to_words_in_local_tz(appointment.start_time , appointment.doctor.time_zone)
@@ -1463,6 +1479,11 @@ def send_wa_consultation_confirmation_to_admin(appointment_id):
     try:
         logger.debug(f"sending admin wa for appointment id {appointment_id}")
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+        appointment_notification ,  created = AppointmentNotifications.objects.get_or_create(appointment=appointment)
+        if not created:
+            if appointment_notification.confirmation_admin_whatsapp_sent:
+                logger.info(f"Consultation confirmation to admin already sent for appointment id {appointment_id}")
+                return "Consultation confirmation to admin already sent."
         patient_name = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
         specialist_name = appointment.doctor.first_name
         date_time_ist = convert_utc_to_local_return_dt(appointment.start_time, ADMIN_TIME_ZONE)
