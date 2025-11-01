@@ -695,7 +695,8 @@ def send_wa_appointment_confirmation(appointment_id):
             if appointment_notification.confirmation_customer_whatsapp_sent:
                 logger.info(f"Appointment confirmation already sent for appointment id {appointment_id}")
                 return "Appointment confirmation already sent."
-
+        appointment_notification.confirmation_customer_whatsapp_sent = True
+        appointment_notification.save()
         patient_name    = appointment.customer.user.first_name
         specialist_name = appointment.doctor.first_name
         salutation      = appointment.doctor.salutation
@@ -745,6 +746,8 @@ def send_wa_first_consultation_confirmation(appointment_id):
             if appointment_notification.confirmation_customer_whatsapp_sent:
                 logger.info(f"First consultation confirmation already sent for appointment id {appointment_id}")
                 return "First consultation confirmation already sent."
+        appointment_notification.confirmation_customer_whatsapp_sent = True
+        appointment_notification.save()
         patient_name    = appointment.customer.user.first_name
         specialist_name = appointment.doctor.first_name
         salutation      = appointment.doctor.salutation
@@ -792,6 +795,8 @@ def send_wa_consultation_confirmation_to_specialist(appointment_id):
             if appointment_notification.confirmation_doctor_whatsapp_sent:
                 logger.info(f"Consultation confirmation to specialist already sent for appointment id {appointment_id}")
                 return "Consultation confirmation to specialist already sent."
+        appointment_notification.confirmation_doctor_whatsapp_sent = True
+        appointment_notification.save()
         patient_name    = appointment.customer.user.first_name
         specialist_name = appointment.doctor.first_name
         date_time       = convert_datetime_to_words_in_local_tz(appointment.start_time , appointment.doctor.time_zone)
@@ -1484,6 +1489,8 @@ def send_wa_consultation_confirmation_to_admin(appointment_id):
             if appointment_notification.confirmation_admin_whatsapp_sent:
                 logger.info(f"Consultation confirmation to admin already sent for appointment id {appointment_id}")
                 return "Consultation confirmation to admin already sent."
+        appointment_notification.confirmation_admin_whatsapp_sent = True
+        appointment_notification.save()
         patient_name = f"{appointment.customer.user.first_name} {appointment.customer.user.last_name}"
         specialist_name = appointment.doctor.first_name
         date_time_ist = convert_utc_to_local_return_dt(appointment.start_time, ADMIN_TIME_ZONE)
