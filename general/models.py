@@ -107,7 +107,7 @@ class Invoices(models.Model):
 class Reminder_Sent_History(models.Model):
     user = models.ForeignKey(User,null=True, on_delete=models.CASCADE, related_name='reminder_sent_history')
     user_is_customer = models.BooleanField(default=False)
-    appointment = models.ForeignKey("analysis.AppointmentHeader", on_delete=models.CASCADE, related_name='reminder_sent_history')
+    appointment = models.ForeignKey("analysis.AppointmentHeader",null=True, on_delete=models.CASCADE, related_name='reminder_sent_history')
     whatsapp_number = models.CharField(max_length=100)
     email = models.CharField(max_length=100)
     subject = models.CharField(max_length=100)
