@@ -138,3 +138,5 @@ class AppointmentNotifications(models.Model):
     confirmation_admin_email_sent       = models.BooleanField(default=False)
     confirmation_customer_email_sent    = models.BooleanField(default=False)
     confirmation_doctor_email_sent      = models.BooleanField(default=False)
+    payment_reminder_47h_sent           = models.BooleanField(default=False)
+    payment_reminder_24h_sent           = models.BooleanField(default=False)

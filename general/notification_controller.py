@@ -474,40 +474,129 @@ def monitor_appointment(appointment_id):
 
 
 
+# @shared_task
+# def send_payment_pending_notification(appointment_id):
+#     try:
+#         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+#         if appointment.start_time - timedelta(hours=47) > timezone.now():
+#             if not  appointment.payment_done :
+#                 if appointment.customer.confirmation_method in ["email" , "Email" , "both"]:
+#                     send_payment_pending_email(
+#                         appointment_id
+#                     )
+#                 if appointment.customer.confirmation_method in ["phone" , "Phone" , "both"]:
+#                     send_wa_payment_pending_reminder(
+#                         appointment_id
+#                     )
+
+#                 send_payment_pending_notification.apply_async((appointment.appointment_id,), countdown=60*60*24)    
+
+#         elif appointment.start_time - timedelta(hours=24) > timezone.now():
+#               if not  appointment.payment_done :
+#                 if appointment.customer.confirmation_method in ["email" , "Email" , "both"]:
+#                     send_payment_pending_email_final(
+#                         appointment_id
+#                     )
+#                 if appointment.customer.confirmation_method in ["WhatsApp" , "whatsapp" , "both"]:
+#                     send_wa__final_payment_reminder_24_hours_before_consultation_time(
+#                         appointment_id
+#                     )
+
+#     except Exception as e:
+#         logger.error(f'Error in send_payment_pending_email_notification: {e}')
+
+
+
 @shared_task
 def send_payment_pending_notification(appointment_id):
+    """
+    Send payment pending notifications with proper recursion control.
+    Sends reminders at 47 hours and 24 hours before appointment.
+    """
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
-        if appointment.start_time - timedelta(hours=47) > timezone.now():
-            if not  appointment.payment_done :
-                if appointment.customer.confirmation_method in ["email" , "Email" , "both"]:
-                    send_payment_pending_email(
-                        appointment_id
+        
+        # Get or create notification tracker to prevent duplicate sends
+        appointment_notifications, created = AppointmentNotifications.objects.get_or_create(
+            appointment=appointment
+        )
+        
+        # Calculate time until appointment
+        time_until_appointment = appointment.start_time - timezone.now()
+        
+        # Check if payment is already done - exit early
+        if appointment.payment_done:
+            logger.info(f'Payment already completed for appointment {appointment_id}')
+            return "Payment already completed"
+        
+        # Check if appointment is cancelled or completed - exit early
+        if appointment.appointment_status in ['cancelled', 'completed', 'doctor_missed', 'customer_missed']:
+            logger.info(f'Appointment {appointment_id} status is {appointment.appointment_status}, stopping payment reminders')
+            return f"Appointment status: {appointment.appointment_status}"
+        
+        # First reminder: 47+ hours before appointment
+        if time_until_appointment > timedelta(hours=47):
+            # Only send if not already sent
+            if not appointment_notifications.payment_reminder_47h_sent:
+                if appointment.customer.confirmation_method in ["email", "Email", "both"]:
+                    send_payment_pending_email(appointment_id)
+                    logger.info(f'Sent 47h payment reminder email for appointment {appointment_id}')
+                
+                if appointment.customer.confirmation_method in ["whatsapp", "WhatsApp", "both"]:
+                    send_wa_payment_pending_reminder(appointment_id)
+                    logger.info(f'Sent 47h payment reminder WhatsApp for appointment {appointment_id}')
+                
+                # Mark as sent
+                appointment_notifications.payment_reminder_47h_sent = True
+                appointment_notifications.save()
+                
+                # Schedule the 24-hour reminder (will run in ~23 hours)
+                # Calculate exact time for 24h before appointment
+                time_to_24h_reminder = time_until_appointment - timedelta(hours=24)
+                countdown_seconds = int(time_to_24h_reminder.total_seconds())
+                
+                if countdown_seconds > 0:
+                    send_payment_pending_notification.apply_async(
+                        (appointment.appointment_id,), 
+                        countdown=countdown_seconds
                     )
-                if appointment.customer.confirmation_method in ["phone" , "Phone" , "both"]:
-                    send_wa_payment_pending_reminder(
-                        appointment_id
-                    )
-
-                send_payment_pending_notification.apply_async((appointment.appointment_id,), countdown=60*60*24)    
-
-        elif appointment.start_time - timedelta(hours=24) > timezone.now():
-              if not  appointment.payment_done :
-                if appointment.customer.confirmation_method in ["email" , "Email" , "both"]:
-                    send_payment_pending_email_final(
-                        appointment_id
-                    )
-                if appointment.customer.confirmation_method in ["WhatsApp" , "whatsapp" , "both"]:
-                    send_wa__final_payment_reminder_24_hours_before_consultation_time(
-                        appointment_id
-                    )
-
+                    logger.info(f'Scheduled 24h payment reminder for appointment {appointment_id} in {countdown_seconds} seconds')
+            else:
+                logger.info(f'47h payment reminder already sent for appointment {appointment_id}')
+        
+        # Final reminder: 24-47 hours before appointment
+        elif timedelta(hours=24) < time_until_appointment <= timedelta(hours=47):
+            # Only send if not already sent
+            if not appointment_notifications.payment_reminder_24h_sent:
+                if appointment.customer.confirmation_method in ["email", "Email", "both"]:
+                    send_payment_pending_email_final(appointment_id)
+                    logger.info(f'Sent 24h final payment reminder email for appointment {appointment_id}')
+                
+                if appointment.customer.confirmation_method in ["whatsapp", "WhatsApp", "both"]:
+                    send_wa__final_payment_reminder_24_hours_before_consultation_time(appointment_id)
+                    logger.info(f'Sent 24h final payment reminder WhatsApp for appointment {appointment_id}')
+                
+                # Mark as sent - THIS IS THE FINAL REMINDER
+                appointment_notifications.payment_reminder_24h_sent = True
+                appointment_notifications.save()
+                
+                # DO NOT RESCHEDULE - this is the final reminder
+                logger.info(f'Final payment reminder sent for appointment {appointment_id}, no more reminders will be sent')
+        
+        # Too close to appointment time (less than 24 hours)
+        else:
+            logger.warning(f'Appointment {appointment_id} is less than 24 hours away, payment reminder not sent')
+            return "Too close to appointment time"
+        
+        return "Payment reminder processed successfully"
+        
+    except AppointmentHeader.DoesNotExist:
+        logger.error(f'Appointment with ID {appointment_id} does not exist')
+        return f'Appointment {appointment_id} does not exist'
+    
     except Exception as e:
-        logger.error(f'Error in send_payment_pending_email_notification: {e}')
-
-
-
-
+        logger.error(f'Error in send_payment_pending_notification for appointment {appointment_id}: {e}')
+        return f'Error: {str(e)}'
 
 
 
