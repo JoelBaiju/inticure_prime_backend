@@ -311,10 +311,6 @@ def initiate_chat_doctor_patient(request):
                 description=f"Doctor chat with patient for appointment id: {appointment_id}",
                 expires_at=appointment.start_time + timedelta(hours=24)  # Session expires in 7 days
             )
-            if not request.user.is_staff and appointment.doctor.whatsapp_number:
-                
-                logger.debug(send_wa_patient_chat_notification_to_specialist(f"{appointment.doctor.whatsapp_country_code}{appointment.doctor.whatsapp_number}" , f"{appointment.doctor.salutation}. {appointment.doctor.first_name}"))
-
             session_user = SessionUser.objects.create(
                 session=chat_session,
                 user=doctor_user,
@@ -327,10 +323,10 @@ def initiate_chat_doctor_patient(request):
                 token=uuid.uuid4(),
                 expires_at=timezone.now() + timedelta(hours=24))
 
-            Message.objects.create(
-                session=chat_session,
-                sender=doctor_user,
-                content=f"Doctor chat with patient for appointment id: {appointment_id}")
+            # Message.objects.create(
+            #     session=chat_session,
+            #     sender=doctor_user,
+            #     content=f"Doctor chat with patient for appointment id: {appointment_id}")
 
         return Response("successfully initiated chat")
 

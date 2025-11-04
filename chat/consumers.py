@@ -300,6 +300,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import User
 from .models import SessionUser, Message
+from general.notification_controller import send_wa_patient_chat_notification_to_specialist
 
 logger = logging.getLogger(__name__)
 
@@ -478,6 +479,23 @@ class SecureSupportConsumer(AsyncWebsocketConsumer):
                 sender=self.user,
                 content=clean_content
             )
+            session_users = self.session_user.session.session_users.all()
+            doctor_user = None
+            doctor_profile = None
+
+            for su in session_users:
+                # Check if this user has a linked doctor profile
+                if hasattr(su.user, 'doctor_profile') and su.user.doctor_profile:
+                    doctor_user = su.user
+                    doctor_profile = su.user.doctor_profile
+                    break
+
+            if not self.user.is_staff and doctor_profile and doctor_profile.whatsapp_number:
+                logger.debug(send_wa_patient_chat_notification_to_specialist(
+                    f"{doctor_profile.whatsapp_country_code}{doctor_profile.whatsapp_number}",
+                    f"{doctor_profile.salutation}. {doctor_profile.first_name}"
+                ))
+
             logger.debug(f"Message saved successfully with id {message.id}")
             return message
         except Exception as e:
