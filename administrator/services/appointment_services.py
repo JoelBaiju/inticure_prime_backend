@@ -296,6 +296,8 @@ def format_admin_appointment(appt):
         "patient_id": getattr(customer_obj, "id", None),
         "patient_name": patient_name,
         "patient_time_zone": patient_tz,
+        "doctor_time_zone": getattr(doctor, "time_zone", None),
+        "doctor_time" : convert_utc_to_local_return_dt(appt.start_time, getattr(doctor, "time_zone")),
         "consultation_type": "Couples" if appt.is_couple else "Individual",
         "status": appt.appointment_status,
         "confirmed_on": confirmed_on,

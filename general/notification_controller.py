@@ -195,49 +195,77 @@ from datetime import timedelta
 
 #     send_appointment_reminder_doctor_email( appointment_id , message )
 
-@shared_task
-def send_reminder(appointment_id, reminder_type):
-    appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+from celery import shared_task
+import logging
 
-    if appointment.appointment_status != "confirmed":
-        return
+logger = logging.getLogger(__name__)
 
-    reminder_messages = {
-        "one_week": "Your consultation is in one week.",
-        "three_days": "Your consultation is in three days.",
-        "one_day": "Your consultation is in 24 hours.",
-        "one_hour": "Your consultation starts in one hour.",
-        "on_time": "Your consultation has started. Please join now.",
-    }
+@shared_task(bind=True, autoretry_for=(), retry_backoff=False)
+def send_reminder(self, appointment_id, reminder_type):
+    try:
+        appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
 
-    message = reminder_messages.get(reminder_type, "Appointment Reminder")
+        if appointment.appointment_status != "confirmed":
+            logger.info(f"Skipping reminder: appointment {appointment_id} not confirmed.")
+            return "Not confirmed"
 
-    # EMAIL: Customer
-    if appointment.customer.confirmation_method.lower() in ["email", "both"]:
-        if reminder_type == "on_time":
-            send_appointment_started_reminder_customer_email(appointment_id, message)
-        else:
-            send_appointment_reminder_customer_email(appointment_id, message)
+        reminder_messages = {
+            "one_week": "Your consultation is in one week.",
+            "three_days": "Your consultation is in three days.",
+            "one_day": "Your consultation is in 24 hours.",
+            "one_hour": "Your consultation starts in one hour.",
+            "on_time": "Your consultation has started. Please join now.",
+        }
 
-    # WHATSAPP: Customer
-    if appointment.customer.confirmation_method.lower() in ["whatsapp", "both"]:
-        if reminder_type == "one_hour":
-            send_wa_consultation_reminder_1_hour_before(appointment_id)
-        else:
-            send_wa_consultation_reminder_24_hours_before(appointment_id)
+        message = reminder_messages.get(reminder_type, "Appointment Reminder")
 
-    # DOCTOR - Email
-    if reminder_type == "on_time":
-        send_appointment_started_reminder_doctor_email(appointment_id, message)
-    else:
-        send_appointment_reminder_doctor_email(appointment_id, message)
+        # EMAIL: Customer
+        try:
+            if appointment.customer.confirmation_method.lower() in ["email", "both"]:
+                if reminder_type == "on_time":
+                    send_appointment_started_reminder_customer_email(appointment_id, message)
+                else:
+                    send_appointment_reminder_customer_email(appointment_id, message)
+        except Exception as e:
+            logger.error(f"Email reminder failed for appointment {appointment_id}: {e}")
 
-    # WHATSAPP: Doctor (if needed later)
-    if reminder_type == "one_hour":
-        send_wa_specialist_reminder_1_hour_before(appointment_id)
-    else:
-        send_wa_specialist_reminder_1_hour_before(appointment_id)
+        # WHATSAPP: Customer
+        try:
+            if appointment.customer.confirmation_method.lower() in ["whatsapp", "both"]:
+                if reminder_type == "one_hour":
+                    send_wa_consultation_reminder_1_hour_before(appointment_id)
+                else:
+                    send_wa_consultation_reminder_24_hours_before(appointment_id)
+        except Exception as e:
+            logger.error(f"WhatsApp reminder failed for appointment {appointment_id}: {e}")
 
+        # DOCTOR EMAIL
+        try:
+            if reminder_type == "on_time":
+                send_appointment_started_reminder_doctor_email(appointment_id, message)
+            else:
+                send_appointment_reminder_doctor_email(appointment_id, message)
+        except Exception as e:
+            logger.error(f"Doctor email reminder failed for appointment {appointment_id}: {e}")
+
+        # WHATSAPP: Doctor
+        try:
+            if reminder_type == "one_hour":
+                send_wa_specialist_reminder_1_hour_before(appointment_id)
+            else:
+                send_wa_specialist_reminder_1_hour_before(appointment_id)
+        except Exception as e:
+            logger.error(f"Doctor WhatsApp reminder failed for appointment {appointment_id}: {e}")
+
+        return f"Reminder task completed successfully for appointment {appointment_id}"
+
+    except AppointmentHeader.DoesNotExist:
+        logger.error(f"Appointment does not exist: {appointment_id}")
+        return "Appointment not found"
+
+    except Exception as e:
+        logger.exception(f"Unhandled error in send_reminder task for appointment {appointment_id}: {e}")
+        return f"Failed: {str(e)}"
 
 
 
