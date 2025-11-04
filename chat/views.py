@@ -385,10 +385,10 @@ def initiate_chat_doctor_admin(request):
             token=uuid.uuid4(),
             expires_at=timezone.now() + timedelta(hours=24))
 
-        Message.objects.create(
-            session=chat_session,
-            sender=doctor_user,
-            content=f"Doctor chat with admin")
+        # Message.objects.create(
+        #     session=chat_session,
+        #     sender=doctor_user,
+        #     content=f"Doctor chat with admin")
         return Response("successfully initiated chat")
     
     except Exception as e:
@@ -448,10 +448,10 @@ def initiate_chat_patient_admin(request):
             user=admin_user,
             token=uuid.uuid4(),
             expires_at=timezone.now() + timedelta(hours=24))
-        Message.objects.create(
-            session=chat_session,
-            sender=patient_user,
-            content=f"Patient chat with admin")
+        # Message.objects.create(
+        #     session=chat_session,
+        #     sender=patient_user,
+        #     content=f"Patient chat with admin")
 
         return Response({"message": "Chat session created successfully", "session_id": chat_session.id}, status=status.HTTP_201_CREATED)
     except Exception as e:
