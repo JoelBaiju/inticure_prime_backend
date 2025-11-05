@@ -213,6 +213,12 @@ def get_admin_appointments_queryset(params):
 
     status = params.get("status")
     if status:
+        if status == "completed":
+            status_list = ["completed", "customer_no_show", "doctor_no_show"]
+        if status == 'cancelled':
+            status_list = ['cancelled_by_customer','cancelled_by_doctor']
+        if status == "upcoming":
+            status_list = ["confirmed"]
         status_list = [s.strip() for s in status.split(",") if s.strip()]
         qs = qs.filter(appointment_status__in=status_list)
 
@@ -293,7 +299,7 @@ def format_admin_appointment(appt):
         "doctor_id": doctor_id,
         "doctor_name": doctor_name,
         "salutation": salutation,
-        "patient_id": getattr(customer_obj, "id", None),
+        "patient_id": getattr(customer_obj, "id", None), 
         "patient_name": patient_name,
         "patient_time_zone": patient_tz,
         "doctor_time_zone": getattr(doctor, "time_zone", None),
@@ -309,4 +315,21 @@ def format_admin_appointment(appt):
         "specialization_id": appt.specialization.specialization_id if appt.specialization else None,
         "confirmation_method": getattr(customer_obj, "confirmation_method", None)
         if customer_obj else None,
+    }
+
+
+
+def get_appointment_counts():
+    upcoming = 0
+    cancelled = 0 
+    completed = 0
+
+    upcoming = AppointmentHeader.objects.filter(appointment_status = "confirmed",
+                                                start_time__gt = timezone.now()).count()
+    cancelled = AppointmentHeader.objects.filter(appointment_status__in = ["cancelled_by_customer" , "cancelled_by_admin"]).count()
+    completed = AppointmentHeader.objects.filter(appointment_status = "completed").count()
+    return {
+        "upcoming_appts" : upcoming,
+        "cancelled_appts" : cancelled,
+        "completed_appts" : completed
     }
