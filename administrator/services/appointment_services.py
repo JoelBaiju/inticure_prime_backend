@@ -232,17 +232,34 @@ def get_admin_appointments_queryset(params):
             qs = qs.filter(
                 specialization__specialization__icontains=specialization
             )
-
     search = params.get("search")
     if search:
-        qs = qs.filter(
-            Q(appointment_id__icontains=search)
-            | Q(doctor__first_name__icontains=search)
-            | Q(doctor__last_name__icontains=search)
-            | Q(customer__user__first_name__icontains=search)
-            | Q(customer__user__last_name__icontains=search)
-            | Q(customer__id__icontains=search)
-        )
+        search = search.strip()
+        search_parts = search.split()
+
+        if len(search_parts) == 1:
+            # single-word search → same as before
+            qs = qs.filter(
+                Q(appointment_id__icontains=search)
+                | Q(doctor__first_name__icontains=search)
+                | Q(doctor__last_name__icontains=search)
+                | Q(customer__user__first_name__icontains=search)
+                | Q(customer__user__last_name__icontains=search)
+                | Q(customer__id__icontains=search)
+            )
+        else:
+            # multi-word search, like "nikhil rakesh"
+            first, last = search_parts[0], search_parts[-1]
+
+            qs = qs.filter(
+                Q(appointment_id__icontains=search)
+                | (Q(doctor__first_name__icontains=first) & Q(doctor__last_name__icontains=last))
+                | (Q(customer__user__first_name__icontains=first) & Q(customer__user__last_name__icontains=last))
+                # optionally support reverse order: "rakesh nikhil"
+                | (Q(doctor__first_name__icontains=last) & Q(doctor__last_name__icontains=first))
+                | (Q(customer__user__first_name__icontains=last) & Q(customer__user__last_name__icontains=first))
+            )
+
 
     sort = params.get("sort", "-start_time")
     allowed_sorts = {
@@ -271,7 +288,6 @@ def format_admin_appointment(appt):
     meeting_links = get_meeting_links_for_appointment(appt, customer_obj)
     payment_details = get_payment_details_for_appointment(appt)
     reminder_status = get_reminder_statuses_for_appointment(appt)
-    confirmed_on = get_confirmation_date_from_reminders(appt)
 
     doctor = getattr(appt, "doctor", None)
     doctor_name = salutation = doctor_id = None
@@ -306,7 +322,6 @@ def format_admin_appointment(appt):
         "doctor_time" : convert_utc_to_local_return_dt(appt.start_time, getattr(doctor, "time_zone")),
         "consultation_type": "Couples" if appt.is_couple else "Individual",
         "status": appt.appointment_status,
-        "confirmed_on": confirmed_on,
         "payment_details": payment_details,
         "booked_by": appt.booked_by,
         "reminder_status": reminder_status,
