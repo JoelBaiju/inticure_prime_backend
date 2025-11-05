@@ -38,7 +38,7 @@ class StandardPagination(PageNumberPagination):
         return Response({
             'count': self.page.paginator.count,
             'total_pages': total_pages,
-            "appt_counts":get_appointment_counts,
+            "appt_counts":get_appointment_counts(),
             'next': self.get_next_link(),
             'previous': self.get_previous_link(),
             'results': data,
