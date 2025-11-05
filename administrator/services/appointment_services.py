@@ -215,16 +215,19 @@ def get_admin_appointments_queryset(params):
     print(status , status)
     if status:
         if status == "completed":
-            print("in status" , status)
+            print("in completed" , status)
             status_list = ["completed", "customer_no_show", "doctor_no_show"]
         if status == 'cancelled':
-            print("in status" , status)
+            print("in cancelled" , status)
             status_list = ['cancelled_by_customer','cancelled_by_admin']
         if status == "upcoming":
-            print("in status" , status)
+            print("in upcoming" , status)
             status_list = ["confirmed"]
-        status_list = [s.strip() for s in status.split(",") if s.strip()]
+
+        print("status list",status_list)
+
         qs = qs.filter(appointment_status__in=status_list)
+        print()
 
     specialization = params.get("specialization")
     if specialization:
