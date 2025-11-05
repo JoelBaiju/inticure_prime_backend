@@ -1003,7 +1003,8 @@ def schedule_all_reminders(appointment_id):
         return f"Error scheduling reminders: {str(e)}"
 
 
-from .models import Reminder_Sent_History, Meeting_Tracker
+from .models import Reminder_Sent_History
+from analysis.models import Meeting_Tracker
 from analysis.models import AppointmentHeader
 
 
