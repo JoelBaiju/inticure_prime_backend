@@ -163,7 +163,7 @@ def get_meeting_links_for_appointment(appt, customer_obj=None):
         doctor_link = getattr(tracker, "doctor_meeting_id", doctor_link) or doctor_link
 
     return {
-        "doctor_meeting_link": BACKEND_URL+"meet/join/"+str(doctor_link),
-        "patient_meeting_link": BACKEND_URL+"meet/join/"+str(patient_link)
+        "doctor_meeting_link": BACKEND_URL+"/meet/join/"+str(doctor_link),
+        "patient_meeting_link": BACKEND_URL+"/meet/join/"+str(patient_link)
         }
 
