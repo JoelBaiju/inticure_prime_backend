@@ -135,7 +135,7 @@ def get_reminder_statuses_for_appointment(appt):
         "email_reminders": email_reminders,
     }
 
-
+from inticure_prime_backend.settings import BACKEND_URL
 def get_meeting_links_for_appointment(appt, customer_obj=None):
     """
     Based on your Customer serializer usage:
@@ -150,6 +150,7 @@ def get_meeting_links_for_appointment(appt, customer_obj=None):
 
     doctor_link = getattr(appt, "meeting_link", None)  # fallback - sometimes used
     patient_link = None
+    
 
     if tracker:
         # your Meeting_Tracker fields used earlier: customer_1_meeting_id / customer_2_meeting_id
@@ -161,5 +162,8 @@ def get_meeting_links_for_appointment(appt, customer_obj=None):
         # doctor meeting id fields might be present
         doctor_link = getattr(tracker, "doctor_meeting_id", doctor_link) or doctor_link
 
-    return {"doctor_meeting_link": doctor_link, "patient_meeting_link": patient_link}
+    return {
+        "doctor_meeting_link": BACKEND_URL+"meet/join/"+doctor_link,
+        "patient_meeting_link": BACKEND_URL+"meet/join/"+patient_link
+        }
 
