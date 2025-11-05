@@ -71,32 +71,69 @@ def get_confirmation_date_from_reminders(appt):
     return None
 
 
+# def get_reminder_statuses_for_appointment(appt):
+#     """
+#     Provide a summary object about reminders: counts and last sent times for email/whatsapp.
+#     You can expand this later (e.g., by event type).
+#     """
+#     out = {
+#         "total_sent": 0,
+#         "last_whatsapp_sent_at": None,
+#         "last_email_sent_at": None,
+#         "last_sent_at": None,
+#     }
+#     reminders = appt.reminder_sent_history.all().order_by("-sent_at")
+#     if not reminders:
+#         return out
+#     out["total_sent"] = reminders.count()
+#     # find last whatsapp / email by scanning recent reminders
+#     for r in reminders:
+#         if out["last_sent_at"] is None:
+#             out["last_sent_at"] = r.sent_at
+#         if r.whatsapp_number and out["last_whatsapp_sent_at"] is None:
+#             out["last_whatsapp_sent_at"] = r.sent_at
+#         if r.email and out["last_email_sent_at"] is None:
+#             out["last_email_sent_at"] = r.sent_at
+#         if out["last_whatsapp_sent_at"] and out["last_email_sent_at"]:
+#             break
+#     return out
+
+
 def get_reminder_statuses_for_appointment(appt):
     """
-    Provide a summary object about reminders: counts and last sent times for email/whatsapp.
-    You can expand this later (e.g., by event type).
+    Returns detailed reminder info grouped into WhatsApp and Email lists.
+    Each entry includes time, type, subject, and recipient details.
     """
-    out = {
-        "total_sent": 0,
-        "last_whatsapp_sent_at": None,
-        "last_email_sent_at": None,
-        "last_sent_at": None,
-    }
     reminders = appt.reminder_sent_history.all().order_by("-sent_at")
-    if not reminders:
-        return out
-    out["total_sent"] = reminders.count()
-    # find last whatsapp / email by scanning recent reminders
+
+    whatsapp_reminders = []
+    email_reminders = []
+
     for r in reminders:
-        if out["last_sent_at"] is None:
-            out["last_sent_at"] = r.sent_at
-        if r.whatsapp_number and out["last_whatsapp_sent_at"] is None:
-            out["last_whatsapp_sent_at"] = r.sent_at
-        if r.email and out["last_email_sent_at"] is None:
-            out["last_email_sent_at"] = r.sent_at
-        if out["last_whatsapp_sent_at"] and out["last_email_sent_at"]:
-            break
-    return out
+        reminder_info = {
+            "sent_at": r.sent_at,
+            "subject": r.subject,
+        }
+
+        if r.whatsapp_number:
+            whatsapp_reminders.append({
+                **reminder_info,
+                "type": "whatsapp",
+                "whatsapp_number": r.whatsapp_number,
+            })
+
+        if r.email:
+            email_reminders.append({
+                **reminder_info,
+                "type": "email",
+                "email": r.email,
+            })
+
+    return {
+        "total_sent": reminders.count(),
+        "whatsapp_reminders": whatsapp_reminders,
+        "email_reminders": email_reminders,
+    }
 
 
 def get_meeting_links_for_appointment(appt, customer_obj=None):
