@@ -115,7 +115,7 @@ def get_appointments_data(doctor, limit=3):
 
     previous_qs = AppointmentHeader.objects.filter(
         doctor=doctor,
-        appointment_status="confirmed",
+        appointment_status_in = ["confirmed","completed"],
         # completed=True,
         end_time__lte=now
     ).order_by("-start_time")
