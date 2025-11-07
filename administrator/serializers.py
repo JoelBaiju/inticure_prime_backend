@@ -463,10 +463,22 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
     customer_package = CustomerPackageSerializer(many=True, read_only=True)
     prescribed_medications = PrescribedMedicationsSerializer(many=True, read_only=True)
     country_details = serializers.CharField(source='country_details.country_name', read_only=True)
-    confirmation_method = serializers.SerializerMethodField
+    confirmation_method = serializers.SerializerMethodField()
+    partner_data = serializers.SerializerMethodField()
 
     def get_name(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}"
+
+    def get_partner_data(self , obj):
+        if obj.partner :
+            return {
+                'first_name' : obj.partner.user.first_name,
+                'last_name'  : obj.partner.user.last_name
+            }
+        else :
+            return None
+        
+
 
     def get_confirmation_method(self, obj):
         print(obj.confirmation_method)

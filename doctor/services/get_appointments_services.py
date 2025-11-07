@@ -90,7 +90,8 @@ def format_appointment(appt, doctor, include_meeting=False):
         "specialization_id": appt.specialization.specialization_id if appt.specialization else None,
         "followup": bool(appt.followup),
         "date": convert_utc_to_local_return_dt(appt.start_time, doctor.time_zone).date(),
-        "is_couple": getattr(appt, "is_couple", False)
+        "is_couple": getattr(appt, "is_couple", False),
+        "appointment_status" : appt.appointment_status if appt else None
     }
 
     if include_meeting:
