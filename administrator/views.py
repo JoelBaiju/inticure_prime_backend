@@ -597,6 +597,56 @@ def general_payment_rule_list_create(request):
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 
+from collections import defaultdict
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+
+# @permission_classes([IsAuthenticated, IsAdminUser])
+@api_view(['GET', 'POST'])
+def general_payment_rule_list_create_2(request):
+    if request.method == 'GET':
+        doctor_id = request.GET.get('doctor_id')
+        search_term = request.GET.get('search')
+
+        rules = GeneralPaymentRules.objects.select_related('country', 'specialization').all()
+
+        # Filter by doctor if provided
+        if doctor_id:
+            try:
+                doctor = DoctorProfiles.objects.get(pk=doctor_id)
+            except DoctorProfiles.DoesNotExist:
+                return Response({"error": "Doctor not found."}, status=404)
+
+            specialization_ids = doctor.doctor_specializations.values_list('specialization_id', flat=True)
+
+            rules = rules.filter(
+                specialization_id__in=specialization_ids,
+                experience=doctor.experience,
+                doctor_flag=doctor.doctor_flag,
+            )
+
+        # Filter by search if provided
+        if search_term:
+            rules = rules.filter(pricing_name__icontains=search_term)
+
+        # Serialize and group by specialization
+        serializer = GeneralPaymentRuleSerializer(rules, many=True)
+        grouped_rules = defaultdict(list)
+
+        for item in serializer.data:
+            specialization_name = item['specialization_name']
+            grouped_rules[specialization_name].append(item)
+
+        return Response(grouped_rules)
+
+    # --- POST: Create a new rule ---
+    serializer = GeneralPaymentRuleSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+
+    return Response(serializer.errors, status=400)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])

@@ -201,6 +201,31 @@ class GeneralPaymentRuleSerializer(serializers.ModelSerializer):
 
 
 
+class GeneralPaymentRuleSerializer_Specialization_based(serializers.ModelSerializer):
+    country_name = serializers.CharField(source='country.country_name', read_only=True)
+    specialization_name = serializers.CharField(source='specialization.specialization', read_only=True)
+    experience_display = serializers.CharField(source='get_experience_display', read_only=True)
+    doctor_flag_display = serializers.CharField(source='get_doctor_flag_display', read_only=True)
+    currency_symbol = serializers.CharField(source='country.currency_symbol', read_only=True)  # Ensure currency is defined in Countries
+
+    class Meta:
+        model = GeneralPaymentRules
+        fields = [
+            'id', 'pricing_name',
+            'country', 'country_name',
+            'specialization', 'specialization_name',
+            'experience', 'experience_display',
+            'doctor_flag', 'doctor_flag_display',
+            'session_count',
+            'doctor_fee_single', 'user_total_fee_single',
+            'doctor_fee_couple', 'user_total_fee_couple',
+            'actual_price_single', 'actual_price_couple',
+            'currency_symbol'
+        ]
+
+
+
+
 # class DoctorPaymentRuleSerializer(serializers.ModelSerializer):
 #     doctor_name = serializers.SerializerMethodField()
 #     specialization_name = serializers.CharField(source='specialization.specialization', read_only=True)

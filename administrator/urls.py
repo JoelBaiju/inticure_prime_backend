@@ -45,6 +45,7 @@ urlpatterns = [
     path("options/<int:pk>/", option_detail),
 
     path("payment/general-rules/", general_payment_rule_list_create, name="general_payment_rule_list_create"),
+    path("payment/general-rules-2/", general_payment_rule_list_create_2, name="general_payment_rule_list_create"),
     path("payment/general-rules/<int:pk>/", general_payment_rule_detail, name="general_payment_rule_detail"),
 
     # Doctor Payment Assignments
