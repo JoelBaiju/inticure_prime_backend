@@ -519,7 +519,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
             'country_details', 'height_unit', 'profile_pic', 'completed_first_analysis',
             'preferred_name', 'weight', 'weight_unit', 'height', 'time_zone', 
             'confirmation_method', 'customer_package', 'prescribed_medications' , 
-            "country_code"
+            "country_code","partner_data"
         ]
 
 
