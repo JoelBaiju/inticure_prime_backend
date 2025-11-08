@@ -78,7 +78,7 @@ class PhoneNumberOrEmailSubmissionView(APIView):
                 # otp_instance = Phone_OTPs.objects.create(phone=phone_number , otp = '666666')
                    
                 try:
-                    otp_instance, created = Phone_OTPs.objects.get_or_create(phone=phone_number)
+                    otp_instance, created = Phone_OTPs.objects.get_or_create(phone=phone_number,country_code = country_code)
                     otp_instance.otp = otp
                     otp_instance.save()
                 except MultipleObjectsReturned:
@@ -137,7 +137,7 @@ class PhoneNumberOrEmailVerificationView(APIView):
         logger.debug(f'phone number: {phone_number} here')
 
 
-
+        phone_otp = None
         if phone_number :
             logger.debug('phone number got condition 1 passed')
             # if  len(phone_number)<5:
@@ -216,6 +216,8 @@ class PhoneNumberOrEmailVerificationView(APIView):
                 user=user,
                 mobile_number=phone_number if phone_number else None,
                 whatsapp_number = phone_number if phone_number else None,
+                mob_country_code = phone_otp.country_code if phone_otp else None,
+                country_code = phone_otp.country_code if phone_otp else None,
                 completed_first_analysis=False,
                 email = email if email else None,
             )
