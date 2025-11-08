@@ -93,17 +93,19 @@ def update_customer_details(data: dict):
 
     if data.get("habitual_questions"):
         for question in data.get("habitual_questions"):
-            q , created =AppointmentQuestionsAndAnswers.objects.get_or_create(
+            q =AppointmentQuestionsAndAnswers.objects.filter(
                 question_id=question.get("question"),
                 customer=customer
-            )
-            q.answer_id = question.get("option"),
-            q.save()
-            # AppointmentQuestionsAndAnswers.objects.create(
-            #     question_id=question.get("question"),
-            #     answer_id=question.get("option"),
-            #     customer=customer
-            # )
+            ).first()
+            if q :
+                q.answer_id = question.get("option"),
+                q.save()
+            else:
+                AppointmentQuestionsAndAnswers.objects.create(
+                    question_id=question.get("question"),
+                    answer_id=question.get("option"),
+                    customer=customer
+                )
         message_parts.append("Extra questions")
 
     return True, f"{' & '.join(message_parts)} updated successfully."
