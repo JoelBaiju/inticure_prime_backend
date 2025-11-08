@@ -98,7 +98,7 @@ def update_customer_details(data: dict):
                 customer=customer
             ).first()
             if q :
-                q.answer_id = question.get("option"),
+                q.answer_id = question.get("option")
                 q.save()
             else:
                 AppointmentQuestionsAndAnswers.objects.create(
