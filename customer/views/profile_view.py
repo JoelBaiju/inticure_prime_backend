@@ -118,88 +118,215 @@ class CustomerProfileUpdateView(generics.RetrieveUpdateAPIView):
 from general.whatsapp.whatsapp_messages import send_wa_auth_code
 from general.utils import generate_random_otp
 
+# class WhatsappNumberOrEmailChangeView(APIView):
+#     permission_classes = [IsAuthenticated]
+#     def post(self, request):
+#         whatsapp_number = request.data.get('whatsapp_number')
+#         country_code = request.data.get('country_code')
+#         email = request.data.get('email')
+#         print("Phone number:", whatsapp_number)
+#         print("email",email)
+#         if whatsapp_number:
+#             if len(str(whatsapp_number))>5:
+#                 print("Whatsapp number received and got in:", whatsapp_number)
+#                 # otp_instance = Phone_OTPs.objects.create(phone=whatsapp_number , otp = '666666')
+#                 otp_instance = Phone_OTPs.objects.create(phone=whatsapp_number , otp = generate_random_otp())
+#                 # send_otp_sms(otp = otp_instance.otp , to_number=country_code+whatsapp_number)
+#                 send_wa_auth_code(str(country_code)+str(whatsapp_number),otp_instance.otp)
+#                 print("OTP sent to phone number:", whatsapp_number)
+            
+#         if email:
+#             # otp_instance = Email_OTPs.objects.create(email=email, otp='666666')
+#             otp_instance = Email_OTPs.objects.create(email=email, otp=generate_random_otp())
+#             send_email_verification_otp_email(otp = otp_instance.otp , to_email=email , name = ' User')
+#             print("OTP sent to email:", email)
+        
+            
+#         return Response({
+#             'message': 'OTP sent successfully',
+#             'whatsapp':whatsapp_number ,
+#             'email': email
+#         }) 
+
+# class VerifyWhatsappNumberOrEmailChangeView(APIView):
+#     permission_classes=[IsAuthenticated]
+#     def post(self, request):
+#         whatsapp_number = request.data.get('whatsapp_number')
+#         country_code = request.data.get('country_code')
+#         email = request.data.get('email')
+#         otp = request.data.get('otp')
+#         print(whatsapp_number , otp , email)
+#         if whatsapp_number:
+#             if Phone_OTPs.objects.filter(phone=whatsapp_number,otp = otp).exists():
+#                 print("OTP verified successfully")
+#                 user_profile = CustomerProfile.objects.get(user=request.user)
+#                 user_profile.whatsapp_number = whatsapp_number
+#                 user_profile.country_code=country_code
+#                 user_profile.save()
+#                 return Response({
+#                     'message': 'Whatsapp number updated successfully',
+#                     'whatsapp': whatsapp_number,
+#                     "country":user_profile.country_details.country_name,
+#                     'email': email
+#                     },
+#                     status=status.HTTP_200_OK   )
+#             else:
+#                 return Response({
+#                     'message': 'Invalid OTP',
+#                     'whatsapp': whatsapp_number,
+#                     'email': email
+#                     },
+#                     status=status.HTTP_400_BAD_REQUEST)
+#         elif email:
+#             if Email_OTPs.objects.filter(email=email,otp = otp).exists():
+#                 print("OTP verified successfully")
+#                 user_profile = CustomerProfile.objects.get(user=request.user)
+#                 user_profile.email = email
+#                 user_profile.save()
+#                 return Response({
+#                     'message': 'Email updated successfully',
+#                     'whatsapp': whatsapp_number,
+#                     "country":user_profile.country_details.country_name,
+#                     'email': email
+#                     },
+#                     status=status.HTTP_200_OK   )
+#             else:
+#                 return Response({
+#                     'message': 'Invalid OTP',
+#                     'whatsapp': whatsapp_number,
+#                     'email': email
+#                     },
+#                     status=status.HTTP_400_BAD_REQUEST)
+
+
+
+import logging
+
+logger = logging.getLogger(__name__)
+
 class WhatsappNumberOrEmailChangeView(APIView):
     permission_classes = [IsAuthenticated]
+
     def post(self, request):
+        logger.info("[START] WhatsappNumberOrEmailChangeView.post called by user %s", request.user.id)
+
         whatsapp_number = request.data.get('whatsapp_number')
         country_code = request.data.get('country_code')
         email = request.data.get('email')
-        print("Phone number:", whatsapp_number)
-        print("email",email)
-        if whatsapp_number:
-            if len(str(whatsapp_number))>5:
-                print("Whatsapp number received and got in:", whatsapp_number)
-                # otp_instance = Phone_OTPs.objects.create(phone=whatsapp_number , otp = '666666')
-                otp_instance = Phone_OTPs.objects.create(phone=whatsapp_number , otp = generate_random_otp())
-                # send_otp_sms(otp = otp_instance.otp , to_number=country_code+whatsapp_number)
-                send_wa_auth_code(str(country_code)+str(whatsapp_number),otp_instance.otp)
-                print("OTP sent to phone number:", whatsapp_number)
-            
-        if email:
-            # otp_instance = Email_OTPs.objects.create(email=email, otp='666666')
-            otp_instance = Email_OTPs.objects.create(email=email, otp=generate_random_otp())
-            send_email_verification_otp_email(otp = otp_instance.otp , to_email=email , name = ' User')
-            print("OTP sent to email:", email)
-        
-            
-        return Response({
-            'message': 'OTP sent successfully',
-            'whatsapp':whatsapp_number ,
-            'email': email
-        }) 
+
+        logger.debug("[STEP] Received data: whatsapp_number=%s, country_code=%s, email=%s", whatsapp_number, country_code, email)
+
+        try:
+            if whatsapp_number:
+                if len(str(whatsapp_number)) > 5:
+                    logger.info("[STEP] Valid WhatsApp number detected: %s", whatsapp_number)
+
+                    otp_value = generate_random_otp()
+                    otp_instance = Phone_OTPs.objects.create(phone=whatsapp_number, otp=otp_value)
+                    logger.debug("[STEP] OTP object created with ID=%s and OTP=%s", otp_instance.id, otp_value)
+
+                    try:
+                        send_wa_auth_code(str(country_code) + str(whatsapp_number), otp_instance.otp)
+                        logger.info("[SUCCESS] WhatsApp OTP sent successfully to %s", str(country_code) + str(whatsapp_number))
+                    except Exception as e:
+                        logger.error("[ERROR] Failed to send WhatsApp OTP to %s: %s", whatsapp_number, e, exc_info=True)
+                        return Response({"message": "Failed to send WhatsApp OTP"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                else:
+                    logger.warning("[WARNING] Invalid WhatsApp number length: %s", whatsapp_number)
+
+            if email:
+                logger.info("[STEP] Email verification requested for %s", email)
+
+                otp_value = generate_random_otp()
+                otp_instance = Email_OTPs.objects.create(email=email, otp=otp_value)
+                logger.debug("[STEP] Email OTP created with ID=%s and OTP=%s", otp_instance.id, otp_value)
+
+                try:
+                    send_email_verification_otp_email(otp=otp_instance.otp, to_email=email, name='User')
+                    logger.info("[SUCCESS] Email OTP sent successfully to %s", email)
+                except Exception as e:
+                    logger.error("[ERROR] Failed to send email OTP to %s: %s", email, e, exc_info=True)
+                    return Response({"message": "Failed to send email OTP"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            logger.info("[SUCCESS] OTP dispatch completed for user %s", request.user.id)
+            return Response({
+                'message': 'OTP sent successfully',
+                'whatsapp': whatsapp_number,
+                'email': email
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error("[ERROR] Exception in WhatsappNumberOrEmailChangeView.post: %s", e, exc_info=True)
+            return Response({"message": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class VerifyWhatsappNumberOrEmailChangeView(APIView):
-    permission_classes=[IsAuthenticated]
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
+        logger.info("[START] VerifyWhatsappNumberOrEmailChangeView.post called by user %s", request.user.id)
+
         whatsapp_number = request.data.get('whatsapp_number')
         country_code = request.data.get('country_code')
         email = request.data.get('email')
         otp = request.data.get('otp')
-        print(whatsapp_number , otp , email)
-        if whatsapp_number:
-            if Phone_OTPs.objects.filter(phone=whatsapp_number,otp = otp).exists():
-                print("OTP verified successfully")
-                user_profile = CustomerProfile.objects.get(user=request.user)
-                user_profile.whatsapp_number = whatsapp_number
-                user_profile.country_code=country_code
-                user_profile.save()
-                return Response({
-                    'message': 'Whatsapp number updated successfully',
-                    'whatsapp': whatsapp_number,
-                    "country":user_profile.country_details.country_name,
-                    'email': email
-                    },
-                    status=status.HTTP_200_OK   )
+
+        logger.debug("[STEP] Received data: whatsapp_number=%s, country_code=%s, email=%s, otp=%s", whatsapp_number, country_code, email, otp)
+
+        try:
+            user_profile = CustomerProfile.objects.get(user=request.user)
+            logger.debug("[STEP] Retrieved CustomerProfile for user %s", request.user.id)
+
+            if whatsapp_number:
+                logger.info("[STEP] Verifying OTP for WhatsApp number: %s", whatsapp_number)
+                if Phone_OTPs.objects.filter(phone=whatsapp_number, otp=otp).exists():
+                    logger.info("[SUCCESS] WhatsApp OTP verified for %s", whatsapp_number)
+
+                    user_profile.whatsapp_number = whatsapp_number
+                    user_profile.country_code = country_code
+                    user_profile.save()
+
+                    logger.info("[SUCCESS] WhatsApp number updated for user %s", request.user.id)
+                    return Response({
+                        'message': 'Whatsapp number updated successfully',
+                        'whatsapp': whatsapp_number,
+                        'country': user_profile.country_details.country_name,
+                        'email': email
+                    }, status=status.HTTP_200_OK)
+                else:
+                    logger.warning("[WARNING] Invalid OTP for WhatsApp number: %s", whatsapp_number)
+                    return Response({'message': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+
+            elif email:
+                logger.info("[STEP] Verifying OTP for email: %s", email)
+                if Email_OTPs.objects.filter(email=email, otp=otp).exists():
+                    logger.info("[SUCCESS] Email OTP verified for %s", email)
+
+                    user_profile.email = email
+                    user_profile.save()
+                    logger.info("[SUCCESS] Email updated for user %s", request.user.id)
+
+                    return Response({
+                        'message': 'Email updated successfully',
+                        'whatsapp': whatsapp_number,
+                        'country': user_profile.country_details.country_name,
+                        'email': email
+                    }, status=status.HTTP_200_OK)
+                else:
+                    logger.warning("[WARNING] Invalid OTP for email: %s", email)
+                    return Response({'message': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+
             else:
-                return Response({
-                    'message': 'Invalid OTP',
-                    'whatsapp': whatsapp_number,
-                    'email': email
-                    },
-                    status=status.HTTP_400_BAD_REQUEST)
-        elif email:
-            if Email_OTPs.objects.filter(email=email,otp = otp).exists():
-                print("OTP verified successfully")
-                user_profile = CustomerProfile.objects.get(user=request.user)
-                user_profile.email = email
-                user_profile.save()
-                return Response({
-                    'message': 'Email updated successfully',
-                    'whatsapp': whatsapp_number,
-                    "country":user_profile.country_details.country_name,
-                    'email': email
-                    },
-                    status=status.HTTP_200_OK   )
-            else:
-                return Response({
-                    'message': 'Invalid OTP',
-                    'whatsapp': whatsapp_number,
-                    'email': email
-                    },
-                    status=status.HTTP_400_BAD_REQUEST)
+                logger.warning("[WARNING] No email or WhatsApp number provided in request.")
+                return Response({'message': 'Missing parameters'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-
+        except CustomerProfile.DoesNotExist:
+            logger.error("[ERROR] CustomerProfile not found for user %s", request.user.id)
+            return Response({"message": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error("[ERROR] Exception in VerifyWhatsappNumberOrEmailChangeView.post: %s", e, exc_info=True)
+            return Response({"message": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
