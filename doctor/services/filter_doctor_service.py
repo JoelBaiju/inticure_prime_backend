@@ -109,199 +109,141 @@ from ..slots_service import (
 import logging
 logger = logging.getLogger(__name__)
 
-
-
-
-# ... same imports and class definition ...
+import traceback
 
 class DoctorFilterService:
     @staticmethod
     def filter_doctors(user, data):
-        logger.info("==== DoctorFilterService.filter_doctors CALLED ====")
-        logger.debug(f"Raw input data: {data}")
-        logger.debug(f"User: {user}")
+        """
+        Main business logic for filtering doctors based on preferences.
+        Includes detailed logging for debugging.
+        """
 
-        appointment_id = data.get('appointment_id')
-        specialization_id = data.get('specialization_id')
-        language_info = data.get('language_info', {})
-        gender_info = data.get('gender_info', {})
-        date_str = data.get('date')
-        is_couple = data.get('is_couple', False)
-
-        logger.info(f"appointment_id={appointment_id}, specialization_id={specialization_id}, date={date_str}, is_couple={is_couple}")
-
-        if not date_str:
-            logger.warning("Date not provided in data")
-            return {"error": "Date is required."}
+        logger.info("DoctorFilterService.filter_doctors called with data: %s", data)
 
         try:
-            doctor = get_doctor_from_user(user)
-            logger.debug(f"Doctor resolved from user: {doctor} (id={getattr(doctor, 'doctor_profile_id', None)})")
-        except Exception:
-            logger.exception("Failed to resolve doctor from user")
-            return {"error": "Unable to resolve doctor from user"}
-
-        try:
-            datetime_str = f"{date_str}T00:00:00"
-            utc_day_start = convert_local_dt_to_utc(datetime_str, doctor.time_zone)
-            utc_day_end = utc_day_start + timedelta(days=1)
-            logger.debug(f"Converted date to UTC range: {utc_day_start} - {utc_day_end}")
-        except Exception as e:
-            logger.exception("Date/time conversion error")
-            return {"error": f"Date/time conversion error: {str(e)}"}
-
-        specialization = Specializations.objects.filter(specialization_id=specialization_id).first()
-        appointment = AppointmentHeader.objects.filter(appointment_id=appointment_id).first()
-
-        if not specialization:
-            logger.warning(f"Invalid specialization ID: {specialization_id}")
-            return {"error": "Invalid specialization ID"}
-        if not appointment:
-            logger.warning(f"Invalid appointment ID: {appointment_id}")
-            return {"error": "Invalid appointment ID"}
-
-        logger.debug(f"Specialization: {specialization.specialization}, Appointment: {appointment_id}")
-
-        # ✅ Handle session_duration safely with detailed logs
-        session_duration = (
-            specialization.double_session_duration if is_couple else specialization.single_session_duration
-        )
-        logger.debug(f"Raw session_duration value: {session_duration} (type={type(session_duration)})")
-
-        if session_duration is None:
-            logger.warning("Session duration not defined for specialization.")
-            return {"error": "Session duration not defined."}
-
-        # 🧠 Normalize session_duration to minutes (int/float)
-        try:
-            if isinstance(session_duration, timedelta):
-                session_duration_minutes = session_duration.total_seconds() / 60
-                logger.debug(
-                    f"Session duration converted from timedelta to minutes: {session_duration_minutes}"
-                )
-            else:
-                session_duration_minutes = float(session_duration)
-                logger.debug(
-                    f"Session duration already in minutes: {session_duration_minutes}"
-                )
-        except Exception as e:
-            logger.exception("Error processing session_duration value")
-            return {"error": f"Invalid session duration value: {str(e)}"}
-
-        # 🩺 Proceed with doctor filtering
-        try:
-            preferred_doctors, preferred_doctor_ids, gender_matched, language_matched, fallback_reason = get_preferred_doctors(
-                gender_info=gender_info,
-                language_info=language_info,
-                flag='senior',
-                country=appointment.customer.country_details.country_name,
-                specialization=specialization,
-                is_couple=is_couple
-            )
-            logger.info(f"Preferred doctors count: {preferred_doctors.count() if preferred_doctors else 0}")
-        except Exception:
-            logger.exception("Error in get_preferred_doctors()")
-            return {"error": "Error fetching preferred doctors"}
-
-        doctor_specs_qs = DoctorSpecializations.objects.filter(specialization=specialization)
-        preferred_doctors = preferred_doctors.filter(doctor_specializations__in=doctor_specs_qs).distinct()
-        logger.debug(f"Doctors after specialization filter: {preferred_doctors.count()}")
-
-        preferred_doctors_available_in_date = preferred_doctors.filter(
-            doctor_available_hours__start_time__lt=utc_day_end,
-            doctor_available_hours__end_time__gt=utc_day_start
-        ).distinct()
-        logger.info(f"Doctors available for requested date: {preferred_doctors_available_in_date.count()}")
-
-        # 🩻 Log full doctor IDs for easier trace
-        logger.debug(f"Available doctor IDs on date: {[d.id for d in preferred_doctors_available_in_date]}")
-
-        if not preferred_doctors_available_in_date.exists():
-            logger.warning("No doctors available for requested date. Searching for next available date...")
-
-            try:
-                logger.debug(
-                    f"Calling get_available_dates with session_duration={session_duration_minutes} minutes"
-                )
-                available_dates = get_available_dates(
-                    doctors=preferred_doctors,
-                    timezone_str=doctor.time_zone,
-                    session_duration=session_duration_minutes,
-                    alignment_minutes=5,
-                    min_allowed_start=utc_day_end
-                )
-            except Exception:
-                logger.exception("Error fetching available dates")
-                return {"error": "Error fetching next available dates"}
-
-            if not available_dates:
-                logger.warning("No available dates found within limit.")
-                return {
-                    "available_doctors": [],
-                    "next_available_date": None,
-                    "message": "No doctors available in upcoming days."
-                }
-
-            next_available_date = available_dates[0]
-            logger.info(f"Next available date found: {next_available_date}")
-
-            next_date_obj = datetime.fromisoformat(next_available_date)
-            utc_start = convert_local_dt_to_utc(f"{next_available_date}T00:00:00", doctor.time_zone)
-            utc_end = utc_start + timedelta(days=1)
+            appointment_id = data.get('appointment_id')
+            specialization_id = data.get('specialization_id')
+            language_info = data.get('language_info', {})
+            gender_info = data.get('gender_info', {})
+            date_str = data.get('date')
+            is_couple = data.get('is_couple', False)
 
             logger.debug(
-                f"Generating slots for next available date {next_available_date} "
-                f"with session_duration={session_duration_minutes} minutes"
+                "Extracted params -> appointment_id=%s, specialization_id=%s, "
+                "language_info=%s, gender_info=%s, date=%s, is_couple=%s",
+                appointment_id, specialization_id, language_info, gender_info, date_str, is_couple
             )
 
-            slots = generate_slots_for_doctors(
-                doctors_queryset=preferred_doctors,
-                target_dt_start=utc_start,
-                target_dt_end=utc_end,
-                session_duration=session_duration_minutes,
-                alignment_minutes=5
+            # Get doctor from user
+            from doctor.utils import get_doctor_from_user
+            doctor = get_doctor_from_user(user)
+            logger.debug("Logged-in doctor: %s (%s)", doctor.first_name, doctor.doctor_profile_id)
+
+            # Parse date into UTC
+            datetime_str = f"{date_str}T00:00:00"
+            utc_datetime = convert_local_dt_to_utc(datetime_str, doctor.time_zone)
+            date = utc_datetime.date()
+            logger.debug("Converted local date '%s' to UTC date '%s'", date_str, date)
+
+            specialization = Specializations.objects.filter(specialization_id=specialization_id).first()
+            appointment = AppointmentHeader.objects.filter(appointment_id=appointment_id).first()
+
+            if not specialization:
+                logger.error("Invalid specialization ID: %s", specialization_id)
+                return "Invalid specialization ID"
+            if not appointment:
+                logger.error("Invalid appointment ID: %s", appointment_id)
+                return "Invalid appointment ID"
+
+            logger.debug("Specialization found: %s", specialization.specialization)
+            logger.debug("Appointment found for customer: %s", appointment.customer_id)
+
+            # Determine session duration
+            session_duration_field = (
+                specialization.double_session_duration if is_couple else specialization.single_session_duration
+            )
+            if session_duration_field is None:
+                logger.error("Session duration undefined for specialization %s", specialization.specialization)
+                return "Session duration not defined."
+
+            # Fetch preferred doctors
+            logger.info("Fetching preferred doctors...")
+            preferred_doctors, preferred_doctor_ids, gender_matched, language_matched, fallback_reason = get_preferred_doctors(
+                specialization=specialization.specialization_id,
+                language_info=language_info,
+                gender_info=gender_info,
+                country=appointment.customer.country_details.country_name,
+                flag='senior',
+                is_couple=is_couple
+            )
+            logger.debug(
+                "Preferred doctors fetched -> count=%s | gender_matched=%s | language_matched=%s | fallback=%s",
+                preferred_doctors.count() if preferred_doctors else 0,
+                gender_matched,
+                language_matched,
+                fallback_reason
             )
 
-            logger.debug(f"Slots generated for next available date: {len(slots)}")
-            return {
-                "available_doctors": [],
-                "next_available_date": next_available_date,
-                "available_slots": {str(k[0]): v for k, v in slots.items()},
-                "message": f"No doctors available on {date_str}, showing next available date {next_available_date}."
+            if not preferred_doctors:
+                fallback_reason = fallback_reason or "No doctors available with preferences. Showing all available doctors."
+                logger.warning("No preferred doctors found. Falling back: %s", fallback_reason)
+
+                preferred_doctors = DoctorProfiles.objects.filter(
+                    doctor_flag='senior',
+                    is_accepted=True,
+                    payment_assignments__country__country_name=appointment.customer.country_details.country_name,
+                ).distinct()
+                result = []
+            else:
+                logger.info("Filtering preferred doctors available on date: %s", date)
+                preferred_doctors_available_in_date = preferred_doctors.filter(
+                    doctor_available_hours__start_time__date=date
+                ).distinct()
+
+                logger.debug(
+                    "Doctors available on %s -> %s found",
+                    date,
+                    preferred_doctors_available_in_date.count()
+                )
+
+                result = []
+                for doctor2 in preferred_doctors_available_in_date:
+                    if doctor2 == doctor:
+                        logger.debug("Skipping logged-in doctor from result: %s", doctor2.first_name)
+                        continue
+
+                    result.append({
+                        "id": doctor2.doctor_profile_id,
+                        "name": f"{doctor2.first_name} {doctor2.last_name}",
+                        "gender": doctor2.gender,
+                        "flag": doctor2.doctor_flag,
+                        "specializations": [spec.specialization.specialization for spec in doctor2.doctor_specializations.all()],
+                        "languages": [lang.language.language for lang in doctor2.known_languages.all()],
+                        "profile_pic": doctor2.profile_pic.url if doctor2.profile_pic else None,
+                        "bio": doctor2.doctor_bio,
+                    })
+
+                logger.info("Total filtered available doctors: %s", len(result))
+
+            response_data = {
+                "available_doctors": result,
+                "gender_matched": gender_matched,
+                "language_matched": language_matched,
+                "fallback_reason": fallback_reason,
             }
 
-        # Step 3: return available doctors for requested date
-        result = []
-        for d in preferred_doctors_available_in_date:
             try:
-                result.append({
-                    "id": d.doctor_profile_id,
-                    "name": f"{d.first_name} {d.last_name}",
-                    "gender": d.gender,
-                    "flag": d.doctor_flag,
-                    "specializations": [spec.specialization.specialization for spec in d.doctor_specializations.all()],
-                    "languages": [lang.language.language for lang in d.known_languages.all()],
-                    "profile_pic": d.profile_pic.url if d.profile_pic else None,
-                    "bio": d.doctor_bio,
-                })
-            except Exception:
-                logger.exception(f"Error building doctor data for id={d.id}")
+                json.dumps(response_data, cls=DjangoJSONEncoder)
+                logger.debug("Response data JSON serialization successful.")
+            except TypeError as e:
+                logger.exception("Data serialization error: %s", str(e))
+                return f"Data serialization error: {str(e)}"
 
-        logger.debug(f"Total doctors in final result: {len(result)}")
+            logger.info("DoctorFilterService completed successfully.")
+            return response_data
 
-        response_data = {
-            "available_doctors": result,
-            "gender_matched": gender_matched,
-            "language_matched": language_matched,
-            "fallback_reason": fallback_reason,
-        }
-
-        try:
-            json.dumps(response_data, cls=DjangoJSONEncoder)
-            logger.info("Response data successfully serialized to JSON.")
-        except TypeError:
-            logger.exception("Data serialization error")
-            return {"error": "Data serialization error"}
-
-        logger.info("==== DoctorFilterService.filter_doctors COMPLETED ====")
-        return response_data
+        except Exception as e:
+            logger.error("Unhandled exception in filter_doctors: %s", str(e))
+            logger.error(traceback.format_exc())
+            return f"Unexpected error: {str(e)}"
