@@ -102,7 +102,7 @@ import traceback
 from datetime import timedelta
 from django.core.serializers.json import DjangoJSONEncoder
 from doctor.models import DoctorSpecializations, DoctorProfiles
-from doctor.utils import get_doctor_from_user, convert_local_dt_to_utc
+from general.utils import get_doctor_from_user, convert_local_dt_to_utc
 
 logger = logging.getLogger(__name__)
 
