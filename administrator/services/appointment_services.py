@@ -215,12 +215,15 @@ def get_admin_appointments_queryset(params):
     if status:
         if status == "completed":
             status_list = ["completed", "customer_no_show", "doctor_no_show"]
+            qs = qs.filter(appointment_status__in=status_list)
         if status == 'cancelled':
             status_list = ['cancelled_by_customer','cancelled_by_admin']
+            qs = qs.filter(appointment_status__in=status_list)
         if status == "upcoming":
             status_list = ["confirmed"]
+            qs = qs.filter(appointment_status__in=status_list
+                             , end_time__gt=timezone.now())
 
-        qs = qs.filter(appointment_status__in=status_list)
 
     specialization = params.get("specialization")
     if specialization:
