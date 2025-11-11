@@ -95,22 +95,26 @@ from ..slots_service import get_preferred_doctors  # assuming you already have t
 #         except TypeError as e:
 #              return(f"Data serialization error: {str(e)}")
 
-#         return response_data
-import logging
+#         return response_dataimport logging
 import json
-import traceback
-from datetime import timedelta
+from datetime import timedelta, datetime
 from django.core.serializers.json import DjangoJSONEncoder
 from doctor.models import DoctorSpecializations, DoctorProfiles
 from general.utils import get_doctor_from_user, convert_local_dt_to_utc
-
+from ..slots_service import (
+    get_preferred_doctors,
+    get_available_dates,
+    generate_slots_for_doctors
+)
+import logging
 logger = logging.getLogger(__name__)
 
 class DoctorFilterService:
     @staticmethod
     def filter_doctors(user, data):
         """
-        Main business logic for filtering doctors based on preferences, with detailed logs.
+        Filters doctors by preference and returns available ones.
+        If none are available for the given date, automatically searches for the next available date.
         """
 
         logger.info("==== DoctorFilterService.filter_doctors CALLED ====")
@@ -124,21 +128,22 @@ class DoctorFilterService:
         date_str = data.get('date')
         is_couple = data.get('is_couple', False)
 
-        logger.info(f"appointment_id={appointment_id}, specialization_id={specialization_id}, "
-                    f"date={date_str}, is_couple={is_couple}")
+        logger.info(f"appointment_id={appointment_id}, specialization_id={specialization_id}, date={date_str}, is_couple={is_couple}")
 
-        try:
-            doctor = get_doctor_from_user(user)
-            logger.debug(f"Doctor resolved from user: {doctor} (id={getattr(doctor, 'id', None)})")
-        except Exception:
-            logger.error("Failed to resolve doctor from user", exc_info=True)
-            return {"error": "Unable to resolve doctor from user"}
-
+        # Validate date
         if not date_str:
             logger.warning("Date not provided in data")
             return {"error": "Date is required."}
 
-        # Parse date into UTC range
+        # Resolve doctor from user
+        try:
+            doctor = get_doctor_from_user(user)
+            logger.debug(f"Doctor resolved from user: {doctor} (id={getattr(doctor, 'doctor_profile_id', None)})")
+        except Exception as e:
+            logger.error("Failed to resolve doctor from user", exc_info=True)
+            return {"error": "Unable to resolve doctor from user"}
+
+        # Convert local date to UTC range
         try:
             datetime_str = f"{date_str}T00:00:00"
             utc_day_start = convert_local_dt_to_utc(datetime_str, doctor.time_zone)
@@ -148,7 +153,8 @@ class DoctorFilterService:
             logger.error(f"Date/time conversion error: {e}", exc_info=True)
             return {"error": f"Date/time conversion error: {str(e)}"}
 
-        # Validate specialization & appointment
+        # Validate specialization and appointment
+        from doctor.models import Specializations, AppointmentHeader
         specialization = Specializations.objects.filter(specialization_id=specialization_id).first()
         appointment = AppointmentHeader.objects.filter(appointment_id=appointment_id).first()
 
@@ -161,15 +167,16 @@ class DoctorFilterService:
 
         logger.debug(f"Specialization: {specialization.specialization}, Appointment: {appointment_id}")
 
-        session_duration_field = (
+        session_duration = (
             specialization.double_session_duration if is_couple else specialization.single_session_duration
         )
-        if session_duration_field is None:
+        if session_duration is None:
             logger.warning("Session duration not defined for specialization.")
             return {"error": "Session duration not defined."}
 
-        # Fetch preferred doctors
+        # Step 1: get preferred doctors
         try:
+            # from doctor..scheduler_utils import get_preferred_doctors
             preferred_doctors, preferred_doctor_ids, gender_matched, language_matched, fallback_reason = get_preferred_doctors(
                 gender_info=gender_info,
                 language_info=language_info,
@@ -178,40 +185,74 @@ class DoctorFilterService:
                 specialization=specialization,
                 is_couple=is_couple
             )
-            logger.info(f"get_preferred_doctors returned {preferred_doctors.count() if preferred_doctors else 0} doctors")
-        except Exception:
-            logger.error("Error calling get_preferred_doctors()", exc_info=True)
+            logger.info(f"Preferred doctors count: {preferred_doctors.count() if preferred_doctors else 0}")
+        except Exception as e:
+            logger.error("Error in get_preferred_doctors()", exc_info=True)
             return {"error": "Error fetching preferred doctors"}
 
-        if preferred_doctors is None:
-            preferred_doctors = DoctorProfiles.objects.none()
-
-        if not preferred_doctors.exists():
-            fallback_reason = fallback_reason or "No doctors available with preferences. Showing all available senior doctors."
-            logger.info(f"Falling back to all senior doctors for country={appointment.customer.country_details.country_name}")
-            preferred_doctors = DoctorProfiles.objects.filter(
-                doctor_flag='senior',
-                is_accepted=True,
-                payment_assignments__country__country_name=appointment.customer.country_details.country_name,
-            ).distinct()
-
-        # Filter by specialization
+        # Apply specialization filtering
         doctor_specs_qs = DoctorSpecializations.objects.filter(specialization=specialization)
         preferred_doctors = preferred_doctors.filter(doctor_specializations__in=doctor_specs_qs).distinct()
         logger.debug(f"Doctors after specialization filter: {preferred_doctors.count()}")
 
-        # Filter by availability
+        # Step 2: filter available doctors for the selected date
         preferred_doctors_available_in_date = preferred_doctors.filter(
             doctor_available_hours__start_time__lt=utc_day_end,
             doctor_available_hours__end_time__gt=utc_day_start
         ).distinct()
-        logger.info(f"Doctors available in date: {preferred_doctors_available_in_date.count()}")
+        logger.info(f"Doctors available for requested date: {preferred_doctors_available_in_date.count()}")
 
-        # Build result
+        # If no doctors are available, find next available date
+        if not preferred_doctors_available_in_date.exists():
+            logger.warning("No doctors available for requested date. Searching for next available date...")
+
+            try:
+                available_dates = get_available_dates(
+                    doctors=preferred_doctors,
+                    timezone_str=doctor.time_zone,
+                    session_duration=session_duration,
+                    alignment_minutes=5,
+                    min_allowed_start=utc_day_end  # search from next day onwards
+                )
+            except Exception as e:
+                logger.error("Error fetching available dates", exc_info=True)
+                return {"error": "Error fetching next available dates"}
+
+            if not available_dates:
+                logger.warning("No available dates found within limit.")
+                return {
+                    "available_doctors": [],
+                    "next_available_date": None,
+                    "message": "No doctors available in upcoming days."
+                }
+
+            next_available_date = available_dates[0]
+            logger.info(f"Next available date found: {next_available_date}")
+
+            # Get slots for that next available date
+            next_date_obj = datetime.fromisoformat(next_available_date)
+            utc_start = convert_local_dt_to_utc(f"{next_available_date}T00:00:00", doctor.time_zone)
+            utc_end = utc_start + timedelta(days=1)
+
+            slots = generate_slots_for_doctors(
+                doctors_queryset=preferred_doctors,
+                target_dt_start=utc_start,
+                target_dt_end=utc_end,
+                session_duration=session_duration,
+                alignment_minutes=5
+            )
+
+            logger.debug(f"Slots generated for next available date: {len(slots)}")
+            return {
+                "available_doctors": [],
+                "next_available_date": next_available_date,
+                "available_slots": {str(k[0]): v for k, v in slots.items()},
+                "message": f"No doctors available on {date_str}, showing next available date {next_available_date}."
+            }
+
+        # Step 3: return available doctors for requested date
         result = []
         for d in preferred_doctors_available_in_date:
-            if d == doctor:
-                continue
             try:
                 result.append({
                     "id": d.doctor_profile_id,
@@ -227,13 +268,6 @@ class DoctorFilterService:
                 logger.error(f"Error building doctor data for id={d.id}", exc_info=True)
 
         logger.debug(f"Total doctors in final result: {len(result)}")
-
-        if not result:
-            if preferred_doctors.exists():
-                fallback_reason = fallback_reason or "Preferred doctors found but none available on requested date."
-            else:
-                fallback_reason = fallback_reason or "No doctors found for this specialization."
-            logger.warning(f"No doctors available after all filters. Reason: {fallback_reason}")
 
         response_data = {
             "available_doctors": result,
