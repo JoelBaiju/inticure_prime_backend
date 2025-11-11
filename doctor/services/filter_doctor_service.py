@@ -112,10 +112,6 @@ logger = logging.getLogger(__name__)
 import traceback
 
 
-
-
-logger = logging.getLogger(__name__)
-
 class DoctorFilterService:
     @staticmethod
     def filter_doctors(user, data):
