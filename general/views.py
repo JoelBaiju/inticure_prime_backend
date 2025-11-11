@@ -541,9 +541,7 @@ def swtm_view(request):
     logger.info("Creating meeting tracker for appointment %s", 226)
 
 
-    result = send_appointment_confirmation_notification(
-       appointment_id=226
-    )
+    result = send_payment_pending_email(198)
     logger.debug(result)
 
 

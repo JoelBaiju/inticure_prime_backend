@@ -636,6 +636,7 @@ class FinalSubmit(CreateAPIView):
 
             # ====== FIRST ANALYSIS HANDLING ======
             if not customer_profile.completed_first_analysis:
+                logger.debug("error analysis token not provided")
                 if not token:
                     return Response({"error": "Missing analysis_token"}, status=400)
 
