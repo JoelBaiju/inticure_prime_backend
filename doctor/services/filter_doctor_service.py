@@ -154,7 +154,6 @@ class DoctorFilterService:
             return {"error": f"Date/time conversion error: {str(e)}"}
 
         # Validate specialization and appointment
-        from doctor.models import Specializations, AppointmentHeader
         specialization = Specializations.objects.filter(specialization_id=specialization_id).first()
         appointment = AppointmentHeader.objects.filter(appointment_id=appointment_id).first()
 
