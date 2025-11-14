@@ -225,6 +225,40 @@ class GeneralPaymentRuleSerializer_Specialization_based(serializers.ModelSeriali
 
 
 
+class RuleSerializer(serializers.ModelSerializer):
+    experience_display = serializers.CharField(source='get_experience_display', read_only=True)
+    doctor_flag_display = serializers.CharField(source='get_doctor_flag_display', read_only=True)
+
+    class Meta:
+        model = GeneralPaymentRules
+        fields = [
+            "id",
+            "pricing_name",
+            "experience",
+            "experience_display",
+            "doctor_flag",
+            "doctor_flag_display",
+            "session_count",
+            "doctor_fee_single",
+            "user_total_fee_single",
+            "doctor_fee_couple",
+            "user_total_fee_couple",
+            "actual_price_single",
+            "actual_price_couple",
+        ]
+
+class CountryPaymentRuleSerializer(serializers.Serializer):
+    country_id = serializers.IntegerField()
+    country_name = serializers.CharField()
+    currency_symbol = serializers.CharField()
+    rules = RuleSerializer(many=True)
+
+
+class SpecializationBasedPaymentSerializer(serializers.Serializer):
+    specialization_id = serializers.IntegerField()
+    specialization_name = serializers.CharField()
+    payment_rules = CountryPaymentRuleSerializer(many=True)
+
 
 # class DoctorPaymentRuleSerializer(serializers.ModelSerializer):
 #     doctor_name = serializers.SerializerMethodField()
