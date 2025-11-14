@@ -651,8 +651,9 @@ from rest_framework.response import Response
 
 from .serializers import CountryPaymentRuleSerializer
 
+
+# @permission_classes([IsAuthenticated, IsAdminUser])
 @api_view(['GET'])
-@permission_classes([IsAuthenticated, IsAdminUser])
 def general_payment_rule_list_create_2(request):
     doctor_id = request.GET.get('doctor_id')
     search_term = request.GET.get('search')
