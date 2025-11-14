@@ -688,7 +688,7 @@ def general_payment_rule_list_create_2(request):
     grouped = {}
 
     for rule in rules:
-        spec_id = rule.specialization.id
+        spec_id = rule.specialization.specialization_id
 
         if spec_id not in grouped:
             grouped[spec_id] = {
