@@ -603,22 +603,79 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
 # @permission_classes([IsAuthenticated, IsAdminUser])
+# @api_view(['GET', 'POST'])
+# def general_payment_rule_list_create_2(request):
+#     if request.method == 'GET':
+#         doctor_id = request.GET.get('doctor_id')
+#         search_term = request.GET.get('search')
+
+#         rules = GeneralPaymentRules.objects.select_related('country', 'specialization').all()
+
+#         # Filter by doctor if provided
+#         if doctor_id:
+#             try:
+#                 doctor = DoctorProfiles.objects.get(pk=doctor_id)
+#             except DoctorProfiles.DoesNotExist:
+#                 return Response({"error": "Doctor not found."}, status=404)
+
+#             specialization_ids = doctor.doctor_specializations.values_list('specialization_id', flat=True)
+
+#             rules = rules.filter(
+#                 specialization_id__in=specialization_ids,
+#                 experience=doctor.experience,
+#                 doctor_flag=doctor.doctor_flag,
+#             )
+
+#         # Filter by search if provided
+#         if search_term:
+#             rules = rules.filter(pricing_name__icontains=search_term)
+
+#         # Serialize and group by specialization
+#         serializer = GeneralPaymentRuleSerializer(rules, many=True)
+#         grouped_rules = defaultdict(list)
+
+#         for item in serializer.data:
+#             specialization_name = item['specialization_name']
+#             grouped_rules[specialization_name].append(item)
+
+#         return Response(grouped_rules)
+
+#     # --- POST: Create a new rule ---
+#     serializer = GeneralPaymentRuleSerializer(data=request.data)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data, status=201)
+
+#     return Response(serializer.errors, status=400)
+
+
+from collections import defaultdict
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+
+# @permission_classes([IsAuthenticated, IsAdminUser])
 @api_view(['GET', 'POST'])
 def general_payment_rule_list_create_2(request):
+
     if request.method == 'GET':
         doctor_id = request.GET.get('doctor_id')
         search_term = request.GET.get('search')
 
-        rules = GeneralPaymentRules.objects.select_related('country', 'specialization').all()
+        rules = GeneralPaymentRules.objects.select_related(
+            'country', 'specialization'
+        ).all()
 
-        # Filter by doctor if provided
+        # Doctor filter
         if doctor_id:
             try:
                 doctor = DoctorProfiles.objects.get(pk=doctor_id)
             except DoctorProfiles.DoesNotExist:
-                return Response({"error": "Doctor not found."}, status=404)
+                return Response({"error": "Doctor not found"}, status=404)
 
-            specialization_ids = doctor.doctor_specializations.values_list('specialization_id', flat=True)
+            specialization_ids = doctor.doctor_specializations.values_list(
+                'specialization_id', flat=True
+            )
 
             rules = rules.filter(
                 specialization_id__in=specialization_ids,
@@ -626,27 +683,83 @@ def general_payment_rule_list_create_2(request):
                 doctor_flag=doctor.doctor_flag,
             )
 
-        # Filter by search if provided
+        # Search filter
         if search_term:
             rules = rules.filter(pricing_name__icontains=search_term)
 
-        # Serialize and group by specialization
-        serializer = GeneralPaymentRuleSerializer(rules, many=True)
-        grouped_rules = defaultdict(list)
+        serializer = GeneralPaymentRuleSerializer(
+            rules, many=True
+        )
+
+        # -------------------------------
+        #   BUILD NEW RESPONSE STRUCTURE
+        # -------------------------------
+
+        specialization_map = defaultdict(lambda: {
+            "specialization_id": None,
+            "specialization_name": None,
+            "payment_rules": []
+        })
+
+        # useful temporary index for grouping inside specialization
+        rule_index_map = {}
 
         for item in serializer.data:
-            specialization_name = item['specialization_name']
-            grouped_rules[specialization_name].append(item)
+            spec_id = item["specialization"]
+            spec_name = item["specialization_name"]
+            rule_id = item["id"]
 
-        return Response(grouped_rules)
+            # initialize specialization group
+            if specialization_map[spec_name]["specialization_id"] is None:
+                specialization_map[spec_name]["specialization_id"] = spec_id
+                specialization_map[spec_name]["specialization_name"] = spec_name
 
-    # --- POST: Create a new rule ---
+            # ensure rule entry exists inside "payment_rules"
+            if (spec_name, rule_id) not in rule_index_map:
+                rule_entry = {
+                    "id": rule_id,
+                    "pricing_name": item["pricing_name"],
+                    "country": item["country"],
+                    "country_name": item["country_name"],
+                    "specialization": spec_id,
+                    "specialization_name": spec_name,
+                    "currency_symbol": item["currency_symbol"],
+                    "sessions": []
+                }
+
+                specialization_map[spec_name]["payment_rules"].append(rule_entry)
+                rule_index_map[(spec_name, rule_id)] = rule_entry
+
+            # now add session (this rule_id may appear multiple times)
+            session_entry = {
+                "id": rule_id,
+                "experience": item["experience"],
+                "experience_display": item["experience_display"],
+                "session_count": item["session_count"],
+                "doctor_fee_single": item["doctor_fee_single"],
+                "user_total_fee_single": item["user_total_fee_single"],
+                "doctor_fee_couple": item["doctor_fee_couple"],
+                "user_total_fee_couple": item["user_total_fee_couple"],
+                "actual_price_single": item["actual_price_single"],
+                "actual_price_couple": item["actual_price_couple"],
+            }
+
+            rule_index_map[(spec_name, rule_id)]["sessions"].append(session_entry)
+
+        # Convert dict → list
+        final_output = list(specialization_map.values())
+
+        return Response(final_output)
+
+    # POST
     serializer = GeneralPaymentRuleSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=201)
 
     return Response(serializer.errors, status=400)
+
+
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
