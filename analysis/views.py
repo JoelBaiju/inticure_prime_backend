@@ -436,6 +436,24 @@ class SlotsBooking(APIView):
             session.session_status = "slots_queried"
             session.time_zone = timeZone
             session.save()
+
+            
+            if not specialization_id or  specialization_id == "No Specialization":
+                logger.debug('no Specialization')
+                specializations= Specializations.objects.filter(specialization = "No Specialization").first()
+                specialization_id =specializations.specialization_id
+            if specialization_id:
+                specialization = Specializations.objects.filter(specialization_id = specialization_id).first().specialization
+     
+            country = country
+            specialization = Specializations.objects.filter(specialization_id = specialization_id).first().specialization
+            logger.debug(f"\n\nInside customer profile country fetch analysis views 440  {country} {specialization}")
+            country_available = DoctorPaymentRules.objects.filter(country__country_name = country , specialization__specialization =specialization).exists()
+            logger.debug(f"\n\nInside country available analysis views 438  {country}: {country_available}")
+            if not country_available:
+                logger.debug(f"\n\nInside country not found in analysis views 439  {country}: country changed to US")
+                country = "India"
+        
         else:
             try:
                 country = CustomerProfile.objects.get(id = customer_id).country_details.country_name
@@ -472,6 +490,8 @@ class SlotsBooking(APIView):
             specialization_id =specializations.specialization_id
         if specialization_id:
             specialization = Specializations.objects.filter(specialization_id = specialization_id).first().specialization
+     
+        
         logger.debug(f"\n\n\n preferred_dt_start {preferred_dt_start} {country}")
         logger.debug(f"\n\n\n preferred_dt_end {preferred_dt_end} {country} {specialization}")
         slot_data = get_available_slots(
