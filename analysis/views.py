@@ -445,7 +445,7 @@ class SlotsBooking(APIView):
                 logger.debug(f"\n\nInside country available analysis views 438  {country}: {country_available}")
                 if not country_available:
                     logger.debug(f"\n\nInside country not found in analysis views 439  {country}: country changed to US")
-                    country = "United States"
+                    country = "India"
             except:
                 return Response({"error": "Invalid customer_id"}, status=400)
         try:

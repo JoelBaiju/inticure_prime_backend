@@ -215,6 +215,7 @@ def get_preferred_doctors(
     # logger.info(f"Filtering doctors: gender={gender}, language={language}, flag={flag}, country={country}")
 
     # Get base doctor queryset with proper prefetching
+    
     doctors = DoctorProfiles.objects.filter(
         doctor_flag=flag,
         is_accepted=True,
