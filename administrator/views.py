@@ -704,6 +704,8 @@ def general_payment_rule_list_create_2(request):
                 "country_id": country_id,
                 "country_name": rule.country.country_name,
                 "currency_symbol": rule.country.currency_symbol,
+                "specialization_id": spec_id,
+                "specialization" : rule.specialization.specialization,
                 "rules": []
             }
 
