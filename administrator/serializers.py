@@ -251,6 +251,8 @@ class CountryPaymentRuleSerializer(serializers.Serializer):
     country_id = serializers.IntegerField()
     country_name = serializers.CharField()
     currency_symbol = serializers.CharField()
+    specialization = serializers.CharField()
+    specialization_id = serializers.IntegerField()
     rules = RuleSerializer(many=True)
 
 
