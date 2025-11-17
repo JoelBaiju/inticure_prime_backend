@@ -228,11 +228,14 @@ class GeneralPaymentRuleSerializer_Specialization_based(serializers.ModelSeriali
 class RuleSerializer(serializers.ModelSerializer):
     experience_display = serializers.CharField(source='get_experience_display', read_only=True)
     doctor_flag_display = serializers.CharField(source='get_doctor_flag_display', read_only=True)
-
+    specialization_id = serializers.IntegerField(source='specialization.specialization_id', read_only=True)
+    country_id = serializers.IntegerField(source='country.id', read_only=True)
     class Meta:
         model = GeneralPaymentRules
         fields = [
             "id",
+            "spwcialization_id",
+            "country_id",
             "pricing_name",
             "experience",
             "experience_display",
