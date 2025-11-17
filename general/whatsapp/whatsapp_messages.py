@@ -626,7 +626,7 @@ def send_wa_consultation_canceled_by_patient_to_specialist(appointment_id):
         template_name="consultation_canceled_by_patient_to_specialist",
         parameters=parameters,
         button_parameters=None,
-        user=appointment.doctor,
+        user=appointment.doctor.user,
         appointment=appointment,
         user_is_customer=False
     )
