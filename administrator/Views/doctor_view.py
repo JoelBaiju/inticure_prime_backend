@@ -157,3 +157,53 @@ def edit_available_hours_view(request):
         return Response({"error": "Doctor not found"}, status=404)
     except Exception as e:
         return Response({"error": str(e)}, status=400)
+
+
+
+
+
+# from ..models import Countries, Specializations, GeneralPaymentRules
+# from ..serializers import GeneralPaymentRuleSerializer
+
+# class FilterGeneralPaymentRules(APIView):
+#     """
+#     API to filter rules by specialization and country
+#     Response matches UI format exactly.
+#     """
+
+#     def get(self, request):
+#         country_id = request.query_params.get("country_id")
+#         specialization_id = request.query_params.get("specialization_id")
+
+#         if not country_id or not specialization_id:
+#             return Response(
+#                 {"error": "country_id and specialization_id are required."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+
+#         try:
+#             country = Countries.objects.get(id=country_id)
+#             specialization = Specializations.objects.get(specialization_id=specialization_id)
+#         except (Countries.DoesNotExist, Specializations.DoesNotExist):
+#             return Response(
+#                 {"error": "Invalid country_id or specialization_id"},
+#                 status=status.HTTP_404_NOT_FOUND,
+#             )
+
+#         rules = GeneralPaymentRules.objects.filter(
+#             country_id=country_id,
+#             specialization_id=specialization_id
+#         ).order_by("session_count")
+
+#         serialized_rules = GeneralPaymentRuleSerializer(rules, many=True).data
+
+#         response_data = {
+#             "country_id": country.id,
+#             "country_name": country.name,
+#             "currency_symbol": country.currency_symbol,
+#             "specialization": specialization.name,
+#             "specialization_id": specialization.id,
+#             "rules": serialized_rules,
+#         }
+
+#         return Response(response_data, status=status.HTTP_200_OK)

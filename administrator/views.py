@@ -602,124 +602,101 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
-# @permission_classes([IsAuthenticated, IsAdminUser])
-# @api_view(['GET', 'POST'])
-# def general_payment_rule_list_create_2(request):
-#     if request.method == 'GET':
-#         doctor_id = request.GET.get('doctor_id')
-#         search_term = request.GET.get('search')
-
-#         rules = GeneralPaymentRules.objects.select_related('country', 'specialization').all()
-
-#         # Filter by doctor if provided
-#         if doctor_id:
-#             try:
-#                 doctor = DoctorProfiles.objects.get(pk=doctor_id)
-#             except DoctorProfiles.DoesNotExist:
-#                 return Response({"error": "Doctor not found."}, status=404)
-
-#             specialization_ids = doctor.doctor_specializations.values_list('specialization_id', flat=True)
-
-#             rules = rules.filter(
-#                 specialization_id__in=specialization_ids,
-#                 experience=doctor.experience,
-#                 doctor_flag=doctor.doctor_flag,
-#             )
-
-#         # Filter by search if provided
-#         if search_term:
-#             rules = rules.filter(pricing_name__icontains=search_term)
-
-#         # Serialize and group by specialization
-#         serializer = GeneralPaymentRuleSerializer(rules, many=True)
-#         grouped_rules = defaultdict(list)
-
-#         for item in serializer.data:
-#             specialization_name = item['specialization_name']
-#             grouped_rules[specialization_name].append(item)
-
-#         return Response(grouped_rules)
-
-#     # --- POST: Create a new rule ---
-#     serializer = GeneralPaymentRuleSerializer(data=request.data)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(serializer.data, status=201)
-
-#     return Response(serializer.errors, status=400)
-
 
 from .serializers import CountryPaymentRuleSerializer
 
 
 # @permission_classes([IsAuthenticated, IsAdminUser])
-@api_view(['GET'])
+@api_view(['GET','POST'])
 def general_payment_rule_list_create_2(request):
-    doctor_id = request.GET.get('doctor_id')
-    search_term = request.GET.get('search')
 
-    rules = GeneralPaymentRules.objects.select_related(
-        "specialization", "country"
-    )
+    if request.method == 'POST':
+        specializatioin = request.data.get('specialization')
+        country_id = request.data.get('country')
+        experience = request.data.get('experience')
+        doctor_flag = request.data.get('doctor_flag')
+        rules = request.data.get('rules')
+        for rule in rules:
+            rule['specialization'] = specializatioin
+            rule['country'] = country_id
+            rule['experience'] = experience
+            rule['doctor_flag'] = doctor_flag
+            serializer = GeneralPaymentRuleSerializer(data=rule)
+            if serializer.is_valid():
+                serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
 
-    # Filter by doctor
-    if doctor_id:
-        try:
-            doctor = DoctorProfiles.objects.get(id=doctor_id)
-        except DoctorProfiles.DoesNotExist:
-            return Response({"error": "Doctor not found"}, status=404)
+    else : 
 
-        specialization_ids = doctor.doctor_specializations.values_list(
-            "specialization_id", flat=True
+
+        doctor_id = request.GET.get('doctor_id')
+        search_term = request.GET.get('search')
+
+        rules = GeneralPaymentRules.objects.select_related(
+            "specialization", "country"
         )
 
-        rules = rules.filter(
-            specialization_id__in=specialization_ids,
-            experience=doctor.experience,
-            doctor_flag=doctor.doctor_flag,
-        )
+        # Filter by doctor
+        if doctor_id:
+            try:
+                doctor = DoctorProfiles.objects.get(id=doctor_id)
+            except DoctorProfiles.DoesNotExist:
+                return Response({"error": "Doctor not found"}, status=404)
 
-    # Search filter
-    if search_term:
-        rules = rules.filter(pricing_name__icontains=search_term)
+            specialization_ids = doctor.doctor_specializations.values_list(
+                "specialization_id", flat=True
+            )
 
-    # --- GROUPING LOGIC STARTS HERE ---
+            rules = rules.filter(
+                specialization_id__in=specialization_ids,
+                experience=doctor.experience,
+                doctor_flag=doctor.doctor_flag,
+            )
 
-    grouped = {}
+        # Search filter
+        if search_term:
+            rules = rules.filter(pricing_name__icontains=search_term)
 
-    for rule in rules:
-        spec_id = rule.specialization.specialization_id
+        # --- GROUPING LOGIC STARTS HERE ---
 
-        if spec_id not in grouped:
-            grouped[spec_id] = {
-                "specialization_id": spec_id,
-                "specialization_name": rule.specialization.specialization,
-                "payment_rules": {}
-            }
+        grouped = {}
 
-        country_id = rule.country.id
+        for rule in rules:
+            spec_id = rule.specialization.specialization_id
 
-        if country_id not in grouped[spec_id]["payment_rules"]:
-            grouped[spec_id]["payment_rules"][country_id] = {
-                "country_id": country_id,
-                "country_name": rule.country.country_name,
-                "currency_symbol": rule.country.currency_symbol,
-                "specialization_id": spec_id,
-                "specialization" : rule.specialization.specialization,
-                "rules": []
-            }
+            if spec_id not in grouped:
+                grouped[spec_id] = {
+                    "specialization_id": spec_id,
+                    "specialization_name": rule.specialization.specialization,
+                    "payment_rules": {}
+                }
 
-        grouped[spec_id]["payment_rules"][country_id]["rules"].append(rule)
+            country_id = rule.country.id
 
-    # Convert dict → list + serialize
-    final_data = []
+            if country_id not in grouped[spec_id]["payment_rules"]:
+                grouped[spec_id]["payment_rules"][country_id] = {
+                    "country_id": country_id,
+                    "country_name": rule.country.country_name,
+                    "currency_symbol": rule.country.currency_symbol,
+                    "specialization_id": spec_id,
+                    "specialization" : rule.specialization.specialization,
+                    "rules": []
+                }
 
-    for spec_id, spec_data in grouped.items():
-        country_blocks = list(spec_data["payment_rules"].values())
-        spec_data["payment_rules"] = CountryPaymentRuleSerializer(country_blocks, many=True).data
-        final_data.append(spec_data)
+            grouped[spec_id]["payment_rules"][country_id]["rules"].append(rule)
 
-    return Response(final_data)
+        # Convert dict → list + serialize
+        final_data = []
+
+        for spec_id, spec_data in grouped.items():
+            country_blocks = list(spec_data["payment_rules"].values())
+            spec_data["payment_rules"] = CountryPaymentRuleSerializer(country_blocks, many=True).data
+            final_data.append(spec_data)
+
+        return Response(final_data)
+
+
 
 
 
