@@ -146,7 +146,8 @@ class AppointmentService:
         """Cancel appointment and handle refund"""
         logger.debug(f"cancel_appointment for appointment id {appointment.appointment_id}")
         # Delete doctor appointment and update status
-        
+        if appointment.appointment_status == 'cancelled_by_customer' or appointment.appointment_status == 'cancelled_by_admin':
+            return 
         appointment.appointment_status = 'cancelled_by_customer'
         if is_admin:
             appointment.appointment_status = 'cancelled_by_admin'
