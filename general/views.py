@@ -257,7 +257,6 @@ from django.utils import timezone
 class Map_Meetings(APIView):
     def get(self, request,attendee_meeting_id):
         logger.debug(attendee_meeting_id)
-        logger.debug("7827a361-6da3-4163-b4c9-1d20811b735b" == attendee_meeting_id)
         context = False 
         meeting_tracker = Meeting_Tracker.objects.filter(
             customer_1_meeting_id = attendee_meeting_id
@@ -266,24 +265,24 @@ class Map_Meetings(APIView):
         
         if meeting_tracker:
             # if join:
-            if  meeting_tracker.appointment.start_time-timedelta(minutes=30) <= timezone.now():
-                meeting_tracker.customer_1_joined = True
-                meeting_tracker.save()
-                return redirect(meeting_tracker.meeting_link)
-            else:
-                return Response("there is still time broo")
-            context = {
-                'salutation':meeting_tracker.appointment.doctor.salutation,
-                'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.doctor.last_name}",
-                "time":meeting_tracker.appointment.start_time.time(),
-                "date":meeting_tracker.appointment.start_time.date(),
-                'specialization':meeting_tracker.appointment.specialization.specialization,
-                'username': meeting_tracker.customer_1.user.first_name,
-                'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.customer_1.time_zone),  # 10 minutes in seconds - change this to test different scenarios
-                'meet_link':  meeting_tracker.customer_1_meeting_link ,
-                'meet_code': meeting_tracker.meeting_code,  
-                'is_customer': True
-            }
+            # if  meeting_tracker.appointment.start_time-timedelta(minutes=30) <= timezone.now():
+            meeting_tracker.customer_1_joined = True
+            meeting_tracker.save()
+            return redirect(meeting_tracker.meeting_link)
+            # else:
+            #     return Response("there is still time broo")
+            # context = {
+            #     'salutation':meeting_tracker.appointment.doctor.salutation,
+            #     'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.doctor.last_name}",
+            #     "time":meeting_tracker.appointment.start_time.time(),
+            #     "date":meeting_tracker.appointment.start_time.date(),
+            #     'specialization':meeting_tracker.appointment.specialization.specialization,
+            #     'username': meeting_tracker.customer_1.user.first_name,
+            #     'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.customer_1.time_zone),  # 10 minutes in seconds - change this to test different scenarios
+            #     'meet_link':  meeting_tracker.customer_1_meeting_link ,
+            #     'meet_code': meeting_tracker.meeting_code,  
+            #     'is_customer': True
+            # }
 
            
         if Meeting_Tracker.objects.filter(
@@ -302,18 +301,18 @@ class Map_Meetings(APIView):
             else:
                 return Response("there is still time broo")
 
-            context = {
-                'salutation':meeting_tracker.appointment.doctor.salutation,
-                'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.doctor.last_name}",
-                "time":meeting_tracker.appointment.start_time.time(),
-                "date":meeting_tracker.appointment.start_time.date(),
-                'specialization':meeting_tracker.appointment.specialization.specialization,
-                'username': meeting_tracker.customer_2.user.first_name,
-                'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.customer_1.time_zone),  # 10 minutes in seconds - change this to test different scenarios
-                'meet_link': meeting_tracker.customer_2_meeting_link,
-                'meet_code': meeting_tracker.meeting_code,  
-                'is_customer': True
-            }
+            # context = {
+            #     'salutation':meeting_tracker.appointment.doctor.salutation,
+            #     'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.doctor.last_name}",
+            #     "time":meeting_tracker.appointment.start_time.time(),
+            #     "date":meeting_tracker.appointment.start_time.date(),
+            #     'specialization':meeting_tracker.appointment.specialization.specialization,
+            #     'username': meeting_tracker.customer_2.user.first_name,
+            #     'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.customer_1.time_zone),  # 10 minutes in seconds - change this to test different scenarios
+            #     'meet_link': meeting_tracker.customer_2_meeting_link,
+            #     'meet_code': meeting_tracker.meeting_code,  
+            #     'is_customer': True
+            # }
 
 
        
@@ -333,17 +332,17 @@ class Map_Meetings(APIView):
             else:
                 return Response("there is still time broo")
 
-            context = {
-                'username': meeting_tracker.appointment.doctor.first_name,
-                'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.appointment.doctor.time_zone),  # 10 minutes in seconds - change this to test different scenarios
-                'meet_link': meeting_tracker.doctor_meeting_link,  
-                'meet_code': meeting_tracker.meeting_code,  
-                'salutation':meeting_tracker.appointment.doctor.salutation,
-                'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.doctor.last_name}",
-                "time":meeting_tracker.appointment.start_time.time(),
-                "date":meeting_tracker.appointment.start_time.date(),
-                'specialization':meeting_tracker.appointment.specialization.specialization,
-            }
+            # context = {
+            #     'username': meeting_tracker.appointment.doctor.first_name,
+            #     'time_left_to_start': seconds_until_in_timezone(meeting_tracker.appointment.start_time , meeting_tracker.appointment.doctor.time_zone),  # 10 minutes in seconds - change this to test different scenarios
+            #     'meet_link': meeting_tracker.doctor_meeting_link,  
+            #     'meet_code': meeting_tracker.meeting_code,  
+            #     'salutation':meeting_tracker.appointment.doctor.salutation,
+            #     'doctor_name':f"{meeting_tracker.appointment.doctor.first_name} {meeting_tracker.appointment.doctor.last_name}",
+            #     "time":meeting_tracker.appointment.start_time.time(),
+            #     "date":meeting_tracker.appointment.start_time.date(),
+            #     'specialization':meeting_tracker.appointment.specialization.specialization,
+            # }
 
 
         if context:
