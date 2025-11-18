@@ -234,7 +234,7 @@ class RuleSerializer(serializers.ModelSerializer):
         model = GeneralPaymentRules
         fields = [
             "id",
-            "spwcialization_id",
+            "specialization_id",
             "country_id",
             "pricing_name",
             "experience",
