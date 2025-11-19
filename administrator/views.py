@@ -57,6 +57,11 @@ from rest_framework.permissions import IsAuthenticated
 from .serializers import DoctorProfileSerializer_update
 
 
+from customer.models import CustomerProfile
+from .serializers import CustomerProfileSerializer,AppointmentSerializer
+from django.db.models import Q
+from django.forms.models import model_to_dict
+
 
 
 
@@ -611,18 +616,24 @@ from .serializers import CountryPaymentRuleSerializer
 def general_payment_rule_list_create_2(request):
 
     if request.method == 'POST':
-        specializatioin = request.data.get('specialization')
+        specialization = request.data.get('specialization')
         country_id = request.data.get('country')
         experience = request.data.get('experience')
         doctor_flag = request.data.get('doctor_flag')
         rules = request.data.get('rules')
-        for rule in rules:
-            rule['specialization'] = specializatioin
-            rule['country'] = country_id
-            rule['experience'] = experience
-            rule['doctor_flag'] = doctor_flag
-            serializer = GeneralPaymentRuleSerializer(data=rule)
+        for rule_id in rules:
+            rule = GeneralPaymentRules.objects.filter(id=rule_id).first()
+            payload = model_to_dict(rule)
+            payload.pop('id', None)
+            payload['specialization'] = specialization
+            payload['country'] = country_id
+            payload['experience'] = experience
+            payload['doctor_flag'] = doctor_flag
+            serializer = GeneralPaymentRuleSerializer(data=payload)
             if serializer.is_valid():
+                serializer.save()
+            else:
+                return Response(serializer.errors, status=400)
                 serializer.save()
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
@@ -831,10 +842,6 @@ class DoctorProfileUpdateView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
     lookup_field = 'doctor_profile_id'
 
-
-from customer.models import CustomerProfile
-from .serializers import CustomerProfileSerializer,AppointmentSerializer
-from django.db.models import Q
 
 class Patient_List_View(APIView):
     # permission_classes = [IsAuthenticated]
