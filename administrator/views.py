@@ -616,8 +616,8 @@ from .serializers import CountryPaymentRuleSerializer
 def general_payment_rule_list_create_2(request):
 
     if request.method == 'POST':
-        specialization = request.data.get('specialization')
-        country_id = request.data.get('country')
+        specialization = request.data.get('specialization_id')
+        country_id = request.data.get('country_id')
         experience = request.data.get('experience')
         doctor_flag = request.data.get('doctor_flag')
         rules = request.data.get('rules')
