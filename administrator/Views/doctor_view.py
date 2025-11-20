@@ -8,9 +8,13 @@ from rest_framework.permissions import IsAuthenticated
 @permission_classes([IsAuthenticated])
 def allow_prescription(request):
         doctor_id = request.GET.get('doctor_id')
+        allow = request.GET.get('allow', 'true').lower() == 'true'
         try:
             doctor = DoctorProfiles.objects.get(doctor_profile_id=doctor_id)
-            doctor.is_prescription_allowed = True
+            if not allow:
+                doctor.is_prescription_allowed = False
+            else:
+                doctor.is_prescription_allowed = True
             doctor.save()
         except DoctorProfiles.DoesNotExist:
             return Response('doctor not found')
