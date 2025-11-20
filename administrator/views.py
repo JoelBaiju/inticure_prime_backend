@@ -612,7 +612,7 @@ from .serializers import CountryPaymentRuleSerializer
 
 
 # @permission_classes([IsAuthenticated, IsAdminUser])
-@api_view(['GET','POST'])
+@api_view(['GET', 'POST'])
 def general_payment_rule_list_create_2(request):
 
     if request.method == 'POST':
@@ -621,22 +621,49 @@ def general_payment_rule_list_create_2(request):
         experience = request.data.get('experience')
         doctor_flag = request.data.get('doctor_flag')
         rules = request.data.get('rules')
+
+        created_rules = []
+        invalid_rules = []
+
         for rule_id in rules:
             rule = GeneralPaymentRules.objects.filter(id=rule_id).first()
+            if not rule:
+                invalid_rules.append({
+                    "rule_id": rule_id,
+                    "error": "Rule not found"
+                })
+                continue
+
             payload = model_to_dict(rule)
             payload.pop('id', None)
             payload['specialization'] = specialization
             payload['country'] = country_id
             payload['experience'] = experience
             payload['doctor_flag'] = doctor_flag
+
             serializer = GeneralPaymentRuleSerializer(data=payload)
+            
             if serializer.is_valid():
                 serializer.save()
+                created_rules.append(serializer.data)
             else:
-                return Response(serializer.errors, status=400)
-                serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+                invalid_rules.append({
+                    "rule_id": rule_id,
+                    "errors": serializer.errors
+                })
+
+        if created_rules:
+            return Response({
+                "message": "Some rules were created successfully." if invalid_rules else "All rules created successfully.",
+                "created_rules": created_rules,
+                "invalid_rules": invalid_rules
+            }, status=201)
+
+        # If nothing was created, return 400 with error list
+        return Response({
+            "message": "No rules were created.",
+            "invalid_rules": invalid_rules
+        }, status=400)
 
     else : 
 
