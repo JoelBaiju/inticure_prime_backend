@@ -490,7 +490,8 @@ class DoctorRuleSerializer2(serializers.ModelSerializer):
     actual_price_couple = serializers.SerializerMethodField()
     experience_display = serializers.SerializerMethodField()
     doctor_flag_display = serializers.SerializerMethodField()
-
+    experience = serializers.CharField(source='doctor.experience', read_only=True)
+    doctor_flag =serializers.CharField(source='doctor.doctor_flag', read_only=True)
     class Meta:
         model = DoctorPaymentRules
         fields = [
