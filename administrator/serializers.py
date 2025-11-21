@@ -489,6 +489,8 @@ class DoctorRuleSerializer2(serializers.ModelSerializer):
 
     experience = serializers.CharField(source='doctor.experience', read_only=True)
     doctor_flag = serializers.CharField(source='doctor.doctor_flag', read_only=True)
+    doctor_flag_display = serializers.SerializerMethodField()
+    experience_display = serializers.SerializerMethodField()
 
     class Meta:
         model = DoctorPaymentRules
@@ -499,6 +501,8 @@ class DoctorRuleSerializer2(serializers.ModelSerializer):
             "pricing_name",
             "experience",
             "doctor_flag",
+            "experience_display",
+            "doctor_flag_display",
             "session_count",
 
             "doctor_fee_single",
@@ -509,9 +513,14 @@ class DoctorRuleSerializer2(serializers.ModelSerializer):
             "actual_price_couple",
         ]
 
-    # ------------------------------
-    # ALL FIXED — using get_effective_payment()
-    # ------------------------------
+    def get_doctor_flag_display(self, obj):
+        doctor_flag = obj.doctor.doctor_flag
+        display = doctor_flag[0].upper() + doctor_flag[1:].lower() if doctor_flag else ""
+        return display
+    def get_experience_display(self, obj):
+        experience = obj.doctor.experience
+        display = experience[0].upper() + experience[1:].lower() if experience else ""
+        return display
 
     def _ep(self, obj):
         """Shortcut to access effective payment dict"""
