@@ -481,6 +481,62 @@ class DoctorPaymentRuleSerializer(serializers.ModelSerializer):
 
 
 
+class DoctorRuleSerializer2(serializers.ModelSerializer):
+    doctor_fee_single = serializers.SerializerMethodField()
+    user_total_fee_single = serializers.SerializerMethodField()
+    doctor_fee_couple = serializers.SerializerMethodField()
+    user_total_fee_couple = serializers.SerializerMethodField()
+    actual_price_single = serializers.SerializerMethodField()
+    actual_price_couple = serializers.SerializerMethodField()
+    experience_display = serializers.SerializerMethodField()
+    doctor_flag_display = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DoctorPaymentRules
+        fields = [
+            "id",
+            "specialization_id",
+            "country_id",
+            "pricing_name",
+            "experience",
+            "experience_display",
+            "doctor_flag",
+            "doctor_flag_display",
+            "session_count",
+
+            "doctor_fee_single",
+            "user_total_fee_single",
+            "doctor_fee_couple",
+            "user_total_fee_couple",
+            "actual_price_single",
+            "actual_price_couple",
+        ]
+
+    def get_doctor_fee_single(self, obj):
+        return f"{obj.effective_payment['custom_doctor_fee_single']:.2f}"
+
+    def get_user_total_fee_single(self, obj):
+        return f"{obj.effective_payment['custom_user_total_fee_single']:.2f}"
+
+    def get_doctor_fee_couple(self, obj):
+        return f"{obj.effective_payment['custom_doctor_fee_couple']:.2f}"
+
+    def get_user_total_fee_couple(self, obj):
+        return f"{obj.effective_payment['custom_user_total_fee_couple']:.2f}"
+
+    def get_actual_price_single(self, obj):
+        price = obj.effective_payment["actual_price_single"]
+        return f"{price:.2f}" if price else None
+
+    def get_actual_price_couple(self, obj):
+        price = obj.effective_payment["actual_price_couple"]
+        return f"{price:.2f}" if price else None
+
+    def get_experience_display(self, obj):
+        return obj.get_experience_display()
+
+    def get_doctor_flag_display(self, obj):
+        return obj.get_doctor_flag_display()
 
 
 
@@ -490,7 +546,7 @@ class doctor_country_payment_rule_serializer(serializers.Serializer):
     currency_symbol = serializers.CharField()
     specialization = serializers.CharField()
     specialization_id = serializers.IntegerField()
-    rules = DoctorPaymentRuleSerializer(many=True)  # <-- IMPORTANT
+    rules = DoctorRuleSerializer2(many=True)  # <-- IMPORTANT
 
 
 
