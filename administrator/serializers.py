@@ -488,8 +488,7 @@ class DoctorRuleSerializer2(serializers.ModelSerializer):
     user_total_fee_couple = serializers.SerializerMethodField()
     actual_price_single = serializers.SerializerMethodField()
     actual_price_couple = serializers.SerializerMethodField()
-    experience_display = serializers.SerializerMethodField()
-    doctor_flag_display = serializers.SerializerMethodField()
+ 
     experience = serializers.CharField(source='doctor.experience', read_only=True)
     doctor_flag =serializers.CharField(source='doctor.doctor_flag', read_only=True)
     class Meta:
@@ -500,9 +499,7 @@ class DoctorRuleSerializer2(serializers.ModelSerializer):
             "country_id",
             "pricing_name",
             "experience",
-            "experience_display",
             "doctor_flag",
-            "doctor_flag_display",
             "session_count",
 
             "doctor_fee_single",
@@ -532,13 +529,6 @@ class DoctorRuleSerializer2(serializers.ModelSerializer):
     def get_actual_price_couple(self, obj):
         price = obj.effective_payment["actual_price_couple"]
         return f"{price:.2f}" if price else None
-
-    def get_experience_display(self, obj):
-        return obj.get_experience_display()
-
-    def get_doctor_flag_display(self, obj):
-        return obj.get_doctor_flag_display()
-
 
 
 class doctor_country_payment_rule_serializer(serializers.Serializer):
