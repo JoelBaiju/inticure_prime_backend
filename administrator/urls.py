@@ -4,6 +4,7 @@ from .views import *
 from .Views.customer_views import *
 from .Views.doctor_view import *
 from .Views.finance_views import *
+from .Views.payment_rules_view import *
 from .Views.dashboard_views import Admin_dashboard , AdminAppointmentListView
 
 urlpatterns = [
@@ -46,6 +47,7 @@ urlpatterns = [
 
     path("payment/general-rules/", general_payment_rule_list_create, name="general_payment_rule_list_create"),
     path("payment/general-rules-2/", general_payment_rule_list_create_2, name="general_payment_rule_list_create"),
+    path("payment/doctor-rules/", doctor_payment_rules, name="doctor_payment_rule_list_create"),
     path("payment/general-rules/<int:pk>/", general_payment_rule_detail, name="general_payment_rule_detail"),
 
     # Doctor Payment Assignments

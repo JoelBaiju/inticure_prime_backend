@@ -678,9 +678,10 @@ def general_payment_rule_list_create_2(request):
         # Filter by doctor
         if doctor_id:
             try:
-                doctor = DoctorProfiles.objects.get(id=doctor_id)
+                doctor = DoctorProfiles.objects.get(doctor_profile_id=doctor_id)
             except DoctorProfiles.DoesNotExist:
                 return Response({"error": "Doctor not found"}, status=404)
+
 
             specialization_ids = doctor.doctor_specializations.values_list(
                 "specialization_id", flat=True

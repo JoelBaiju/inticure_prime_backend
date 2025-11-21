@@ -484,6 +484,14 @@ class DoctorPaymentRuleSerializer(serializers.ModelSerializer):
 
 
 
+class doctor_country_payment_rule_serializer(serializers.Serializer):
+    country_id = serializers.IntegerField()
+    country_name = serializers.CharField()
+    currency_symbol = serializers.CharField()
+    specialization = serializers.CharField()
+    specialization_id = serializers.IntegerField()
+    rules = DoctorPaymentRuleSerializer(many=True)  # <-- IMPORTANT
+
 
 
 
