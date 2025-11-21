@@ -1,13 +1,13 @@
 from doctor.models import DoctorProfiles , DoctorPaymentRules
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated , IsAdminUser
 from rest_framework.decorators import api_view, permission_classes
 from administrator.models import GeneralPaymentRules
 from ..serializers import doctor_country_payment_rule_serializer
 
 
+# @permission_classes([IsAuthenticated, IsAdminUser])
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def doctor_payment_rules(request):
     """
     GET /api/administrator/payment/doctor-rules/?doctor_id=1
