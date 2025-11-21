@@ -479,8 +479,6 @@ class DoctorPaymentRuleSerializer(serializers.ModelSerializer):
 
 
 
-
-
 class DoctorRuleSerializer2(serializers.ModelSerializer):
     doctor_fee_single = serializers.SerializerMethodField()
     user_total_fee_single = serializers.SerializerMethodField()
@@ -488,9 +486,10 @@ class DoctorRuleSerializer2(serializers.ModelSerializer):
     user_total_fee_couple = serializers.SerializerMethodField()
     actual_price_single = serializers.SerializerMethodField()
     actual_price_couple = serializers.SerializerMethodField()
- 
+
     experience = serializers.CharField(source='doctor.experience', read_only=True)
-    doctor_flag =serializers.CharField(source='doctor.doctor_flag', read_only=True)
+    doctor_flag = serializers.CharField(source='doctor.doctor_flag', read_only=True)
+
     class Meta:
         model = DoctorPaymentRules
         fields = [
@@ -510,25 +509,43 @@ class DoctorRuleSerializer2(serializers.ModelSerializer):
             "actual_price_couple",
         ]
 
+    # ------------------------------
+    # ALL FIXED — using get_effective_payment()
+    # ------------------------------
+
+    def _ep(self, obj):
+        """Shortcut to access effective payment dict"""
+        return obj.get_effective_payment() or {}
+
     def get_doctor_fee_single(self, obj):
-        return f"{obj.effective_payment['custom_doctor_fee_single']:.2f}"
+        ep = self._ep(obj)
+        v = ep.get("custom_doctor_fee_single")
+        return f"{v:.2f}" if v is not None else None
 
     def get_user_total_fee_single(self, obj):
-        return f"{obj.effective_payment['custom_user_total_fee_single']:.2f}"
+        ep = self._ep(obj)
+        v = ep.get("custom_user_total_fee_single")
+        return f"{v:.2f}" if v is not None else None
 
     def get_doctor_fee_couple(self, obj):
-        return f"{obj.effective_payment['custom_doctor_fee_couple']:.2f}"
+        ep = self._ep(obj)
+        v = ep.get("custom_doctor_fee_couple")
+        return f"{v:.2f}" if v is not None else None
 
     def get_user_total_fee_couple(self, obj):
-        return f"{obj.effective_payment['custom_user_total_fee_couple']:.2f}"
+        ep = self._ep(obj)
+        v = ep.get("custom_user_total_fee_couple")
+        return f"{v:.2f}" if v is not None else None
 
     def get_actual_price_single(self, obj):
-        price = obj.effective_payment["actual_price_single"]
-        return f"{price:.2f}" if price else None
+        ep = self._ep(obj)
+        v = ep.get("actual_price_single")
+        return f"{v:.2f}" if v is not None else None
 
     def get_actual_price_couple(self, obj):
-        price = obj.effective_payment["actual_price_couple"]
-        return f"{price:.2f}" if price else None
+        ep = self._ep(obj)
+        v = ep.get("actual_price_couple")
+        return f"{v:.2f}" if v is not None else None
 
 
 class doctor_country_payment_rule_serializer(serializers.Serializer):
