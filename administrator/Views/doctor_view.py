@@ -2,7 +2,7 @@ from django.db.models import F
 from rest_framework.decorators import api_view, permission_classes
 from doctor.models import DoctorProfiles
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated , IsAdminUser
 from doctor.models import DoctorProfiles,DoctorPaymentRules,DoctorSpecializations
 from ..serializers import DoctorPaymentRuleSerializer
 from ..serializers import DoctorProfileSerializer
