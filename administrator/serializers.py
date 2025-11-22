@@ -230,11 +230,17 @@ class RuleSerializer(serializers.ModelSerializer):
     doctor_flag_display = serializers.CharField(source='get_doctor_flag_display', read_only=True)
     specialization_id = serializers.IntegerField(source='specialization.specialization_id', read_only=True)
     country_id = serializers.IntegerField(source='country.id', read_only=True)
+    country_name = serializers.CharField(source='country.country_name', read_only=True)
+    currency_symbol = serializers.CharField(source='country.currency_symbol', read_only=True) 
+    specialization_name = serializers.CharField(source='specialization.specialization', read_only=True)
     class Meta:
         model = GeneralPaymentRules
         fields = [
             "id",
             "specialization_id",
+            "specialization_name",
+            "country_name",
+            "currency_symbol",
             "country_id",
             "pricing_name",
             "experience",
@@ -754,4 +760,3 @@ class PayoutsSerializer(serializers.ModelSerializer):
 
 
 
-    
