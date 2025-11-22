@@ -23,6 +23,7 @@ urlpatterns = [
     path('doc/available_dates/', Available_dates.as_view(), name='available_dates'),
     path('doc/available_hours/', DoctorAvailableHoursView.as_view(), name='available_hours'),
     path("doc/edit_available_hours/" , edit_available_hours_view , name="edit_available_hours"),
+    path('doc/specializations/', DoctorSpecializationsView.as_view(), name='doctor-specializations'),
 
     path('specializations/', specializations_list_create, name='specializations-list-create'),
     path('specializations/<int:pk>/', specialization_detail, name='specialization-detail'),
@@ -53,6 +54,7 @@ urlpatterns = [
     # Doctor Payment Assignments
     path("payment/doctor-assignments/", doctor_payment_assignment_list_create, name="doctor_payment_assignment_list_create"),
     path("payment/doctor-assignments/<int:pk>/", doctor_payment_assignment_detail, name="doctor_payment_assignment_detail"),
+    path("payment/doctor-assignments-2/", doctor_payment_assignment_list_create_2, name="doctor_payment_assignment_by_doctor"),
 
     path('patient_list/', Patient_List_View.as_view(), name='patient_list'),
     path('customer_details/', CustomerProfileView.as_view(), name='customer_details'),

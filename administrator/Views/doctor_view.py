@@ -3,6 +3,12 @@ from rest_framework.decorators import api_view, permission_classes
 from doctor.models import DoctorProfiles
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from doctor.models import DoctorProfiles,DoctorPaymentRules,DoctorSpecializations
+from ..serializers import DoctorPaymentRuleSerializer
+from ..serializers import DoctorProfileSerializer
+from rest_framework import generics
+from doctor.serializers import DoctorSpecializationSerializer
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -166,48 +172,162 @@ def edit_available_hours_view(request):
 
 
 
-# from ..models import Countries, Specializations, GeneralPaymentRules
-# from ..serializers import GeneralPaymentRuleSerializer
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def doctor_payment_assignment_detail(request, pk):
+    try:
+        assignment = DoctorPaymentRules.objects.get(pk=pk)
+    except DoctorPaymentRules.DoesNotExist:
+        return Response(status=404)
 
-# class FilterGeneralPaymentRules(APIView):
-#     """
-#     API to filter rules by specialization and country
-#     Response matches UI format exactly.
-#     """
+    if request.method == 'GET':
+        return Response(DoctorPaymentRuleSerializer(assignment).data)
 
-#     def get(self, request):
-#         country_id = request.query_params.get("country_id")
-#         specialization_id = request.query_params.get("specialization_id")
+    elif request.method == 'PUT':
+        serializer = DoctorPaymentRuleSerializer(assignment, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
 
-#         if not country_id or not specialization_id:
-#             return Response(
-#                 {"error": "country_id and specialization_id are required."},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
+    elif request.method == 'DELETE':
+        assignment_id = assignment.id
+        assignment.delete()
+        return Response({"idToRemove": assignment_id}, status=200)
 
-#         try:
-#             country = Countries.objects.get(id=country_id)
-#             specialization = Specializations.objects.get(specialization_id=specialization_id)
-#         except (Countries.DoesNotExist, Specializations.DoesNotExist):
-#             return Response(
-#                 {"error": "Invalid country_id or specialization_id"},
-#                 status=status.HTTP_404_NOT_FOUND,
-#             )
 
-#         rules = GeneralPaymentRules.objects.filter(
-#             country_id=country_id,
-#             specialization_id=specialization_id
-#         ).order_by("session_count")
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from rest_framework import status, serializers
+from django.db import transaction
 
-#         serialized_rules = GeneralPaymentRuleSerializer(rules, many=True).data
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def doctor_payment_assignment_list_create(request):
+    if request.method == 'GET':
+        assignments = DoctorPaymentRules.objects.all()
+        serializer = DoctorPaymentRuleSerializer(assignments, many=True)
+        return Response(serializer.data)
 
-#         response_data = {
-#             "country_id": country.id,
-#             "country_name": country.name,
-#             "currency_symbol": country.currency_symbol,
-#             "specialization": specialization.name,
-#             "specialization_id": specialization.id,
-#             "rules": serialized_rules,
-#         }
+    elif request.method == 'POST':
+        if not isinstance(request.data, list):
+            return Response(
+                {"error": "Expected a list of assignments."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-#         return Response(response_data, status=status.HTTP_200_OK)
+        added = []
+        errors = []
+
+        for entry in request.data:
+            try:
+                with transaction.atomic():
+                    # Create context with request to pass to serializer
+                    context = {'request': request}
+                    serializer = DoctorPaymentRuleSerializer(
+                        data=entry,
+                        context=context
+                    )
+                    print('heres the serialier ')
+                    # Perform validation and creation in one step
+                    serializer.is_valid(raise_exception=True)
+
+                    print('serializer valid')
+                    obj = serializer.save()
+                    print('serializer saved')
+                    added.append(obj)
+                    
+            except Exception as e:
+                error_detail = e.detail if hasattr(e, 'detail') else str(e)
+                errors.append({
+                    "entry": entry,
+                    "message": error_detail
+                })
+                # Continue to next entry even if this one fails
+
+        if errors:
+            response_data = {
+                "status": "partial_success" if added else "error",
+                "added_assignments": DoctorPaymentRuleSerializer(added, many=True).data,
+                "errors": errors
+            }
+            status_code = status.HTTP_207_MULTI_STATUS if added else status.HTTP_400_BAD_REQUEST
+            return Response(response_data, status=status_code)
+
+        return Response({
+            "status": "success",
+            "added_assignments": DoctorPaymentRuleSerializer(added, many=True).data
+        }, status=status.HTTP_201_CREATED)
+    
+
+
+@permission_classes([IsAuthenticated, IsAdminUser])
+@api_view(['POST'])
+def doctor_payment_assignment_list_create_2(request):
+
+    specialization = request.data.get('specialization_id')
+    country_id = request.data.get('country_id')
+    rules = request.data.get('rules')
+
+    old_rules = DoctorPaymentRules.objects.filter(id__in=rules)
+
+    to_create = []
+    invalid_rules = []
+
+    for rule_id in rules:
+        old_rule = next((r for r in old_rules if r.id == rule_id), None)
+        if not old_rule:
+            invalid_rules.append({
+                "rule_id": rule_id,
+                "error": "Rule not found"
+            })
+            continue
+
+        clone = DoctorPaymentRules(
+            doctor=old_rule.doctor,
+            general_rule=old_rule.general_rule,
+            pricing_name=old_rule.pricing_name,
+            session_count=old_rule.session_count,
+            specialization_id=specialization,
+            country_id=country_id,
+            actual_price_single=old_rule.actual_price_single,
+            actual_price_couple=old_rule.actual_price_couple,
+            custom_doctor_fee_single=old_rule.custom_doctor_fee_single,
+            custom_user_total_fee_single=old_rule.custom_user_total_fee_single,
+            custom_doctor_fee_couple=old_rule.custom_doctor_fee_couple,
+            custom_user_total_fee_couple=old_rule.custom_user_total_fee_couple,
+        )
+        to_create.append(clone)
+
+    # Bulk create all cloned records in one go
+    created = DoctorPaymentRules.objects.bulk_create(to_create)
+
+    return Response({
+        "message": "Completed with partial success" if invalid_rules else "All rules copied successfully",
+        "created_rules": DoctorPaymentRuleSerializer(created, many=True).data,
+        "invalid_rules": invalid_rules
+    }, status=201 if created else 400)
+
+
+
+
+
+
+
+class DoctorProfileUpdateView(generics.UpdateAPIView):
+    queryset = DoctorProfiles.objects.all()
+    serializer_class = DoctorProfileSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'doctor_profile_id'
+
+
+
+class DoctorSpecializationsView(generics.ListAPIView):
+    
+    serializer_class = DoctorSpecializationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        doctor_id = self.request.GET.get('doctor_id')
+        return DoctorSpecializations.objects.filter(doctor__doctor_profile_id=doctor_id)

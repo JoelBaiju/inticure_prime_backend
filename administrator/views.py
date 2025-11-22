@@ -611,7 +611,7 @@ from rest_framework.response import Response
 from .serializers import CountryPaymentRuleSerializer
 
 
-# @permission_classes([IsAuthenticated, IsAdminUser])
+@permission_classes([IsAuthenticated, IsAdminUser])
 @api_view(['GET', 'POST'])
 def general_payment_rule_list_create_2(request):
 
@@ -740,6 +740,9 @@ def general_payment_rule_list_create_2(request):
 
 
 
+
+
+
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def general_payment_rule_detail(request, pk):
@@ -764,112 +767,6 @@ def general_payment_rule_detail(request, pk):
 
 
 # ----------- DOCTOR PAYMENT ASSIGNMENTS -----------
-
-
-@api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated, IsAdminUser])
-def doctor_payment_assignment_detail(request, pk):
-    try:
-        assignment = DoctorPaymentRules.objects.get(pk=pk)
-    except DoctorPaymentRules.DoesNotExist:
-        return Response(status=404)
-
-    if request.method == 'GET':
-        return Response(DoctorPaymentRuleSerializer(assignment).data)
-
-    elif request.method == 'PUT':
-        serializer = DoctorPaymentRuleSerializer(assignment, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
-
-    elif request.method == 'DELETE':
-        assignment_id = assignment.id
-        assignment.delete()
-        return Response({"idToRemove": assignment_id}, status=200)
-
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework.response import Response
-from rest_framework import status, serializers
-from django.db import transaction
-
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated, IsAdminUser])
-def doctor_payment_assignment_list_create(request):
-    if request.method == 'GET':
-        assignments = DoctorPaymentRules.objects.all()
-        serializer = DoctorPaymentRuleSerializer(assignments, many=True)
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
-        if not isinstance(request.data, list):
-            return Response(
-                {"error": "Expected a list of assignments."}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        added = []
-        errors = []
-
-        for entry in request.data:
-            try:
-                with transaction.atomic():
-                    # Create context with request to pass to serializer
-                    context = {'request': request}
-                    serializer = DoctorPaymentRuleSerializer(
-                        data=entry,
-                        context=context
-                    )
-                    print('heres the serialier ')
-                    # Perform validation and creation in one step
-                    serializer.is_valid(raise_exception=True)
-
-                    print('serializer valid')
-                    obj = serializer.save()
-                    print('serializer saved')
-                    added.append(obj)
-                    
-            except Exception as e:
-                error_detail = e.detail if hasattr(e, 'detail') else str(e)
-                errors.append({
-                    "entry": entry,
-                    "message": error_detail
-                })
-                # Continue to next entry even if this one fails
-
-        if errors:
-            response_data = {
-                "status": "partial_success" if added else "error",
-                "added_assignments": DoctorPaymentRuleSerializer(added, many=True).data,
-                "errors": errors
-            }
-            status_code = status.HTTP_207_MULTI_STATUS if added else status.HTTP_400_BAD_REQUEST
-            return Response(response_data, status=status_code)
-
-        return Response({
-            "status": "success",
-            "added_assignments": DoctorPaymentRuleSerializer(added, many=True).data
-        }, status=status.HTTP_201_CREATED)
-    
-
-
-
-
-
-
-
-
-
-
-class DoctorProfileUpdateView(generics.UpdateAPIView):
-    queryset = DoctorProfiles.objects.all()
-    serializer_class = DoctorProfileSerializer
-    permission_classes = [IsAuthenticated]
-    lookup_field = 'doctor_profile_id'
-
 
 class Patient_List_View(APIView):
     # permission_classes = [IsAuthenticated]

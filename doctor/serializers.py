@@ -321,3 +321,23 @@ class DoctorPaymentRulesSerializer(serializers.ModelSerializer):
         #     'couple':pricing['custom_user_total_fee_couple']
         # }
         return pricing
+    
+
+
+
+
+class DoctorSpecializationSerializer(serializers.ModelSerializer):
+    specialization = serializers.CharField(source='specialization.specialization', read_only=True)
+    description = serializers.CharField(source='specialization.description', read_only=True)
+    single_session_duration = serializers.CharField(source='specialization.single_session_duration', read_only=True)
+    double_session_duration = serializers.CharField(source='specialization.double_session_duration', read_only=True)
+    class Meta:
+        model = DoctorSpecializations
+        fields = [
+            'specialization',
+            'specialization_id',
+            'description',
+            'single_session_duration',
+            'double_session_duration'
+            ]
+        read_only_fields = ['specialization']  # Ensure this field is read-only

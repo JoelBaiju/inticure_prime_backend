@@ -265,110 +265,6 @@ class SpecializationBasedPaymentSerializer(serializers.Serializer):
     payment_rules = CountryPaymentRuleSerializer(many=True)
 
 
-# class DoctorPaymentRuleSerializer(serializers.ModelSerializer):
-#     doctor_name = serializers.SerializerMethodField()
-#     specialization_name = serializers.CharField(source='specialization.specialization', read_only=True)
-#     country_name = serializers.CharField(source='country.country_name', read_only=True)
-#     currency_symbol = serializers.CharField(source='country.currency_symbol', read_only=True)
-
-#     doctor_fee_single = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, write_only=True)
-#     doctor_fee_couple = serializers.CharField( required=False, write_only=True)
-#     user_total_fee_single = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, write_only=True)
-#     user_total_fee_couple = serializers.CharField( required=False, write_only=True)
-
-#     custom_doctor_fee_single = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, write_only=True)
-#     custom_user_total_fee_single = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, write_only=True)
-#     custom_doctor_fee_couple = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, write_only=True)
-#     custom_user_total_fee_couple = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, write_only=True)
-#     doctor_flag = serializers.CharField(source='doctor.doctor_flag', read_only=True)
-#     experience = serializers.CharField(source='doctor.experience', read_only=True)
-#     effective_payment = serializers.SerializerMethodField()
-
-#     class Meta:
-#         model = DoctorPaymentRules
-#         fields = [
-#             'id', 'pricing_name', 'doctor', 'doctor_name',
-#             'specialization', 'specialization_name',
-#             'country', 'country_name',
-#             'session_count', 'currency_symbol',
-#             'general_rule', 
-#             'doctor_fee_single', 'doctor_fee_couple',
-#             'user_total_fee_single', 'user_total_fee_couple',
-#             'actual_price_single', 'actual_price_couple',
-#             'custom_doctor_fee_single','custom_user_total_fee_single',
-#             'custom_doctor_fee_couple', 'custom_user_total_fee_couple',
-#             'effective_payment','doctor_flag', 'experience'
-#         ]
-
-
-#     def get_doctor_name(self, obj):
-#         return f"{obj.doctor.first_name} {obj.doctor.last_name}" if obj.doctor else None
-
-#     def create(self, validated_data):
-#         print("Step 1: Initial validated_data:", validated_data)
-#         alias_map = {
-#             'custom_doctor_fee_single': validated_data.pop('doctor_fee_single', None),
-#             'custom_doctor_fee_couple': validated_data.pop('doctor_fee_couple', 0),
-#             'custom_user_total_fee_single': validated_data.pop('user_total_fee_single', None),
-#             'custom_user_total_fee_couple': validated_data.pop('user_total_fee_couple', 0),
-#         }
-#         doctor_fee_single = validated_data.get("doctor_fee_single")
-#         if doctor_fee_single not in [None, ""]:
-#             try:
-#                 validated_data["doctor_fee_single"] = float(doctor_fee_single)
-#             except ValueError:
-#                 validated_data["doctor_fee_single"] = None  # or raise error
-#         print("Step 2: alias_map after pop:", alias_map)
-#         validated_data.update({k: v for k, v in alias_map.items() if v is not None})
-#         print("Step 3: validated_data after alias_map update:", validated_data)
-
-#         general_rule = validated_data.get('general_rule')
-#         print("Step 4: general_rule:", general_rule)
-        
-#         if isinstance(general_rule, int) or not isinstance(general_rule, GeneralPaymentRules):
-#             general_rule = GeneralPaymentRules.objects.select_related('specialization', 'country').filter(
-#                 id=general_rule.id if hasattr(general_rule, 'id') else general_rule
-#             ).first()
-#             validated_data['general_rule'] = general_rule
-
-       
-#         if general_rule is not None:
-#             print("general_rule.specialization:", general_rule.specialization)
-#             print("general_rule.country:", general_rule.country)
-#             validated_data['specialization'] = general_rule.specialization
-#             validated_data['country'] = general_rule.country
-#             validated_data['pricing_name'] = general_rule.pricing_name or ''
-#             validated_data['session_count'] = general_rule.session_count
-#             validated_data['actual_price_single'] = general_rule.actual_price_single
-#             validated_data['actual_price_couple'] = general_rule.actual_price_couple
-#             print("Step 5: validated_data after setting from general_rule:", validated_data)
-
-#         # Move this check AFTER general_rule fields are set
-#         required_fields = ['specialization', 'country', 'session_count']
-#         for field in required_fields:
-#             print(f"Step 6: Checking required field '{field}':", validated_data.get(field))
-#             if not validated_data.get(field):
-#                 print(f"Step 6.1: Missing required field '{field}'")
-#                 raise serializers.ValidationError({field: ['This field is required.']})
-
-#         print("Step 7: Checking for duplicate DoctorPaymentAssignments")
-#         if DoctorPaymentRules.objects.filter(
-#             doctor=validated_data['doctor'],
-#             specialization=validated_data['specialization'],
-#             country=validated_data['country'],
-#             session_count=validated_data['session_count']
-#         ).exists():
-#             print("Step 7.1: Duplicate assignment found")
-#             raise serializers.ValidationError("Duplicate assignment for this doctor and rule combination.")
-
-#         print("Step 8: Calling super().create with validated_data:", validated_data)
-#         return super().create(validated_data)
-
-
-
-#     def get_effective_payment(self, obj):
-#         return obj.get_effective_payment() or {}
-
 
 
 from decimal import Decimal, InvalidOperation
@@ -853,3 +749,9 @@ class PayoutsSerializer(serializers.ModelSerializer):
 
     def get_doctor_name(self, obj):
         return f"{obj.doctor.salutation} {obj.doctor.first_name} {obj.doctor.last_name}" if obj.doctor else None
+    
+
+
+
+
+    
