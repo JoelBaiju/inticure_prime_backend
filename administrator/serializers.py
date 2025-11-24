@@ -59,6 +59,7 @@ class SpecializationsSerializerWrite(serializers.ModelSerializer):
 
 
 from doctor.models import DoctorSpecializations
+from django.db.models import Q
 class DoctorProfileSerializer(serializers.ModelSerializer):
     specializations = serializers.SerializerMethodField()
     country = serializers.StringRelatedField()
@@ -113,16 +114,20 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
         ).values_list('specialization_id', flat=True)
 
         for spec_id in doc_specialization_ids:
+            valid_fields_q = Q(actual_price_single__isnull=False) | \
+                            Q(custom_user_total_fee_single__isnull=False) | \
+                            Q(actual_price_couple__isnull=False) | \
+                            Q(custom_user_total_fee_couple__isnull=False)
+
             has_valid_rate = DoctorPaymentRules.objects.filter(
                 doctor=obj,
-                specialization_id=spec_id,
+                specialization_id=spec_id
             ).filter(
-                models.Q(actual_price_single__isnull=False) |
-                models.Q(custom_user_total_fee_single__isnull=False) |
-                models.Q(actual_price_couple__isnull=False) |
-                models.Q(custom_user_total_fee_couple__isnull=False)
+                valid_fields_q | Q(general_rule__isnull=False)
             ).exists()
 
+            
+            
             if not has_valid_rate:
                 return False  # No valid pricing at all for this specialization
 
