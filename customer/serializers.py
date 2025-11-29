@@ -173,7 +173,6 @@ class CustomerDashboardSerializer(serializers.ModelSerializer):
             AppointmentHeader.objects.filter(
                 Q(appointment_customers__customer=obj) | Q(customer=obj),
                 appointment_status__in=['initiated_by_doctor', 'pending_payment', 'pending_slot'],
-                start_time__gt=today,
                 followup=False
             )
             .select_related("doctor", "specialization")

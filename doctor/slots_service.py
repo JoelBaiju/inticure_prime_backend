@@ -795,7 +795,8 @@ def _handle_specialization_lookup(
             "fallback_reason": "No doctors available",
             "doctors_found_but_unavailable": False,
             "available_dates": [],
-            "current_date": None
+            "current_date": None,
+            "session_duration": session_duration
         }
     
     return _generate_slot_response(
@@ -865,6 +866,7 @@ def _generate_slot_response(
 
     return {
         "slots": sort_slots_by_time(formatted_slots, timezone_str),
+        "session_duration": session_duration,
         "matched_preferences": matched_preferences,
         "gender_matched": gender_matched,
         "language_matched": language_matched,

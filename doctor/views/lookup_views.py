@@ -139,7 +139,7 @@ def get_available_slots_by_doctor(request):
     if not doctor_id:
         return Response({"error": "doctor_id is required"}, status=400)
     if not appointment_id:
-        return Response({"error": "cid is required"}, status=400)
+        return Response({"error": "appointment_id is required"}, status=400)
     try:
         appointment = AppointmentHeader.objects.get(appointment_id = appointment_id)
         customer = appointment.customer
