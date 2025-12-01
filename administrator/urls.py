@@ -55,6 +55,7 @@ urlpatterns = [
     path("payment/doctor-assignments/", doctor_payment_assignment_list_create, name="doctor_payment_assignment_list_create"),
     path("payment/doctor-assignments/<int:pk>/", doctor_payment_assignment_detail, name="doctor_payment_assignment_detail"),
     path("payment/doctor-assignments-2/", doctor_payment_assignment_list_create_2, name="doctor_payment_assignment_by_doctor"),
+    path("payment/doctor-assignments-by-specialization/", doctor_payment_assignment_from_specialization, name="doctor_payment_assignment_by_specialization"),
 
     path('patient_list/', Patient_List_View.as_view(), name='patient_list'),
     path('customer_details/', CustomerProfileView.as_view(), name='customer_details'),

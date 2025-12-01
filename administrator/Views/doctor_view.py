@@ -310,8 +310,42 @@ def doctor_payment_assignment_list_create_2(request):
     }, status=201 if created else 400)
 
 
+from ..models import GeneralPaymentRules
+@permission_classes([IsAuthenticated, IsAdminUser])
+@api_view(['POST'])
+def doctor_payment_assignment_from_specialization(request):
+    specialization_id = request.data.get('specialization_id')
+    doctor_id = request.data.get('doctor_id')
 
-
+    try:
+        doctor = DoctorProfiles.objects.get(doctor_profile_id=doctor_id)
+    except DoctorProfiles.DoesNotExist:
+        return Response({"error": "Doctor not found"}, status=404)
+    
+    specialization_rules = GeneralPaymentRules.objects.filter(
+        specialization_id=specialization_id
+    )
+    created_rules = []
+    for rule in specialization_rules:
+        new_rule = DoctorPaymentRules.objects.create(
+            doctor=doctor,
+            general_rule=rule,
+            pricing_name=rule.pricing_name,
+            session_count=rule.session_count,
+            specialization_id=specialization_id,
+            country=rule.country,
+            actual_price_single=rule.actual_price_single,
+            actual_price_couple=rule.actual_price_couple,
+            custom_doctor_fee_single=rule.doctor_fee_single,
+            custom_user_total_fee_single=rule.user_total_fee_single,
+            custom_doctor_fee_couple=rule.doctor_fee_couple,
+            custom_user_total_fee_couple=rule.user_total_fee_couple,
+        )
+        created_rules.append(new_rule)
+    return Response({
+        "message": "Rules created from specialization",
+        "created_rules": DoctorPaymentRuleSerializer(created_rules, many=True).data
+    }, status=201)
 
 
 
