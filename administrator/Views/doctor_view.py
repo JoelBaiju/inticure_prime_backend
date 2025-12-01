@@ -311,6 +311,7 @@ def doctor_payment_assignment_list_create_2(request):
 
 
 from ..models import GeneralPaymentRules
+
 @permission_classes([IsAuthenticated, IsAdminUser])
 @api_view(['POST'])
 def doctor_payment_assignment_from_specialization(request):
@@ -327,17 +328,17 @@ def doctor_payment_assignment_from_specialization(request):
     )
 
     created_rules = []
-    skipped_rules = []
+    skipped = []
 
     for rule in specialization_rules:
 
         new_rule, created = DoctorPaymentRules.objects.get_or_create(
             doctor=doctor,
-            general_rule=rule,   # This ensures no duplicates
+            specialization_id=specialization_id,
+            session_count=rule.session_count,
+            pricing_name=rule.pricing_name,  # This is UNIQUE with the doctor+spec
             defaults={
-                "pricing_name": rule.pricing_name,
-                "session_count": rule.session_count,
-                "specialization_id": specialization_id,
+                "general_rule": rule,
                 "country": rule.country,
                 "actual_price_single": rule.actual_price_single,
                 "actual_price_couple": rule.actual_price_couple,
@@ -351,12 +352,15 @@ def doctor_payment_assignment_from_specialization(request):
         if created:
             created_rules.append(new_rule)
         else:
-            skipped_rules.append(rule.id)
+            skipped.append({
+                "rule_id": rule.id,
+                "reason": "Duplicate for this doctor + specialization + session_count + pricing_name"
+            })
 
     return Response({
         "message": "Rules processed from specialization",
         "created_count": len(created_rules),
-        "skipped_duplicate_rule_ids": skipped_rules,
+        "skipped_duplicates": skipped,
         "created_rules": DoctorPaymentRuleSerializer(created_rules, many=True).data
     }, status=201)
 
