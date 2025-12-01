@@ -313,7 +313,12 @@ DEFAULT_FROM_EMAIL = 'wecare@inticure.com'  # Default from email (can be your Gm
 # ADMIN_WA_NUMBERS = ['+917483963192','+919562512875']
 
 
-  
+
+ADMIN_CC_EMAILS = ['nikhilappu112@gmail']
+ADMIN_WA_NUMBERS = ['+918891268078']
+
+
+
 
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.sendgrid.net'  # Use SendGrid SMTP server
