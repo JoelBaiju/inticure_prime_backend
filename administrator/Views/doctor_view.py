@@ -311,6 +311,7 @@ def doctor_payment_assignment_list_create_2(request):
 
 
 from ..models import GeneralPaymentRules
+
 @permission_classes([IsAuthenticated, IsAdminUser])
 @api_view(['POST'])
 def doctor_payment_assignment_from_specialization(request):
@@ -331,36 +332,25 @@ def doctor_payment_assignment_from_specialization(request):
 
     for rule in specialization_rules:
 
-        # --- IMPORTANT ---
-        # Your new uniqueness requirement:
-        # doctor + specialization + session_count + pricing_name +
-        # experience + doctor_flag + couples + country
+        # Note: unique_together = (doctor, specialization, country, session_count)
         new_rule, created = DoctorPaymentRules.objects.get_or_create(
             doctor=doctor,
             specialization_id=specialization_id,
-            session_count=rule.session_count,
-            pricing_name=rule.pricing_name,
-
-            # New fields included for uniqueness
-            experience=rule.experience,
-            doctor_flag=rule.doctor_flag,
-            couples=rule.couples,
             country=rule.country,
-
+            session_count=rule.session_count,
+            pricing_name=rule.pricing_name,   # Optional but allowed
             defaults={
                 "general_rule": rule,
 
-                # Copying single session pricing
+                # Copy SINGLE session values
                 "actual_price_single": rule.actual_price_single,
                 "custom_doctor_fee_single": rule.doctor_fee_single,
                 "custom_user_total_fee_single": rule.user_total_fee_single,
-                "platform_fee_single": rule.platform_fee_single,
 
-                # Copying couple session pricing
+                # Copy COUPLE session values
                 "actual_price_couple": rule.actual_price_couple,
                 "custom_doctor_fee_couple": rule.doctor_fee_couple,
                 "custom_user_total_fee_couple": rule.user_total_fee_couple,
-                "platform_fee_couple": rule.platform_fee_couple,
             }
         )
 
@@ -369,10 +359,7 @@ def doctor_payment_assignment_from_specialization(request):
         else:
             skipped.append({
                 "rule_id": rule.id,
-                "reason": (
-                    "Duplicate for doctor + specialization + session_count + pricing_name "
-                    "+ experience + doctor_flag + couples + country"
-                )
+                "reason": "Duplicate rule for doctor + specialization + country + session_count"
             })
 
     return Response({
@@ -381,6 +368,7 @@ def doctor_payment_assignment_from_specialization(request):
         "skipped_duplicates": skipped,
         "created_rules": DoctorPaymentRuleSerializer(created_rules, many=True).data
     }, status=201)
+
 
 class DoctorProfileUpdateView(generics.UpdateAPIView):
     queryset = DoctorProfiles.objects.all()
