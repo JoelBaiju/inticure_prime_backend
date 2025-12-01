@@ -325,28 +325,40 @@ def doctor_payment_assignment_from_specialization(request):
     specialization_rules = GeneralPaymentRules.objects.filter(
         specialization_id=specialization_id
     )
+
     created_rules = []
+    skipped_rules = []
+
     for rule in specialization_rules:
-        new_rule = DoctorPaymentRules.objects.create(
+
+        new_rule, created = DoctorPaymentRules.objects.get_or_create(
             doctor=doctor,
-            general_rule=rule,
-            pricing_name=rule.pricing_name,
-            session_count=rule.session_count,
-            specialization_id=specialization_id,
-            country=rule.country,
-            actual_price_single=rule.actual_price_single,
-            actual_price_couple=rule.actual_price_couple,
-            custom_doctor_fee_single=rule.doctor_fee_single,
-            custom_user_total_fee_single=rule.user_total_fee_single,
-            custom_doctor_fee_couple=rule.doctor_fee_couple,
-            custom_user_total_fee_couple=rule.user_total_fee_couple,
+            general_rule=rule,   # This ensures no duplicates
+            defaults={
+                "pricing_name": rule.pricing_name,
+                "session_count": rule.session_count,
+                "specialization_id": specialization_id,
+                "country": rule.country,
+                "actual_price_single": rule.actual_price_single,
+                "actual_price_couple": rule.actual_price_couple,
+                "custom_doctor_fee_single": rule.doctor_fee_single,
+                "custom_user_total_fee_single": rule.user_total_fee_single,
+                "custom_doctor_fee_couple": rule.doctor_fee_couple,
+                "custom_user_total_fee_couple": rule.user_total_fee_couple,
+            }
         )
-        created_rules.append(new_rule)
+
+        if created:
+            created_rules.append(new_rule)
+        else:
+            skipped_rules.append(rule.id)
+
     return Response({
-        "message": "Rules created from specialization",
+        "message": "Rules processed from specialization",
+        "created_count": len(created_rules),
+        "skipped_duplicate_rule_ids": skipped_rules,
         "created_rules": DoctorPaymentRuleSerializer(created_rules, many=True).data
     }, status=201)
-
 
 
 class DoctorProfileUpdateView(generics.UpdateAPIView):
