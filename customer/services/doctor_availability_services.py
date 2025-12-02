@@ -181,14 +181,15 @@ def is_doctor_available_in_specialization(specialization_id, days, country):
     start_time = timezone.now()
     end_time = start_time + timedelta(days=days)
 
-    available_doctors = get_available_doctors_for_specialization(
-        specialization_id=specialization_id,
-        start_time=start_time,
-        end_time=end_time,
-        country=country
-    )
-    if available_doctors:
-        return True
+    for check_country in [country, "United States"]:
+        if get_available_doctors_for_specialization(
+            specialization_id=specialization_id,
+            start_time=start_time,
+            end_time=end_time,
+            country=check_country
+        ):
+            return True
+
     return False
 
 from administrator.models import Specializations
