@@ -146,7 +146,7 @@ def initiate_stripe_payment_link(pretransaction_id, appointment_id):
             "pretransaction_id": pretransaction_id,
             "payment_gateway": "stripe",
             "amount": amount,
-            "currency": Countries.objects.get(currency=transaction.currency).currency_symbol
+            "currency": Countries.objects.filter(currency=transaction.currency).first.currency_symbol
         }
 
     except Exception as e:
