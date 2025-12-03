@@ -309,13 +309,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # EMAIL_HOST_PASSWORD = 'kfqk vezg lylg nbuu'  # App Password or Gmail password
 DEFAULT_FROM_EMAIL = 'wecare@inticure.com'  # Default from email (can be your Gmail or another verified email)
 
-ADMIN_CC_EMAILS = ['wecare@inticure.com']
-ADMIN_WA_NUMBERS = ['+917483963192','+919562512875']
+# ADMIN_CC_EMAILS = ['wecare@inticure.com']
+# ADMIN_WA_NUMBERS = ['+917483963192','+919562512875']
 
 
 
-# ADMIN_CC_EMAILS = ['nikhilappu112@gmail']
-# ADMIN_WA_NUMBERS = ['+918891268078']
+ADMIN_CC_EMAILS = ['nikhilappu112@gmail']
+ADMIN_WA_NUMBERS = ['+918891268078']
 
 
 
