@@ -573,7 +573,8 @@ def get_multiple_doctor_profiles(request):
     a_country=country
     for doc in response_data:
         logger.debug(f"\n\nis prescription allowed for doc {doc['name']} {doc['is_prescription_allowed']}")
-        if doc['is_prescription_allowed'] :
+        # if doc['is_prescription_allowed']:
+        if specialization.specialization == 'No Specialization':
             a_country = "India"  
             logger.debug(f"\n\ninside condition changed to india {a_country}")
         else:
