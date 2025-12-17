@@ -220,7 +220,17 @@ if ENV == "dev":
             'PORT': '3306',         
         }
     }
-
+elif ENV == "test":
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'inticure_test',
+            'USER': 'inticure',
+            'PASSWORD': 'Berlin@123',
+            'HOST': '/var/run/mysqld/mysqld.sock',
+            'PORT': '',
+        }
+    }
 else:
     DATABASES = {
         'default': {
@@ -352,11 +362,23 @@ STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
 WHATSAPP_ACCESS_TOKEN = config('WHATSAPP_ACCESS_TOKEN')
 WHATSAPP_PHONE_NUMBER_ID = config('WHATSAPP_PHONE_NUMBER_ID')
 
+from kombu import Queue
 
+if ENV == "test":
+    CELERY_BROKER_URL = "redis://localhost:6379/1"
+    CELERY_TASK_DEFAULT_QUEUE = "test"
+    CELERY_TASK_QUEUES = (
+        Queue("test"),
+    )
+else:
+    CELERY_BROKER_URL = "redis://localhost:6379/0"
+    CELERY_TASK_DEFAULT_QUEUE = "prod"
+    CELERY_TASK_QUEUES = (
+        Queue("prod"),
+    )
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Assuming Redis is on default port
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
 
 
 
