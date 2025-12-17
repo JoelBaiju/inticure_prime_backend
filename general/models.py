@@ -140,3 +140,10 @@ class AppointmentNotifications(models.Model):
     confirmation_doctor_email_sent      = models.BooleanField(default=False)
     payment_reminder_47h_sent           = models.BooleanField(default=False)
     payment_reminder_24h_sent           = models.BooleanField(default=False)
+    
+    appointment_reminders_scheduled       = models.BooleanField(default=False)
+    one_week_reminder_sent              = models.BooleanField(default=False)
+    three_days_reminder_sent            = models.BooleanField(default=False)
+    one_day_reminder_sent               = models.BooleanField(default=False)
+    one_hour_reminder_sent              = models.BooleanField(default=False)
+    on_time_reminder_sent               = models.BooleanField(default=False)

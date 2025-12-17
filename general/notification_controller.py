@@ -231,21 +231,185 @@ def send_doctor_reshceduled_notification(appointment_id):
 from celery import shared_task
 from django.utils import timezone
 from datetime import timedelta
+from .models import AppointmentNotifications
 
+# REMINDER_FLAG_MAP = {
+#     "one_week": "one_week_reminder_sent",
+#     "three_days": "three_days_reminder_sent",
+#     "one_day": "one_day_reminder_sent",
+#     "one_hour": "one_hour_reminder_sent",
+#     "on_time": "on_time_reminder_sent",
+# }
+
+# @shared_task(bind=True, autoretry_for=(), retry_backoff=False)
+# def send_reminder(self, appointment_id, reminder_type):
+#     """Send appointment reminders with proper error handling."""
+#     try:
+#         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+#         appointment_notifications, created = AppointmentNotifications.objects.get_or_create(
+#             appointment=appointment
+#         )
+#         flag = REMINDER_FLAG_MAP.get(reminder_type)
+
+
+#         if appointment.appointment_status != "confirmed":
+#             logger.info(f"Skipping reminder: appointment {appointment_id} not confirmed.")
+#             return "Not confirmed"
+#         if appointment.start_time < timezone.now():
+#             logger.info(f"Skipping reminder: appointment {appointment_id} already started.")
+#             return "Already started"
+        
+#         updated = AppointmentNotifications.objects.filter(
+#             appointment_id=appointment_id,
+#             **{flag: False}
+#         ).update(**{flag: True})
+
+#         if updated == 0:
+#             logger.info(f"{reminder_type} already sent for {appointment_id}")
+#             return
+
+#         reminder_messages = {
+#             "one_week": "Your consultation is in one week.",
+#             "three_days": "Your consultation is in three days.",
+#             "one_day": "Your consultation is in 24 hours.",
+#             "one_hour": "Your consultation starts in one hour.",
+#             "on_time": "Your consultation has started. Please join now.",
+#         }
+
+#         message = reminder_messages.get(reminder_type, "Appointment Reminder")
+
+#         # EMAIL: Customer
+#         try:
+#             if appointment.customer.confirmation_method.lower() in ["email", "both"]:
+#                 if reminder_type == "on_time":
+#                     send_appointment_started_reminder_customer_email(appointment_id, message)
+#                 else:
+#                     send_appointment_reminder_customer_email(appointment_id, message)
+#         except Exception as e:
+#             logger.error(f"Email reminder failed for appointment {appointment_id}: {e}")
+
+#         # WHATSAPP: Customer
+#         try:
+#             if appointment.customer.confirmation_method.lower() in ["whatsapp", "both"]:
+#                 if reminder_type == "one_hour":
+#                     send_wa_consultation_reminder_1_hour_before(appointment_id)
+#                 else:
+#                     send_wa_consultation_reminder_24_hours_before(appointment_id)
+#         except Exception as e:
+#             logger.error(f"WhatsApp reminder failed for appointment {appointment_id}: {e}")
+
+#         # DOCTOR EMAIL
+#         try:
+#             if reminder_type == "on_time":
+#                 send_appointment_started_reminder_doctor_email(appointment_id, message)
+#             else:
+#                 send_appointment_reminder_doctor_email(appointment_id, message)
+#         except Exception as e:
+#             logger.error(f"Doctor email reminder failed for appointment {appointment_id}: {e}")
+
+#         # WHATSAPP: Doctor
+#         try:
+#             if reminder_type == "one_hour":
+#                 send_wa_specialist_reminder_1_hour_before(appointment_id)
+#             else:
+#                 send_wa_specialist_reminder_1_hour_before(appointment_id)
+#         except Exception as e:
+#             logger.error(f"Doctor WhatsApp reminder failed for appointment {appointment_id}: {e}")
+
+#         return f"Reminder task completed successfully for appointment {appointment_id}"
+
+#     except AppointmentHeader.DoesNotExist:
+#         logger.error(f"Appointment does not exist: {appointment_id}")
+#         return "Appointment not found"
+
+#     except Exception as e:
+#         logger.exception(f"Unhandled error in send_reminder task for appointment {appointment_id}: {e}")
+#         return f"Failed: {str(e)}"
+
+# @shared_task
+# def schedule_all_reminders(appointment_id):
+#     """Schedule all reminders with proper error handling."""
+#     try:
+#         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+#         notifications, created = AppointmentNotifications.objects.get_or_create(appointment=appointment)
+#         if created or not notifications.appointment_reminders_scheduled:
+#             notifications.appointment_reminders_scheduled = True
+#             notifications.save()
+#         else:
+#             logger.info(f"Reminders already scheduled for appointment {appointment_id}")
+#             return "Reminders already scheduled"
+#         start_time = appointment.start_time
+#         now = timezone.now()
+
+#         reminder_offsets = [
+#             ("one_week", timedelta(days=7)),
+#             ("three_days", timedelta(days=3)),
+#             ("one_day", timedelta(days=1)),
+#             ("one_hour", timedelta(hours=1)),
+#             ("on_time", timedelta(seconds=0)),
+#         ]
+
+#         for reminder_name, offset in reminder_offsets:
+#             try:
+#                 reminder_time = start_time - offset
+#                 if reminder_time > now:
+#                     send_reminder.apply_async(
+#                         (appointment_id, reminder_name),
+#                         eta=reminder_time
+#                     )
+#                     logger.info(f"Scheduled {reminder_name} reminder for appointment {appointment_id}")
+#             except Exception as e:
+#                 logger.error(f"Error scheduling {reminder_name} reminder for appointment {appointment_id}: {str(e)}")
+        
+#         return "All reminders scheduled successfully"
+    
+#     except AppointmentHeader.DoesNotExist:
+#         logger.error(f"Appointment does not exist: {appointment_id}")
+#         return "Appointment not found"
+#     except Exception as e:
+#         logger.error(f"Error in schedule_all_reminders for appointment {appointment_id}: {str(e)}")
+#         return f"Error scheduling reminders: {str(e)}"
+
+
+
+REMINDER_FLAG_MAP = {
+    "one_week": "one_week_reminder_sent",
+    "three_days": "three_days_reminder_sent",
+    "one_day": "one_day_reminder_sent",
+    "one_hour": "one_hour_reminder_sent",
+    "on_time": "on_time_reminder_sent",
+}
 
 @shared_task(bind=True, autoretry_for=(), retry_backoff=False)
 def send_reminder(self, appointment_id, reminder_type):
-    """Send appointment reminders with proper error handling."""
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
 
+        flag = REMINDER_FLAG_MAP.get(reminder_type)
+        if not flag:
+            logger.error(f"Invalid reminder_type '{reminder_type}' for appointment {appointment_id}")
+            return "Invalid reminder type"
+
+        # 1️⃣ Validate appointment state FIRST
         if appointment.appointment_status != "confirmed":
             logger.info(f"Skipping reminder: appointment {appointment_id} not confirmed.")
             return "Not confirmed"
+
         if appointment.start_time < timezone.now():
             logger.info(f"Skipping reminder: appointment {appointment_id} already started.")
             return "Already started"
 
+        # 2️⃣ Atomically claim reminder (idempotency guard)
+        updated = AppointmentNotifications.objects.filter(
+            appointment_id=appointment_id,
+            **{flag: False}
+        ).update(**{flag: True})
+
+        if updated == 0:
+            logger.info(f"{reminder_type} already sent for appointment {appointment_id}")
+            return "Already sent"
+
+        # 3️⃣ Prepare message
         reminder_messages = {
             "one_week": "Your consultation is in one week.",
             "three_days": "Your consultation is in three days.",
@@ -256,60 +420,67 @@ def send_reminder(self, appointment_id, reminder_type):
 
         message = reminder_messages.get(reminder_type, "Appointment Reminder")
 
-        # EMAIL: Customer
+        # 4️⃣ Notifications (best-effort)
         try:
             if appointment.customer.confirmation_method.lower() in ["email", "both"]:
                 if reminder_type == "on_time":
                     send_appointment_started_reminder_customer_email(appointment_id, message)
                 else:
                     send_appointment_reminder_customer_email(appointment_id, message)
-        except Exception as e:
-            logger.error(f"Email reminder failed for appointment {appointment_id}: {e}")
+        except Exception:
+            logger.exception(f"Customer email reminder failed for {appointment_id}")
 
-        # WHATSAPP: Customer
         try:
             if appointment.customer.confirmation_method.lower() in ["whatsapp", "both"]:
                 if reminder_type == "one_hour":
                     send_wa_consultation_reminder_1_hour_before(appointment_id)
                 else:
                     send_wa_consultation_reminder_24_hours_before(appointment_id)
-        except Exception as e:
-            logger.error(f"WhatsApp reminder failed for appointment {appointment_id}: {e}")
+        except Exception:
+            logger.exception(f"Customer WhatsApp reminder failed for {appointment_id}")
 
-        # DOCTOR EMAIL
         try:
             if reminder_type == "on_time":
                 send_appointment_started_reminder_doctor_email(appointment_id, message)
             else:
                 send_appointment_reminder_doctor_email(appointment_id, message)
-        except Exception as e:
-            logger.error(f"Doctor email reminder failed for appointment {appointment_id}: {e}")
+        except Exception:
+            logger.exception(f"Doctor email reminder failed for {appointment_id}")
 
-        # WHATSAPP: Doctor
         try:
-            if reminder_type == "one_hour":
-                send_wa_specialist_reminder_1_hour_before(appointment_id)
-            else:
-                send_wa_specialist_reminder_1_hour_before(appointment_id)
-        except Exception as e:
-            logger.error(f"Doctor WhatsApp reminder failed for appointment {appointment_id}: {e}")
+            send_wa_specialist_reminder_1_hour_before(appointment_id)
+        except Exception:
+            logger.exception(f"Doctor WhatsApp reminder failed for {appointment_id}")
 
-        return f"Reminder task completed successfully for appointment {appointment_id}"
+        return f"Reminder {reminder_type} completed for appointment {appointment_id}"
 
     except AppointmentHeader.DoesNotExist:
         logger.error(f"Appointment does not exist: {appointment_id}")
         return "Appointment not found"
 
-    except Exception as e:
-        logger.exception(f"Unhandled error in send_reminder task for appointment {appointment_id}: {e}")
-        return f"Failed: {str(e)}"
+    except Exception:
+        logger.exception(f"Unhandled error in send_reminder for appointment {appointment_id}")
+        return "Failed"
 
+from django.db import transaction
 
 @shared_task
 def schedule_all_reminders(appointment_id):
-    """Schedule all reminders with proper error handling."""
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
+
+        with transaction.atomic():
+            notifications, _ = AppointmentNotifications.objects.select_for_update().get_or_create(
+                appointment=appointment
+            )
+
+            if notifications.appointment_reminders_scheduled:
+                logger.info(f"Reminders already scheduled for {appointment_id}")
+                return "Reminders already scheduled"
+
+            notifications.appointment_reminders_scheduled = True
+            notifications.save(update_fields=["appointment_reminders_scheduled"])
+
         start_time = appointment.start_time
         now = timezone.now()
 
@@ -318,30 +489,29 @@ def schedule_all_reminders(appointment_id):
             ("three_days", timedelta(days=3)),
             ("one_day", timedelta(days=1)),
             ("one_hour", timedelta(hours=1)),
-            ("on_time", timedelta(seconds=0)),
+            ("on_time", timedelta(minutes=1)),  # ✅ safer
         ]
 
         for reminder_name, offset in reminder_offsets:
-            try:
-                reminder_time = start_time - offset
-                if reminder_time > now:
-                    send_reminder.apply_async(
-                        (appointment_id, reminder_name),
-                        eta=reminder_time
-                    )
-                    logger.info(f"Scheduled {reminder_name} reminder for appointment {appointment_id}")
-            except Exception as e:
-                logger.error(f"Error scheduling {reminder_name} reminder for appointment {appointment_id}: {str(e)}")
-        
+            reminder_time = start_time - offset
+            if reminder_time > now:
+                task = send_reminder.apply_async(
+                    (appointment_id, reminder_name),
+                    eta=reminder_time
+                )
+                logger.info(
+                    f"Scheduled {reminder_name} for appointment {appointment_id}, task_id={task.id}"
+                )
+
         return "All reminders scheduled successfully"
-    
+
     except AppointmentHeader.DoesNotExist:
         logger.error(f"Appointment does not exist: {appointment_id}")
         return "Appointment not found"
-    except Exception as e:
-        logger.error(f"Error in schedule_all_reminders for appointment {appointment_id}: {str(e)}")
-        return f"Error scheduling reminders: {str(e)}"
 
+    except Exception as e:
+        logger.exception(f"Error scheduling reminders for appointment {appointment_id}")
+        return str(e)
 
 from .models import Reminder_Sent_History
 from analysis.models import Meeting_Tracker
