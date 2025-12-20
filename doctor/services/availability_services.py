@@ -197,12 +197,15 @@ def edit_availability_block(data):
     end_time_utc = convert_doctor_request_datetime_to_utc(date , end_time_str, doctor_profile)
     old_start_time_utc = convert_local_dt_to_utc(old_start_time_str, doctor_profile.time_zone)
 
-    if DoctorAppointment.objects.filter(
+    existing_appointments = DoctorAppointment.objects.filter(
         doctor=doctor_profile,
         appointment__appointment_status__in=["confirmed"],
         start_time__gte=old_start_time_utc
-    ).exists():
-        raise Exception("Cannot edit block with confirmed appointments")
+    )
+
+    if existing_appointments:
+        appointment_ids = str([appt.appointment.appointment_id for appt in existing_appointments])  
+        raise Exception(f"Cannot edit block with confirmed appointments {appointment_ids}")
     
     try:
         block = DoctorAvailableHours.objects.get(
