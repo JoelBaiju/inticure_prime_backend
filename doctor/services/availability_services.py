@@ -200,7 +200,8 @@ def edit_availability_block(data):
     existing_appointments = DoctorAppointment.objects.filter(
         doctor=doctor_profile,
         appointment__appointment_status__in=["confirmed"],
-        start_time__gte=old_start_time_utc
+        start_time__gte=old_start_time_utc,
+        start_time__lt=end_time_utc
     )
 
     if existing_appointments:
