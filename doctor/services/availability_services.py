@@ -205,7 +205,7 @@ def edit_availability_block(data):
 
     if existing_appointments:
         appointment_ids = str([appt.appointment.appointment_id for appt in existing_appointments])  
-        raise Exception(f"Cannot edit block with confirmed appointments {appointment_ids}")
+        raise Exception(f"Cannot edit block with confirmed appointments {appointment_ids} , tried to edit block starting at {old_start_time_str} in timezone {doctor_profile.time_zone} , {old_start_time_utc} in utc to new time {start_time_str} - {end_time_str} in timezone {doctor_profile.time_zone} , {start_time_utc} - {end_time_utc} in utc")
     
     try:
         block = DoctorAvailableHours.objects.get(
