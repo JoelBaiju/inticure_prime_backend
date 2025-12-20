@@ -90,7 +90,8 @@ def whatsapp_api_handler(to_phone, template_name, body_parameters, button_parame
     """
     ACCESS_TOKEN = settings.WHATSAPP_ACCESS_TOKEN
     PHONE_NUMBER_ID = settings.WHATSAPP_PHONE_NUMBER_ID
-    
+    logger.error(f"WA TOKEN DEBUG: {repr(ACCESS_TOKEN)} | len={len(ACCESS_TOKEN) if ACCESS_TOKEN else 0}")
+
     url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
     
     headers = {
