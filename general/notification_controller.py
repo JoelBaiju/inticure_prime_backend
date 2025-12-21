@@ -382,6 +382,8 @@ REMINDER_FLAG_MAP = {
 
 @shared_task(bind=True, autoretry_for=(), retry_backoff=False)
 def send_reminder(self, appointment_id, reminder_type):
+
+    print("send_reminder task called")
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
 
@@ -390,7 +392,6 @@ def send_reminder(self, appointment_id, reminder_type):
             logger.error(f"Invalid reminder_type '{reminder_type}' for appointment {appointment_id}")
             return "Invalid reminder type"
 
-        # 1️⃣ Validate appointment state FIRST
         if appointment.appointment_status != "confirmed":
             logger.info(f"Skipping reminder: appointment {appointment_id} not confirmed.")
             return "Not confirmed"
@@ -426,7 +427,6 @@ def send_reminder(self, appointment_id, reminder_type):
 
         message = reminder_messages.get(reminder_type, "Appointment Reminder")
 
-        # 4️⃣ Notifications (best-effort)
         try:
             if appointment.customer.confirmation_method.lower() in ["email", "both"]:
                 if reminder_type == "on_time":
@@ -495,19 +495,28 @@ def schedule_all_reminders(appointment_id):
             ("three_days", timedelta(days=3)),
             ("one_day", timedelta(days=1)),
             ("one_hour", timedelta(hours=1)),
-            ("on_time", timedelta(minutes=1)),  # ✅ safer
+            ("on_time", timedelta(minutes=1)),  
         ]
 
-        for reminder_name, offset in reminder_offsets:
-            reminder_time = start_time - offset
-            if reminder_time > now:
-                task = send_reminder.apply_async(
-                    (appointment_id, reminder_name),
-                    eta=reminder_time
-                )
-                logger.info(
-                    f"Scheduled {reminder_name} for appointment {appointment_id}, task_id={task.id}"
-                )
+        # for reminder_name, offset in reminder_offsets:
+        #     reminder_time = start_time - offset
+        #     if reminder_time > now:
+        #         task = send_reminder.apply_async(
+        #             (appointment_id, reminder_name),
+        #             eta=reminder_time
+        #         )
+        #         logger.info(
+        #             f"Scheduled {reminder_name} for appointment {appointment_id}, task_id={task.id}"
+        #         )
+
+        task = send_reminder.apply_async(
+                (appointment_id, "one_hour"),
+                eta=now
+            )
+        logger.info(
+            f"Scheduled one_hour for appointment {appointment_id}, task_id={task.id}"
+        )
+
 
         return "All reminders scheduled successfully"
 

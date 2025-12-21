@@ -40,6 +40,7 @@ def send_email_and_track(to_email, subject, html_content, user=None, appointment
     Central helper to send email via SendGrid (or SMTP if you change it) and then track it.
     Returns whatever the underlying send function returns (to preserve existing behavior).
     """
+    print("inside send_email_and_track function")
     try:
         response = send_email_via_sendgrid(subject, html_content, to_email)
 
@@ -67,6 +68,7 @@ def _render_and_send_email(template_name, subject, to_email, context, user=None,
     Renders the HTML content with `render_to_string` (keeping all context keys intact)
     and calls send_email_and_track.
     """
+    print("inside _render_and_send_email function")
     try:
         html_content = render_to_string(template_name, context)
         return send_email_and_track(to_email, subject, html_content, user=user, appointment=appointment, user_is_customer=user_is_customer)
@@ -485,11 +487,13 @@ def send_doctor_status_email(doctor_id):
 # ---------------------------------------------------------------------
 def send_appointment_reminder_customer_email(appointment_id, message):
     """Send and track appointment reminder email to customer"""
+    print("send_appointment_reminder_customer_email called")
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
         appointment_customers = appointment.appointment_customers.all()
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
         for customer in appointment_customers:
+            print("inside for loop of customers")
             meeting_link = get_meeting_link_for_customer(meeting_tracker, customer.customer)
             start_time = convert_utc_to_local_return_dt(appointment.start_time, customer.customer.time_zone)
             context = {
