@@ -1003,7 +1003,7 @@ def send_wa_consultation_reminder_1_hour_before (appointment_id):
             button_parameters = [
                 {
                     "type": "text",
-                    "text": meet_code
+                    "text": str(meet_code)
                 }
             ]
             to_phone = f"{customer.customer.country_code}{customer.customer.whatsapp_number}"
