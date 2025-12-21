@@ -521,7 +521,7 @@ def schedule_all_reminders(appointment_id):
                     eta=now
                 )
                 logger.info(
-                    f"Scheduled {reminder_name} for appointment {appointment_id}, task_id={task.id}"
+                    f"Scheduled {reminder_name} for appointment {appointment_id}, task_id={task.id} , at {reminder_time}"
                 )
 
 
