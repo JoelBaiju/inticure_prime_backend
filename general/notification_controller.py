@@ -383,7 +383,7 @@ REMINDER_FLAG_MAP = {
 @shared_task(bind=True, autoretry_for=(), retry_backoff=False)
 def send_reminder(self, appointment_id, reminder_type):
 
-    print("send_reminder task called")
+    logger.info("send_reminder task called")
     try:
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
 
@@ -473,6 +473,7 @@ from django.db import transaction
 @shared_task
 def schedule_all_reminders(appointment_id):
     try:
+        logger.info("schedule_all_reminders task called")
         appointment = AppointmentHeader.objects.get(appointment_id=appointment_id)
 
         with transaction.atomic():
