@@ -399,17 +399,23 @@ def send_reminder(self, appointment_id, reminder_type):
             logger.info(f"Skipping reminder: appointment {appointment_id} already started.")
             return "Already started"
 
-        # 2️⃣ Atomically claim reminder (idempotency guard)
-        updated = AppointmentNotifications.objects.filter(
-            appointment_id=appointment_id,
-            **{flag: False}
-        ).update(**{flag: True})
 
-        if updated == 0:
-            logger.info(f"{reminder_type} already sent for appointment {appointment_id}")
-            return "Already sent"
 
-        # 3️⃣ Prepare message
+        from django.db import transaction
+
+        with transaction.atomic():
+            notif = (
+                AppointmentNotifications.objects
+                .select_for_update()
+                .get(appointment_id=appointment_id)
+            )
+
+            if getattr(notif, flag):
+                return "Already sent"
+
+            setattr(notif, flag, True)
+            notif.save()
+
         reminder_messages = {
             "one_week": "Your consultation is in one week.",
             "three_days": "Your consultation is in three days.",
