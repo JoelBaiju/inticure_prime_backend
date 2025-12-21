@@ -430,7 +430,7 @@ def send_reminder(self, appointment_id, reminder_type):
         try:
             if appointment.customer.confirmation_method.lower() in ["email", "both"]:
                 if reminder_type == "on_time":
-                    send_appointment_started_reminder_customer_email(appointment_id, message)
+                    send_appointment_started_reminder_customer_email(appointment_id)
                 else:
                     send_appointment_reminder_customer_email(appointment_id, message)
         except Exception:
@@ -447,7 +447,7 @@ def send_reminder(self, appointment_id, reminder_type):
 
         try:
             if reminder_type == "on_time":
-                send_appointment_started_reminder_doctor_email(appointment_id, message)
+                send_appointment_started_reminder_doctor_email(appointment_id)
             else:
                 send_appointment_reminder_doctor_email(appointment_id, message)
         except Exception:

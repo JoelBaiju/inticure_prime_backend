@@ -757,6 +757,7 @@ def send_wa_first_consultation_confirmation(appointment_id):
         meeting_tracker = Meeting_Tracker.objects.get(appointment=appointment)
         meet_code       = meeting_tracker.customer_1_meeting_id
 
+
     except AppointmentHeader.DoesNotExist:
         logger.error(f"Appointment does not exist.for id {appointment_id}")
         return "Appointment does not exist."
@@ -953,7 +954,7 @@ def send_wa_consultation_reminder_24_hours_before(appointment_id):
             button_parameters = [
                 {
                     "type": "text",
-                    "text": meet_code
+                    "text": str(meet_code)
                 }
             ]
 
@@ -1046,7 +1047,7 @@ def send_wa_specialist_reminder_1_hour_before(appointment_id):
         button_parameters = [
             {
                 "type": "text",
-                "text": tracker.doctor_meeting_id
+                "text": str(tracker.doctor_meeting_id) if tracker.doctor_meeting_id else ""
             }
         ]
 
