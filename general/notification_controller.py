@@ -499,17 +499,31 @@ def schedule_all_reminders(appointment_id):
             ("on_time", timedelta(minutes=1)),  
         ]
 
+        # for reminder_name, offset in reminder_offsets:
+        #     logger.debug(f"Scheduling {reminder_name} for appointment {appointment_id}")
+        #     reminder_time = start_time - offset
+        #     if reminder_time > now:
+        #         task = send_reminder.apply_async(
+        #             (appointment_id, reminder_name),
+        #             eta=reminder_time
+        #         )
+        #         logger.info(
+        #             f"Scheduled {reminder_name} for appointment {appointment_id}, task_id={task.id}"
+        #         )
+
+
         for reminder_name, offset in reminder_offsets:
             logger.debug(f"Scheduling {reminder_name} for appointment {appointment_id}")
             reminder_time = start_time - offset
             if reminder_time > now:
                 task = send_reminder.apply_async(
                     (appointment_id, reminder_name),
-                    eta=reminder_time
+                    eta=now
                 )
                 logger.info(
                     f"Scheduled {reminder_name} for appointment {appointment_id}, task_id={task.id}"
                 )
+
 
         # task = send_reminder.apply_async(
         #         (appointment_id, "one_hour"),
