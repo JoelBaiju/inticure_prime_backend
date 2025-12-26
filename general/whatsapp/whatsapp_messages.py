@@ -1044,19 +1044,19 @@ def send_wa_specialist_reminder_1_hour_before(appointment_id):
         ]
 
 
-        button_parameters = [
-            {
-                "type": "text",
-                "text": str(tracker.doctor_meeting_id) if tracker.doctor_meeting_id else ""
-            }
-        ]
+        # button_parameters = [
+        #     {
+        #         "type": "text",
+        #         "text": str(tracker.doctor_meeting_id) if tracker.doctor_meeting_id else ""
+        #     }
+        # ]
 
         to_phone = f"{appointment.doctor.whatsapp_country_code}{appointment.doctor.whatsapp_number}"
         return send_and_track(
             to_phone=to_phone,
             template_name="specialist_reminder_1_hour_before",
             parameters=parameters,
-            button_parameters=button_parameters,
+            button_parameters=None,
             user=appointment.doctor.user,
             appointment=appointment,
             user_is_customer=False
@@ -1096,7 +1096,7 @@ def send_wa_specialist_reminder_24_hour_before(appointment_id):
         )
 
     except Exception as e:
-        logger.error(f"wa_specialist_reminder 1 hour before error for appointment id {appointment_id} {e}" )
+        logger.error(f"wa_specialist_reminder 24 hour before error for appointment id {appointment_id} {e}" )
         return "Message not sent"
 
 
