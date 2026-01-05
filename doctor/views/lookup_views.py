@@ -52,9 +52,9 @@ def get_all_specializations(request):
             specializations = Specializations.objects.filter(
                 double_session_duration__isnull=False,
                 double_session_duration__gt=timedelta(seconds=0)
-            )
+            ).exclude(specialization="No Specialization")
         else:
-            specializations = Specializations.objects.all()
+            specializations = Specializations.objects.all().exclude(specialization="No Specialization")
         serializer = SpecializationsSerializer(specializations, many=True)
         for specialization in serializer.data:
             specialization['is_doctor_available'] = is_doctor_available_in_specialization(
