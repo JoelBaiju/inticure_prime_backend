@@ -21,6 +21,7 @@ urlpatterns = [
     path('available_dates/',Available_dates.as_view()),
 
     path('edit_available_hours/', edit_available_hours_view, name='add-available-hours'),
+    path('delete_available_hours/', delete_available_hours_view, name='delete-available-hours'),
 
     path("dashboard/", DoctorDashboardView.as_view(), name="available-slots"),
 

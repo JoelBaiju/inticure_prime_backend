@@ -37,6 +37,7 @@ def get_available_hours(doctor_profile, date_str=None):
             "start_date_time": convert_utc_to_local_return_dt(entry.start_time, doctor_profile.time_zone),
             "start_time": convert_utc_to_local_return_dt(entry.start_time, doctor_profile.time_zone).time(),
             "end_time": convert_utc_to_local_return_dt(entry.end_time, doctor_profile.time_zone).time(),
+            "availability_id": entry.id,
         }
         for entry in hours_qs
     ]
@@ -223,3 +224,27 @@ def edit_availability_block(data):
 
     return {
         "message": "Availability block updated successfully.",}
+
+
+
+
+
+def delete_availability_block(data):
+    availability_id = data.get("availability_id")
+    doctor_id = data.get("doctor_id")
+    availability_block = DoctorAvailableHours.objects.filter(
+        id=availability_id)
+    
+    appointment = DoctorAppointment.objects.filter(
+        doctor__doctor_profile_id=doctor_id,
+        appointment__appointment_status__in=["confirmed"],
+        start_time__gte=availability_block.first().start_time,
+        start_time__lt=availability_block.first().end_time  
+    )
+    if appointment.exists():
+        appointment_ids = str([appt.appointment.appointment_id for appt in appointment])  
+        raise Exception(f"Cannot delete block with confirmed appointments {appointment_ids} ")
+    else:
+        availability_block.delete()
+    return {
+        "message": "Availability block deleted successfully.",}

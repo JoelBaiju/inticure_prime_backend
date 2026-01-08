@@ -8,7 +8,7 @@ from ..serializers import *
 from rest_framework.permissions import IsAuthenticated
 from ..services.crud_services import create_new_appointment_service
 from rest_framework.decorators import api_view, permission_classes
-from ..services.availability_services import edit_availability_block
+from ..services.availability_services import delete_availability_block, edit_availability_block
 from django.utils import timezone
 from datetime import timedelta
 
@@ -173,7 +173,18 @@ def edit_available_hours_view(request):
         return Response({"error": str(e)}, status=400)
     
 
-
+def delete_available_hours_view(request):
+    try:
+        doctor = DoctorProfiles.objects.get(user=request.user)
+        request.data["doctor_id"] = doctor.doctor_profile_id
+        data = delete_availability_block(request.data)       
+        return Response({"message": "Availability block deleted successfully"}, status=200)
+    except DoctorProfiles.DoesNotExist:
+        return Response({"error": "Doctor not found"}, status=404)
+    except DoctorAvailableHours.DoesNotExist:
+        return Response({"error": "Availability block not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
 
 
 from django.utils import timezone
