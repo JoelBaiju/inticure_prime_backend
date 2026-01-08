@@ -197,7 +197,7 @@ LOGGING = {
 
 
 
-
+    
 
 from decouple import config
 
@@ -207,7 +207,9 @@ from decouple import config
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-ENV = config('ENV')
+
+ENV = config('ENV', default='ci')
+
 
 if ENV == "dev":
     DATABASES = {
@@ -386,7 +388,6 @@ CELERY_TASK_SERIALIZER = "json"
 FRONT_END_SUCCESS_URL= config('FRONT_END_SUCCESS_URL')
 FRONT_END_FAILIURE_URL = config('FRONT_END_FAILIURE_URL')
 FRONT_END_URL = config('FRONT_END_URL')
-ENV = config('ENV')
 
 BACKEND_URL = config('BACKEND_URL')
 WKHTMLTOPDF_PATH = config("WKHTMLTOPDF_PATH")
