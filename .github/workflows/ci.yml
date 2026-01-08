@@ -26,14 +26,14 @@ jobs:
 
     - name: Django system check
       env:
-        DJANGO_SETTINGS_MODULE: your_project.settings
+        DJANGO_SETTINGS_MODULE: inticure_prime_backend.settings
         SECRET_KEY: dummy-secret-key
       run: |
         python manage.py check
 
     - name: Check migrations
       env:
-        DJANGO_SETTINGS_MODULE: your_project.settings
+        DJANGO_SETTINGS_MODULE: inticure_prime_backend.settings
         SECRET_KEY: dummy-secret-key
       run: |
         python manage.py makemigrations --check --dry-run
